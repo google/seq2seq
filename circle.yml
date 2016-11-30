@@ -1,6 +1,6 @@
 dependencies:
   override:
-    - pip install tox tox-pyenv
+    - pip install tox tox-pyenv pylint
     - pyenv local 2.7.10 3.5.1
 
 test:
