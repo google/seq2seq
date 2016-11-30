@@ -4,8 +4,5 @@
 
 ## Running Tests
 
-From the root directory, run (for example):
-
-```bash
-python -m seq2seq.test.inputs_test
-```
+1. Instlal tox (`pip install tox`)
+2. From the root directory, run `tox`.
