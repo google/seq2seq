@@ -1,3 +1,9 @@
 machine:
   python:
     version: 3.5.2
+  post:
+    - pyenv global 2.7.9 3.5.2
+
+test:
+  pre:
+    - pylint seq2seq
