@@ -90,6 +90,8 @@ def generate_examples(source_file, target_file):
         yield build_example(i, source, target)
 
 def main(unused_argv):
+  """Main function.
+  """
   #pylint: disable=unused-argument
   examples = generate_examples(
     FLAGS.source_file, FLAGS.target_file)
