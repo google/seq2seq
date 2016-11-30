@@ -2,3 +2,7 @@ dependencies:
   override:
     - pip install tox tox-pyenv
     - pyenv local 2.7.10 3.5.1
+
+notify:
+  webhooks:
+    - url: https://webhooks.gitter.im/e/3e39fb29521e82ee001d
