@@ -52,6 +52,9 @@ def create_next_input_fn_for_test(source, target):
   """
   file = create_temp_tfrecords(source, target)
   def next_input_fn():
+    """
+    The input function that is returned.
+    """
     data_provider = inputs.make_data_provider([file.name], num_epochs=None)
     return inputs.read_from_data_provider(data_provider)
 
