@@ -1,0 +1,4 @@
+numpy
+tensorflow
+pylint
+nose

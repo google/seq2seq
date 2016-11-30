@@ -7,7 +7,7 @@ import tensorflow as tf
 import numpy as np
 
 from seq2seq import inputs
-from seq2seq.test import test_utils
+from seq2seq.test import utils as test_utils
 
 class ReadFromDataProviderTest(tf.test.TestCase):
   """
