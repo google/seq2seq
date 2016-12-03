@@ -36,3 +36,8 @@ class GraphModule(object):
   def __call__(self, *args, **kwargs):
     # pylint: disable=missing-docstring
     return self._template(*args, **kwargs)
+
+  def variable_scope(self):
+    """Returns the proper variable scope for this module.
+    """
+    return tf.variable_scope(self._template.var_scope)
