@@ -35,7 +35,7 @@ class AttentionDecoder(DecoderBase):
 
     # By default, choose the highest logit score as the prediction
     if not prediction_fn:
-      self.prediction_fn = lambda logits: tf.argmax(logits, 1)
+      self.prediction_fn = lambda logits: tf.stop_gradient(tf.argmax(logits, 1))
 
   @staticmethod
   def _pack_outputs(outputs_ta, final_loop_state):
@@ -65,7 +65,6 @@ class AttentionDecoder(DecoderBase):
     logits = tf.contrib.layers.fully_connected(
       inputs=softmax_input, num_outputs=self.vocab_size, activation_fn=None, scope="logits")
     predictions = self.prediction_fn(logits)
-    predictions = tf.stop_gradient(predictions)
     outputs = DecoderOutput(logits, predictions)
 
     if initial_call:

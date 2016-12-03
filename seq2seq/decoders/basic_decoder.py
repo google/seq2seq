@@ -21,7 +21,7 @@ class BasicDecoder(DecoderBase):
 
     # By default, choose the highest logit score as the prediction
     if not prediction_fn:
-      self.prediction_fn = lambda logits: tf.argmax(logits, 1)
+      self.prediction_fn = lambda logits: tf.stop_gradient(tf.argmax(logits, 1))
 
   def _step(self, time_, cell_output, cell_state, loop_state, next_input_fn):
     initial_call = (cell_output is None)
@@ -38,7 +38,6 @@ class BasicDecoder(DecoderBase):
         predictions=tf.zeros([], dtype=tf.int64))
     else:
       predictions = self.prediction_fn(logits)
-      predictions = tf.stop_gradient(predictions)
       outputs = DecoderOutput(logits, predictions)
 
     next_input = next_input_fn(time_, (None if initial_call else cell_output),
