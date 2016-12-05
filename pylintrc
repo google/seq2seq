@@ -65,7 +65,7 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=long-suffix,standarderror-builtin,indexing-exception,delslice-method,unichr-builtin,dict-view-method,parameter-unpacking,unicode-builtin,cmp-builtin,intern-builtin,round-builtin,backtick,nonzero-method,xrange-builtin,coerce-method,raw_input-builtin,old-division,filter-builtin-not-iterating,old-octal-literal,input-builtin,map-builtin-not-iterating,buffer-builtin,basestring-builtin,zip-builtin-not-iterating,using-cmp-argument,unpacking-in-except,old-raise-syntax,coerce-builtin,dict-iter-method,hex-method,range-builtin-not-iterating,useless-suppression,cmp-method,print-statement,reduce-builtin,file-builtin,long-builtin,getslice-method,execfile-builtin,no-absolute-import,metaclass-assignment,oct-method,reload-builtin,import-star-module-level,suppressed-message,apply-builtin,raising-string,next-method-called,setslice-method,old-ne-operator
+disable=long-suffix,standarderror-builtin,indexing-exception,delslice-method,unichr-builtin,dict-view-method,parameter-unpacking,unicode-builtin,cmp-builtin,intern-builtin,round-builtin,backtick,nonzero-method,xrange-builtin,coerce-method,raw_input-builtin,old-division,filter-builtin-not-iterating,old-octal-literal,input-builtin,map-builtin-not-iterating,buffer-builtin,basestring-builtin,zip-builtin-not-iterating,using-cmp-argument,unpacking-in-except,old-raise-syntax,coerce-builtin,dict-iter-method,hex-method,range-builtin-not-iterating,useless-suppression,cmp-method,print-statement,reduce-builtin,file-builtin,long-builtin,getslice-method,execfile-builtin,no-absolute-import,metaclass-assignment,oct-method,reload-builtin,import-star-module-level,suppressed-message,apply-builtin,raising-string,next-method-called,setslice-method,old-ne-operator,arguments-differ,wildcard-import,locally-disabled
 
 
 [REPORTS]
@@ -287,7 +287,7 @@ ignored-classes=optparse.Values,thread._local,_thread._local
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E1101 when accessed. Python regular
 # expressions are accepted.
-generated-members=
+generated-members=set_shape
 
 # List of decorators that produce context managers, such as
 # contextlib.contextmanager. Add to this list to register other decorators that
@@ -302,7 +302,7 @@ init-import=no
 
 # A regular expression matching the name of dummy variables (i.e. expectedly
 # not used).
-dummy-variables-rgx=(_+[a-zA-Z0-9]*?$)|dummy
+dummy-variables-rgx=(_+[a-zA-Z0-9_]*?$)|dummy
 
 # List of additional names supposed to be defined in builtins. Remember that
 # you should avoid to define new builtins when possible.
@@ -336,7 +336,7 @@ exclude-protected=_asdict,_fields,_replace,_source,_make
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=5
+max-args=8
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore
