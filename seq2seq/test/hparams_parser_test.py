@@ -22,3 +22,6 @@ class HParamsParserTest(unittest.TestCase):
     self.assertEqual(final_params["rnn_cell_type"], "GRU")
     self.assertEqual(final_params["dropout"], 0.77)
     self.assertEqual(final_params["num_layers"], 2)
+
+if __name__ == '__main__':
+  unittest.main()
