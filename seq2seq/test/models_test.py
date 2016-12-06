@@ -2,25 +2,37 @@
 Tests for Models
 """
 
-import seq2seq
 from collections import namedtuple
+
+import seq2seq
 from seq2seq.models import BasicSeq2Seq, AttentionSeq2Seq
 from seq2seq.decoders import FixedDecoderInputs, DynamicDecoderInputs
 
 import tensorflow as tf
 import numpy as np
 
-class EncoderDecoderTests(object):
+class EncoderDecoderTests(tf.test.TestCase):
+  """Base class for EncoderDecoder tests. Tests for specific classes should
+  inherit from this and tf.test.TestCase.
+  """
+
+  # Disable testing of the base class
+  __test__ = False
+
   def __init__(self):
+    super(EncoderDecoderTests).__init__()
     self.batch_size = 4
     self.vocab_size = 100
     self.input_depth = 32
     self.max_decode_length = 40
 
   def create_model(self):
+    """Creates the model class to be tested. Subclasses must implement this method.
+    """
     raise NotImplementedError
 
   def _create_example(self):
+    """Creates example data for a test"""
     source = np.random.randn(self.batch_size, self.max_decode_length, self.input_depth)
     source_len = np.random.randint(0, self.max_decode_length, [self.batch_size])
     target_len = np.random.randint(0, self.max_decode_length, [self.batch_size])
@@ -31,13 +43,14 @@ class EncoderDecoderTests(object):
     return example_(source, source_len, target, target_len, labels)
 
   def test_forward_pass(self):
+    """Tests model forward pass by checking the shape of the outputs."""
     ex = self._create_example()
     decoder_input_fn = FixedDecoderInputs(
       inputs=tf.convert_to_tensor(ex.target, dtype=tf.float32),
       sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     model = self.create_model()
-    decoder_output, log_perplexities = model._encode_decode(
+    decoder_output, log_perplexities = model._(
       source=tf.convert_to_tensor(ex.source, dtype=tf.float32),
       source_len=tf.convert_to_tensor(ex.source_len, dtype=tf.int32),
       decoder_input_fn=decoder_input_fn,
@@ -59,6 +72,8 @@ class EncoderDecoderTests(object):
 
 
   def test_inference(self):
+    """Tests model inference by feeding dynamic inputs based on an embedding
+    """
     model = self.create_model()
     ex = self._create_example()
 
@@ -72,7 +87,7 @@ class EncoderDecoderTests(object):
       initial_inputs=tf.zeros([self.batch_size, self.input_depth], dtype=tf.float32),
       make_input_fn=make_input_fn)
 
-    decoder_output, log_perplexities = model._encode_decode(
+    decoder_output, log_perplexities = model._(
       source=tf.convert_to_tensor(ex.source, dtype=tf.float32),
       source_len=tf.convert_to_tensor(ex.source_len, dtype=tf.int32),
       decoder_input_fn=decoder_input_fn,
@@ -92,13 +107,15 @@ class EncoderDecoderTests(object):
       [self.batch_size, self.max_decode_length])
 
   def test_gradients(self):
+    """Ensures the parameter gradients can be computed and are not NaN
+    """
     ex = self._create_example()
     decoder_input_fn = FixedDecoderInputs(
       inputs=tf.convert_to_tensor(ex.target, dtype=tf.float32),
       sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     model = self.create_model()
-    decoder_output, log_perplexities = model._encode_decode(
+    _, log_perplexities = model._(
       source=tf.convert_to_tensor(ex.source, dtype=tf.float32),
       source_len=tf.convert_to_tensor(ex.source_len, dtype=tf.int32),
       decoder_input_fn=decoder_input_fn,
@@ -114,11 +131,13 @@ class EncoderDecoderTests(object):
       sess.run(tf.global_variables_initializer())
       _, grads_and_vars_ = sess.run([train_op, grads_and_vars])
 
-    for grad, var in grads_and_vars_:
+    for grad, _ in grads_and_vars_:
       self.assertFalse(np.isnan(grad).any())
 
 
-class TestBasicSeq2Seq(tf.test.TestCase, EncoderDecoderTests):
+class TestBasicSeq2Seq(EncoderDecoderTests):
+  """Tests the seq2seq.models.BasicSeq2Seq model.
+  """
   def setUp(self):
     tf.test.TestCase.setUp(self)
     EncoderDecoderTests.__init__(self)
@@ -131,7 +150,9 @@ class TestBasicSeq2Seq(tf.test.TestCase, EncoderDecoderTests):
       target_vocab_info=vocab_info,
       params=BasicSeq2Seq.default_params())
 
-class TestAttentionSeq2Seq(tf.test.TestCase, EncoderDecoderTests):
+class TestAttentionSeq2Seq(EncoderDecoderTests):
+  """Tests the seq2seq.models.AttentionSeq2Seq model.
+  """
   def setUp(self):
     tf.test.TestCase.setUp(self)
     EncoderDecoderTests.__init__(self)

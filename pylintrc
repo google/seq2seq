@@ -287,7 +287,7 @@ ignored-classes=optparse.Values,thread._local,_thread._local
 # List of members which are set dynamically and missed by pylint inference
 # system, and so shouldn't trigger E1101 when accessed. Python regular
 # expressions are accepted.
-generated-members=set_shape
+generated-members=set_shape,np.float32
 
 # List of decorators that produce context managers, such as
 # contextlib.contextmanager. Add to this list to register other decorators that
@@ -343,7 +343,7 @@ max-args=8
 ignored-argument-names=_.*
 
 # Maximum number of locals for function / method body
-max-locals=15
+max-locals=30
 
 # Maximum number of return / yield for function / method body
 max-returns=6
@@ -358,7 +358,7 @@ max-statements=50
 max-parents=7
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=7
+max-attributes=10
 
 # Minimum number of public methods for a class (see R0903).
 min-public-methods=0

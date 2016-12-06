@@ -10,8 +10,11 @@ SpecialVocab = collections.namedtuple(
   ["OOV", "SEQUENCE_START", "SEQUENCE_END"])
 
 class VocabInfo(collections.namedtuple("VocbabInfo", ["path", "vocab_size", "special_vocab"])):
+  """Convenience structure for vocabulary information.
+  """
   @property
   def total_size(self):
+    """Returns size the the base vocabulary plus the size of extra vocabulary"""
     return self.vocab_size + len(self.special_vocab)
 
 

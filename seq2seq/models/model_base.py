@@ -1,9 +1,15 @@
 """Base class for models"""
 
 import tensorflow as tf
-import seq2seq
+import seq2seq.decoders
 
 class ModelBase(object):
+  """Abstract base class for models.
+
+  Args:
+    params: A dictionary of hyperparameter values
+    name: A name for this model to be used as a variable scope
+  """
   def __init__(self, params, name):
     self.name = name
     self.params = params
@@ -13,31 +19,17 @@ class ModelBase(object):
     """Returns a dictionary of default parameters for this model."""
     return {}
 
-  @classmethod
-  def from_params(cls, params):
-    """Create a new instance of this class based on a parameter dictionary.
-
-    Args:
-      params: A dictionary with string keys that contains the parameters for the model.
-       These will be added to the default parameters.
-
-    Returns:
-      An instance of this class.
-    """
-    final_params = cls.default_params().copy()
-    final_params.update(params)
-    return cls._from_params(final_params)
-
-  @staticmethod
-  def _from_params(params):
-    """Should be implemented by child classes. See `from_params`"""
-    raise NotImplementedError
-
   def __call__(self, features, labels, params, mode):
+    """Creates the model graph. See the model_fn documentation in
+    tf.contrib.learn.Estimator class for a more detailed explanation.
+    """
     with tf.variable_scope(self.name):
       return self._build(features, labels, params, mode)
 
   def _build(self, features, labels, params, mode):
+    """Subclasses should implement this method. See the model_fn documentation in
+    tf.contrib.learn.Estimator class for a more detailed explanation.
+    """
     raise NotImplementedError
 
 
@@ -45,7 +37,8 @@ class Seq2SeqBase(ModelBase):
   """Base class for seq2seq models with embeddings
 
   TODO: Do we really need to pass source/target vocab info here? It seems ugly.
-  It's mostly used to define the output size of the decoder. Maybe we can somehow put it in the features?
+  It's mostly used to define the output size of the decoder.
+  Maybe we can somehow put it in the features?
   """
   def __init__(self, source_vocab_info, target_vocab_info, params, name):
     super(Seq2SeqBase, self).__init__(params, name)
@@ -62,11 +55,13 @@ class Seq2SeqBase(ModelBase):
       "optimizer.clip_gradients": 5.0,
     }
 
-  def _encode_decode(self, source, source_len, decoder_input_fn, target_len, labels=None):
+  def encode_decode(self, source, source_len, decoder_input_fn, target_len, labels=None):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
-  def _create_predictions(self, features, labels, decoder_output, log_perplexities, mode):
+  def _create_predictions(self, features, labels, decoder_output, log_perplexities=None):
+    """Creates the dictionary of predictions that is returned by the model.
+    """
     predictions = {
       "logits": decoder_output.logits,
       "predictions": decoder_output.predictions,
@@ -97,12 +92,15 @@ class Seq2SeqBase(ModelBase):
         initial_inputs=initial_input,
         make_input_fn=lambda x: tf.nn.embedding_lookup(target_embedding, x.predictions))
       # Decode
-      decoder_output, _ = self._encode_decode(
+      decoder_output, _ = self.encode_decode(
         source=source_embedded,
         source_len=features["source_len"],
         decoder_input_fn=decoder_input_fn_infer,
         target_len=self.params["decoder.max_seq_len"])
-      predictions = self._create_predictions(features, labels, decoder_output, None, mode)
+      predictions = self._create_predictions(
+        features=features,
+        labels=-labels,
+        decoder_output=decoder_output)
       return predictions, None, None
 
     # Embed target
@@ -113,12 +111,22 @@ class Seq2SeqBase(ModelBase):
       inputs=target_embedded[:, :-1],
       sequence_length=labels["target_len"] - 1)
 
-    decoder_output, log_perplexities = self._encode_decode(
+    decoder_output = self.encode_decode(
       source=source_embedded,
       source_len=features["source_len"],
       decoder_input_fn=decoder_input_fn_train,
       target_len=labels["target_len"],
       labels=labels["target_ids"][:, 1:])
+
+    # Calculate loss per example-timestep of shape [B, T]
+    losses = seq2seq.losses.cross_entropy_sequence_loss(
+      logits=decoder_output.logits[:, :-1],
+      targets=labels,
+      sequence_length=labels["target_len"] - 1)
+
+    # Calulate per-example losses of shape [B]
+    log_perplexities = tf.div(tf.reduce_sum(
+      losses, reduction_indices=1), tf.to_float(labels["target_len"]))
 
     loss = tf.reduce_mean(log_perplexities)
 
@@ -132,9 +140,14 @@ class Seq2SeqBase(ModelBase):
     if mode == tf.contrib.learn.ModeKeys.EVAL:
       train_op = None
 
-    predictions = self._create_predictions(features, labels, decoder_output, log_perplexities, mode)
+    predictions = self._create_predictions(
+      features=features,
+      labels=labels,
+      decoder_output=decoder_output,
+      log_perplexities=log_perplexities)
 
-    # We use this collection in our monitors to print samples
+    # We add "useful" tensors to the graph collection so that we
+    # can easly find them in our hooks/monitors.
     # TODO: Is there a cleaner way to do this?
     for key, tensor in predictions.items():
       tf.add_to_collection("model_output_keys", key)

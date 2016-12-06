@@ -1,13 +1,15 @@
+"""Main script to run training and evaluation of models.
+"""
+
 #! /usr/bin/env python
 
 import os
-import tensorflow as tf
-import seq2seq
 import tempfile
+import seq2seq
 
+import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
 
-# Data
 tf.flags.DEFINE_string("data_train", None, "path to training data TFRecords")
 tf.flags.DEFINE_string("data_dev", None, "path to dev data TFRecords")
 tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
@@ -18,7 +20,9 @@ tf.flags.DEFINE_string("hparams", None, "overwrite hyperparameter values")
 tf.flags.DEFINE_string("model", "BasicSeq2Seq", "model class")
 tf.flags.DEFINE_string("output_dir", None, "directory to write to")
 tf.flags.DEFINE_integer("save_checkpoints_secs", 300, "save checkpoint every N seconds")
-tf.flags.DEFINE_string("schedule", None, "Estimator function to call, defaults to train_and_evaluate for local run")
+tf.flags.DEFINE_string("schedule", None,
+                       """Estimator function to call, defaults to
+                       train_and_evaluate for local run""")
 
 tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
 tf.flags.DEFINE_integer("eval_steps", 100, "maxmum number of eval steps")
@@ -29,6 +33,13 @@ FLAGS = tf.flags.FLAGS
 tf.logging.set_verbosity(tf.logging.INFO)
 
 def create_experiment(output_dir):
+  """
+  Creates a new Experiment instance.
+
+  Args:
+    output_dir: Will be used as the output directory for model checkpoints and summaries.
+  """
+
   # Load vocabulary info
   source_vocab_info = seq2seq.inputs.get_vocab_info(FLAGS.vocab_source)
   target_vocab_info = seq2seq.inputs.get_vocab_info(FLAGS.vocab_target)
@@ -67,6 +78,7 @@ def create_experiment(output_dir):
     params=hparams)
 
   def model_fn(features, labels, params, mode):
+    """Builds the model graph"""
     return model(features, labels, params, mode)
 
   estimator = tf.contrib.learn.estimator.Estimator(
@@ -92,6 +104,7 @@ def create_experiment(output_dir):
   return experiment
 
 def main(_argv):
+  """The entrypoint for the script"""
   if not FLAGS.output_dir:
     FLAGS.output_dir = tempfile.mkdtemp()
   learn_runner.run(

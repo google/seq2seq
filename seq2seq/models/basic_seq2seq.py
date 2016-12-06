@@ -2,12 +2,20 @@
 Definition of a basic seq2seq model
 """
 
-import tensorflow as tf
-
-import seq2seq
-from seq2seq.models import Seq2SeqBase
+import seq2seq.training
+import seq2seq.encoders
+import seq2seq.decoders
+from .model_base import Seq2SeqBase
 
 class BasicSeq2Seq(Seq2SeqBase):
+  """Basic Sequence2Sequence model with a unidirectional encoder and decoder. The last encoder
+  state is used to initialize the decoder and thus both must share the same type of RNN cell.
+
+  Args:
+    source_vocab_info: An instance of `seq2seq.inputs.VocabInfo` for the source vocabulary
+    target_vocab_info: An instance of `seq2seq.inputs.VocabInfo` for the target vocabulary
+    params: A dictionary of hyperparameters
+  """
 
   def __init__(self, source_vocab_info, target_vocab_info, params, name="basic_seq2seq"):
     super(BasicSeq2Seq, self).__init__(source_vocab_info, target_vocab_info, params, name)
@@ -24,7 +32,7 @@ class BasicSeq2Seq(Seq2SeqBase):
     })
     return params
 
-  def _encode_decode(self, source, source_len, decoder_input_fn, target_len, labels=None):
+  def encode_decode(self, source, source_len, decoder_input_fn, target_len, labels=None):
     # Create Encoder
     encoder_cell = seq2seq.training.utils.get_rnn_cell(
       cell_type=self.params["rnn_cell.type"],
@@ -48,19 +56,4 @@ class BasicSeq2Seq(Seq2SeqBase):
       initial_state=encoder_output.final_state,
       sequence_length=target_len)
 
-    if labels is None:
-      return decoder_output, None
-
-    assert target_len is not None, "Must pass both labels and target_len"
-
-    # Calculate loss per example-timestep of shape [B, T]
-    losses = seq2seq.losses.cross_entropy_sequence_loss(
-      logits=decoder_output.logits[:, :-1],
-      targets=labels,
-      sequence_length=target_len - 1)
-
-    # Calulate per-example losses of shape [B]
-    log_perplexities = tf.div(tf.reduce_sum(
-      losses, reduction_indices=1), tf.to_float(target_len))
-
-    return decoder_output, log_perplexities
+    return decoder_output

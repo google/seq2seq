@@ -1,7 +1,7 @@
 """Miscellaneous training utility functions.
 """
 
-import seq2seq
+from seq2seq.inputs import  read_from_data_provider
 import tensorflow as tf
 
 def get_rnn_cell(cell_type, num_units, num_layers=1, dropout_input_keep_prob=1.0,
@@ -18,6 +18,7 @@ def get_rnn_cell(cell_type, num_units, num_layers=1, dropout_input_keep_prob=1.0
   Returns:
     An instance of `tf.nn.rnn_cell.RNNCell`.
   """
+  #pylint: disable=redefined-variable-type
   cell_class = getattr(tf.nn.rnn_cell, cell_type)
   cell = cell_class(num_units)
 
@@ -52,7 +53,7 @@ def create_input_fn(data_provider_fn, featurizer_fn, batch_size):
   def input_fn():
     """Creates features and labels.
     """
-    features = seq2seq.inputs.read_from_data_provider(data_provider_fn())
+    features = read_from_data_provider(data_provider_fn())
     features, labels = featurizer_fn(features)
 
     # We need to merge features and labels so we can batch them together.
