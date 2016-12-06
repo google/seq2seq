@@ -11,6 +11,7 @@ class BasicDecoder(DecoderBase):
   Args:
     cell: An instance of ` tf.nn.rnn_cell.RNNCell`
     vocab_size: Output vocabulary size, i.e. number of units in the softmax layer
+    max_decode_length: Maximum length for decoding steps for each example of shape `[B]`.
     prediction_fn: Optional. A function that generates a predictions of shape `[B]` from a logits
       of shape `[B, vocab_size]`. By default, this is argmax.
   """

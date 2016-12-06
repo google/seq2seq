@@ -22,6 +22,7 @@ class AttentionDecoder(DecoderBase):
     attention_fn: The attention function to use. This function map from `(state, inputs)` to
       `(attention_scores, attention_context)`.
       For an example, see `seq2seq.decoder.attention.AttentionLayer`.
+    max_decode_length: Maximum length for decoding steps for each example of shape `[B]`.
     prediction_fn: Optional. A function that generates a predictions of shape `[B]` from a logits
       of shape `[B, vocab_size]`. By default, this is argmax.
   """
