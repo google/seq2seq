@@ -48,16 +48,7 @@ def create_experiment(output_dir):
   train_data_provider = lambda: seq2seq.inputs.make_data_provider([FLAGS.data_train])
   dev_data_provider = lambda: seq2seq.inputs.make_data_provider([FLAGS.data_dev])
 
-  # Create input functions for training and eval
-  # TOOD: Move featurizer into model. The model should know how to featurize the data
-  # for itself
-  featurizer = seq2seq.training.featurizers.Seq2SeqFeaturizer(
-    source_vocab_info, target_vocab_info)
-  train_input_fn = seq2seq.training.utils.create_input_fn(
-    train_data_provider, featurizer, FLAGS.batch_size)
-  eval_input_fn = seq2seq.training.utils.create_input_fn(
-    dev_data_provider, featurizer, FLAGS.batch_size)
-
+  # Find model class
   model_class = getattr(seq2seq.models, FLAGS.model)
 
   # Parse parameter and merge with defaults
@@ -72,10 +63,19 @@ def create_experiment(output_dir):
     tf.logging.info("%s=%s", param, value)
   tf.logging.info("=" * 50)
 
+  # Create model
   model = model_class(
     source_vocab_info=source_vocab_info,
     target_vocab_info=target_vocab_info,
     params=hparams)
+  featurizer = seq2seq.training.featurizers.Seq2SeqFeaturizer(
+    source_vocab_info, target_vocab_info)
+
+  # Create input functions
+  train_input_fn = seq2seq.training.utils.create_input_fn(
+    train_data_provider, featurizer, FLAGS.batch_size)
+  eval_input_fn = seq2seq.training.utils.create_input_fn(
+    dev_data_provider, featurizer, FLAGS.batch_size)
 
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""

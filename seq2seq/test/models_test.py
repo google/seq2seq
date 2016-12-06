@@ -19,9 +19,17 @@ class EncoderDecoderTests(tf.test.TestCase):
   def setUp(self):
     super(EncoderDecoderTests, self).setUp()
     self.batch_size = 4
-    self.vocab_size = 100
     self.input_depth = 32
     self.max_decode_length = 40
+
+    # Create vocabulary
+    self.vocab_size = 100
+    self.vocab_list = [str(_) for _ in range(self.vocab_size)]
+    self.vocab_file = seq2seq.test.utils.create_temporary_vocab_file(self.vocab_list)
+    self.vocab_info = seq2seq.inputs.get_vocab_info(self.vocab_file.name)
+
+  def tearDown(self):
+    self.vocab_file.close()
 
   def create_model(self):
     """Creates the model class to be tested. Subclasses must implement this method.
@@ -134,26 +142,19 @@ class EncoderDecoderTests(tf.test.TestCase):
       self.assertFalse(np.isnan(grad).any())
 
   def test_pipeline(self):
-    # Create vocab
-    vocab_list = [str(_) for _ in range(self.vocab_size)]
-    vocab_file = seq2seq.test.utils.create_temporary_vocab_file(vocab_list)
-    vocab_info = seq2seq.inputs.get_vocab_info(vocab_file.name)
-
     # Create source and target example
     source_len = 10
     target_len = 5
-    source = " ".join(np.random.choice(vocab_list, source_len))
-    target = " ".join(np.random.choice(vocab_list, target_len))
+    source = " ".join(np.random.choice(self.vocab_list, source_len))
+    target = " ".join(np.random.choice(self.vocab_list, target_len))
     tfrecords_file = seq2seq.test.utils.create_temp_tfrecords(source=source, target=target)
 
     # Build model graph
-    featurizer = seq2seq.training.featurizers.Seq2SeqFeaturizer(
-      source_vocab_info=vocab_info,
-      target_vocab_info=vocab_info)
+    model = self.create_model()
+    featurizer = model.create_featurizer()
     data_provider = lambda: seq2seq.inputs.make_data_provider([tfrecords_file.name])
     input_fn = seq2seq.training.utils.create_input_fn(data_provider, featurizer, self.batch_size)
     features, labels = input_fn()
-    model = self.create_model()
     predictions, loss, train_op = model(features, labels, None, tf.contrib.learn.ModeKeys.TRAIN)
 
     with self.test_session() as sess:
@@ -174,7 +175,6 @@ class EncoderDecoderTests(tf.test.TestCase):
     self.assertFalse(np.isnan(loss_))
 
     tfrecords_file.close()
-    vocab_file.close()
 
 class TestBasicSeq2Seq(EncoderDecoderTests):
   """Tests the seq2seq.models.BasicSeq2Seq model.
@@ -183,11 +183,9 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
     super(TestBasicSeq2Seq, self).setUp()
 
   def create_model(self):
-    vocab_info = seq2seq.inputs.VocabInfo(
-      "", self.vocab_size, seq2seq.inputs.get_special_vocab(self.vocab_size))
     return BasicSeq2Seq(
-      source_vocab_info=vocab_info,
-      target_vocab_info=vocab_info,
+      source_vocab_info=self.vocab_info,
+      target_vocab_info=self.vocab_info,
       params=BasicSeq2Seq.default_params())
 
 class TestAttentionSeq2Seq(EncoderDecoderTests):
@@ -200,11 +198,9 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
     self.attention_dim = 128
 
   def create_model(self):
-    vocab_info = seq2seq.inputs.VocabInfo(
-      "", self.vocab_size, seq2seq.inputs.get_special_vocab(self.vocab_size))
     return AttentionSeq2Seq(
-      source_vocab_info=vocab_info,
-      target_vocab_info=vocab_info,
+      source_vocab_info=self.vocab_info,
+      target_vocab_info=self.vocab_info,
       params=AttentionSeq2Seq.default_params())
 
 if __name__ == "__main__":

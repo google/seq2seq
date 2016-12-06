@@ -2,6 +2,7 @@
 
 import tensorflow as tf
 import seq2seq.decoders
+import seq2seq.training.featurizers
 
 class ModelBase(object):
   """Abstract base class for models.
@@ -13,6 +14,10 @@ class ModelBase(object):
   def __init__(self, params, name):
     self.name = name
     self.params = params
+
+  def create_featurizer(self):
+    """"Returns a new featurizer instance to be used by this model"""
+    raise NotImplementedError
 
   @staticmethod
   def default_params():
@@ -44,6 +49,11 @@ class Seq2SeqBase(ModelBase):
     super(Seq2SeqBase, self).__init__(params, name)
     self.source_vocab_info = source_vocab_info
     self.target_vocab_info = target_vocab_info
+
+  def create_featurizer(self):
+    return seq2seq.training.featurizers.Seq2SeqFeaturizer(
+      source_vocab_info=self.source_vocab_info,
+      target_vocab_info=self.target_vocab_info)
 
   @staticmethod
   def default_params():
