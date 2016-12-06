@@ -43,6 +43,9 @@ class ModelBase(object):
 
 class Seq2SeqBase(ModelBase):
   """Base class for seq2seq models with embeddings
+
+  TODO: Do we really need to pass source/target vocab info here? It seems ugly.
+  It's mostly used to define the output size of the decoder. Maybe we can somehow put it in the features?
   """
   def __init__(self, source_vocab_info, target_vocab_info, params, name):
     super(Seq2SeqBase, self).__init__(params, name)
