@@ -133,6 +133,48 @@ class EncoderDecoderTests(tf.test.TestCase):
     for grad, _ in grads_and_vars_:
       self.assertFalse(np.isnan(grad).any())
 
+  def test_pipeline(self):
+    # Create vocab
+    vocab_list = [str(_) for _ in range(self.vocab_size)]
+    vocab_file = seq2seq.test.utils.create_temporary_vocab_file(vocab_list)
+    vocab_info = seq2seq.inputs.get_vocab_info(vocab_file.name)
+
+    # Create source and target example
+    source_len = 10
+    target_len = 5
+    source = " ".join(np.random.choice(vocab_list, source_len))
+    target = " ".join(np.random.choice(vocab_list, target_len))
+    tfrecords_file = seq2seq.test.utils.create_temp_tfrecords(source=source, target=target)
+
+    # Build model graph
+    featurizer = seq2seq.training.featurizers.Seq2SeqFeaturizer(
+      source_vocab_info=vocab_info,
+      target_vocab_info=vocab_info)
+    data_provider = lambda: seq2seq.inputs.make_data_provider([tfrecords_file.name])
+    input_fn = seq2seq.training.utils.create_input_fn(data_provider, featurizer, self.batch_size)
+    features, labels = input_fn()
+    model = self.create_model()
+    predictions, loss, train_op = model(features, labels, None, tf.contrib.learn.ModeKeys.TRAIN)
+
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      sess.run(tf.local_variables_initializer())
+      sess.run(tf.initialize_all_tables())
+      with tf.contrib.slim.queues.QueueRunners(sess):
+        predictions_, loss_, _ = sess.run([predictions, loss, train_op])
+
+    # We have predictions for each target words and the SEQUENCE_START token.
+    # That's why it's `target_len + 1`
+    np.testing.assert_array_equal(
+      predictions_["logits"].shape,
+      [self.batch_size, target_len + 1, model.target_vocab_info.total_size])
+    np.testing.assert_array_equal(
+      predictions_["predictions"].shape,
+      [self.batch_size, target_len + 1])
+    self.assertFalse(np.isnan(loss_))
+
+    tfrecords_file.close()
+    vocab_file.close()
 
 class TestBasicSeq2Seq(EncoderDecoderTests):
   """Tests the seq2seq.models.BasicSeq2Seq model.

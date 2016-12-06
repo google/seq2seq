@@ -56,7 +56,8 @@ def create_vocabulary_lookup_table(filename, default_value=None, name=None):
   if not os.path.exists(filename):
     raise ValueError("File does not exist: {}".format(filename))
 
-  vocab_size = sum(1 for line in open(filename))
+  with open(filename) as file:
+    vocab_size = sum(1 for line in file)
 
   if default_value is None:
     default_value = vocab_size
