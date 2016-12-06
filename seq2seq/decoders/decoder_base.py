@@ -106,10 +106,6 @@ class DynamicDecoderInputs(GraphModule):
     self.initial_inputs = initial_inputs
     self.make_input_fn = make_input_fn
 
-    # with self.variable_scope():
-    #   self.batch_size = tf.identity(tf.shape(self.initial_inputs)[0], name="batch_size")
-    #   self.input_dim = tf.identity(tf.shape(self.initial_inputs)[-1], name="input_dim")
-
   def _build(self, _time_, cell_output, _cell_state, _loop_state, step_output):
     """Returns the input for the given time step.
     """
