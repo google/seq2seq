@@ -57,6 +57,8 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     result_dict = run_values.results
     result_dicts = [dict(zip(result_dict, t)) for t in zip(*result_dict.values())]
 
+    tf.logging.info("Sampling Predictions (Prediction followed by Target)")
+    tf.logging.info("=" * 100)
     for result in result_dicts:
       target_len = result["target_len"]
       predicted_slice = result["predicted_words"][:target_len]

@@ -65,15 +65,6 @@ class FixedDecoderInputs(GraphModule):
     self.inputs = inputs
     self.sequence_length = sequence_length
 
-    with tf.variable_scope(self._template.var_scope):
-      self.max_seq_len = tf.reduce_max(self.sequence_length, name="max_seq_len")
-      self.batch_size = tf.identity(tf.shape(self.inputs)[0], name="batch_size")
-      self.input_dim = tf.identity(tf.shape(self.inputs)[-1], name="input_dim")
-      self.inputs_ta = tf.TensorArray(
-        dtype=self.inputs.dtype, size=tf.shape(self.inputs)[1], name="inputs_ta")
-      self.inputs_ta = self.inputs_ta.unpack(tf.transpose(self.inputs, [1, 0, 2]))
-
-
   def _build(self, time_, *args):
     """Returns the input for the given time step.
 
@@ -84,11 +75,18 @@ class FixedDecoderInputs(GraphModule):
       A tensor of shape `[B, ...]`. When `time_` is past the maximum sequence length
       a zero tensor is fed as input for performance purposes.
     """
-    all_finished = (time_ >= self.max_seq_len)
+    max_seq_len = tf.reduce_max(self.sequence_length, name="max_seq_len")
+    batch_size = tf.identity(tf.shape(self.inputs)[0], name="batch_size")
+    input_dim = tf.identity(tf.shape(self.inputs)[-1], name="input_dim")
+    inputs_ta = tf.TensorArray(
+      dtype=self.inputs.dtype, size=tf.shape(self.inputs)[1], name="inputs_ta")
+    inputs_ta = inputs_ta.unpack(tf.transpose(self.inputs, [1, 0, 2]))
+
+    all_finished = (time_ >= max_seq_len)
     next_input = tf.cond(
       all_finished,
-      lambda: tf.zeros([self.batch_size, self.input_dim], dtype=tf.float32),
-      lambda: self.inputs_ta.read(time_))
+      lambda: tf.zeros([batch_size, input_dim], dtype=tf.float32),
+      lambda: inputs_ta.read(time_))
     next_input.set_shape([None, self.inputs.get_shape().as_list()[-1]])
     return next_input
 
@@ -108,9 +106,9 @@ class DynamicDecoderInputs(GraphModule):
     self.initial_inputs = initial_inputs
     self.make_input_fn = make_input_fn
 
-    with self.variable_scope():
-      self.batch_size = tf.identity(tf.shape(self.initial_inputs)[0], name="batch_size")
-      self.input_dim = tf.identity(tf.shape(self.initial_inputs)[-1], name="input_dim")
+    # with self.variable_scope():
+    #   self.batch_size = tf.identity(tf.shape(self.initial_inputs)[0], name="batch_size")
+    #   self.input_dim = tf.identity(tf.shape(self.initial_inputs)[-1], name="input_dim")
 
   def _build(self, _time_, cell_output, _cell_state, _loop_state, step_output):
     """Returns the input for the given time step.

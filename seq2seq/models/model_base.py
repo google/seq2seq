@@ -3,9 +3,9 @@
 import tensorflow as tf
 import seq2seq
 
-class ModelBase(seq2seq.GraphModule):
+class ModelBase(object):
   def __init__(self, params, name):
-    super(ModelBase, self).__init__(name)
+    self.name = name
     self.params = params
 
   @staticmethod
@@ -32,6 +32,10 @@ class ModelBase(seq2seq.GraphModule):
   def _from_params(params):
     """Should be implemented by child classes. See `from_params`"""
     raise NotImplementedError
+
+  def __call__(self, features, labels, params, mode):
+    with tf.variable_scope(self.name):
+      return self._build(features, labels, params, mode)
 
   def _build(self, features, labels, params, mode):
     raise NotImplementedError
@@ -128,6 +132,7 @@ class Seq2SeqBase(ModelBase):
     predictions = self._create_predictions(features, labels, decoder_output, log_perplexities, mode)
 
     # We use this collection in our monitors to print samples
+    # TODO: Is there a cleaner way to do this?
     for key, tensor in predictions.items():
       tf.add_to_collection("model_output_keys", key)
       tf.add_to_collection("model_output_values", tensor)
@@ -139,7 +144,5 @@ class Seq2SeqBase(ModelBase):
     for key, tensor in labels.items():
       tf.add_to_collection("labels_keys", key)
       tf.add_to_collection("labels_values", tensor)
-
-    # tf.add_to_collection("model_outputs", predictions)
 
     return predictions, loss, train_op
