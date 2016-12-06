@@ -19,8 +19,8 @@ class EncoderDecoderTests(tf.test.TestCase):
   # Disable testing of the base class
   __test__ = False
 
-  def __init__(self):
-    super(EncoderDecoderTests).__init__()
+  def setUp(self):
+    super(EncoderDecoderTests, self).setUp()
     self.batch_size = 4
     self.vocab_size = 100
     self.input_depth = 32
@@ -29,7 +29,7 @@ class EncoderDecoderTests(tf.test.TestCase):
   def create_model(self):
     """Creates the model class to be tested. Subclasses must implement this method.
     """
-    raise NotImplementedError
+    self.skipTest("Base module should not be tested.")
 
   def _create_example(self):
     """Creates example data for a test"""
@@ -50,19 +50,17 @@ class EncoderDecoderTests(tf.test.TestCase):
       sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     model = self.create_model()
-    decoder_output, log_perplexities = model._(
+    decoder_output = model.encode_decode(
       source=tf.convert_to_tensor(ex.source, dtype=tf.float32),
       source_len=tf.convert_to_tensor(ex.source_len, dtype=tf.int32),
       decoder_input_fn=decoder_input_fn,
-      target_len=tf.convert_to_tensor(ex.target_len, dtype=tf.int32),
-      labels=tf.convert_to_tensor(ex.labels, dtype=tf.int32))
+      target_len=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
-      decoder_output_, log_perplexities_ = sess.run([decoder_output, log_perplexities])
+      decoder_output_ = sess.run(decoder_output)
 
     # Assert shapes are correct
-    np.testing.assert_array_equal(log_perplexities_.shape, [self.batch_size])
     np.testing.assert_array_equal(
       decoder_output_.logits.shape,
       [self.batch_size, np.max(ex.target_len), model.target_vocab_info.total_size])
@@ -87,7 +85,7 @@ class EncoderDecoderTests(tf.test.TestCase):
       initial_inputs=tf.zeros([self.batch_size, self.input_depth], dtype=tf.float32),
       make_input_fn=make_input_fn)
 
-    decoder_output, log_perplexities = model._(
+    decoder_output = model.encode_decode(
       source=tf.convert_to_tensor(ex.source, dtype=tf.float32),
       source_len=tf.convert_to_tensor(ex.source_len, dtype=tf.int32),
       decoder_input_fn=decoder_input_fn,
@@ -98,7 +96,6 @@ class EncoderDecoderTests(tf.test.TestCase):
       decoder_output_ = sess.run(decoder_output)
 
     # Assert shapes are correct
-    self.assertIsNone(log_perplexities)
     np.testing.assert_array_equal(
       decoder_output_.logits.shape,
       [self.batch_size, self.max_decode_length, model.target_vocab_info.total_size])
@@ -115,14 +112,19 @@ class EncoderDecoderTests(tf.test.TestCase):
       sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     model = self.create_model()
-    _, log_perplexities = model._(
+    decoder_output = model.encode_decode(
       source=tf.convert_to_tensor(ex.source, dtype=tf.float32),
       source_len=tf.convert_to_tensor(ex.source_len, dtype=tf.int32),
       decoder_input_fn=decoder_input_fn,
-      target_len=tf.convert_to_tensor(ex.target_len, dtype=tf.int32),
-      labels=tf.convert_to_tensor(ex.labels, dtype=tf.int32))
+      target_len=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
-    mean_loss = tf.reduce_mean(log_perplexities)
+    # Get a loss to optimize
+    losses = seq2seq.losses.cross_entropy_sequence_loss(
+      logits=decoder_output.logits,
+      targets=tf.ones_like(decoder_output.predictions),
+      sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
+    mean_loss = tf.reduce_mean(losses)
+
     optimizer = tf.train.AdamOptimizer()
     grads_and_vars = optimizer.compute_gradients(mean_loss)
     train_op = optimizer.apply_gradients(grads_and_vars)
@@ -138,9 +140,11 @@ class EncoderDecoderTests(tf.test.TestCase):
 class TestBasicSeq2Seq(EncoderDecoderTests):
   """Tests the seq2seq.models.BasicSeq2Seq model.
   """
+
+  __test__ = True
+
   def setUp(self):
-    tf.test.TestCase.setUp(self)
-    EncoderDecoderTests.__init__(self)
+    super(TestBasicSeq2Seq, self).setUp()
 
   def create_model(self):
     vocab_info = seq2seq.inputs.VocabInfo(
@@ -154,8 +158,7 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
   """Tests the seq2seq.models.AttentionSeq2Seq model.
   """
   def setUp(self):
-    tf.test.TestCase.setUp(self)
-    EncoderDecoderTests.__init__(self)
+    super(TestAttentionSeq2Seq, self).setUp()
     self.encoder_rnn_cell = tf.nn.rnn_cell.LSTMCell(32)
     self.decoder_rnn_cell = tf.nn.rnn_cell.LSTMCell(32)
     self.attention_dim = 128
