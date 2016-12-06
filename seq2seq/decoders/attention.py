@@ -2,7 +2,7 @@
 """
 
 import tensorflow as tf
-from seq2seq.graph_module import GraphModule
+from seq2seq import GraphModule
 
 
 class AttentionLayer(GraphModule):

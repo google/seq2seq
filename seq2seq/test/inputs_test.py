@@ -9,6 +9,27 @@ import numpy as np
 from seq2seq import inputs
 from seq2seq.test import utils as test_utils
 
+class VocabInfoTest(tf.test.TestCase):
+  """Tests VocabInfo class"""
+
+  def setUp(self):
+    super(VocabInfoTest, self).setUp()
+    self.vocab_list = ["Hello", ".", "Bye"]
+    self.vocab_file = test_utils.create_temporary_vocab_file(self.vocab_list)
+
+  def tearDown(self):
+    super(VocabInfoTest, self).tearDown()
+    self.vocab_file.close()
+
+  def test_vocab_info(self):
+    vocab_info = inputs.get_vocab_info(self.vocab_file.name)
+    self.assertEqual(vocab_info.vocab_size, 3)
+    self.assertEqual(vocab_info.path, self.vocab_file.name)
+    self.assertEqual(vocab_info.special_vocab.OOV, 3)
+    self.assertEqual(vocab_info.special_vocab.SEQUENCE_START, 4)
+    self.assertEqual(vocab_info.special_vocab.SEQUENCE_END, 5)
+    self.assertEqual(vocab_info.total_size, 6)
+
 class ReadFromDataProviderTest(tf.test.TestCase):
   """
   Tests Data Provider operations.

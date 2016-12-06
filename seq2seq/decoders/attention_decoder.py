@@ -22,12 +22,13 @@ class AttentionDecoder(DecoderBase):
     attention_fn: The attention function to use. This function map from `(state, inputs)` to
       `(attention_scores, attention_context)`.
       For an example, see `seq2seq.decoder.attention.AttentionLayer`.
+    max_decode_length: Maximum length for decoding steps for each example of shape `[B]`.
     prediction_fn: Optional. A function that generates a predictions of shape `[B]` from a logits
       of shape `[B, vocab_size]`. By default, this is argmax.
   """
-  def __init__(self, cell, vocab_size, attention_inputs, attention_fn,
+  def __init__(self, cell, vocab_size, attention_inputs, attention_fn, max_decode_length,
                prediction_fn=None, name="attention_decoder"):
-    super(AttentionDecoder, self).__init__(cell, name)
+    super(AttentionDecoder, self).__init__(cell, max_decode_length, name)
     self.vocab_size = vocab_size
     self.prediction_fn = prediction_fn
     self.attention_inputs = attention_inputs
@@ -73,7 +74,8 @@ class AttentionDecoder(DecoderBase):
         predictions=tf.zeros([], dtype=tf.int64))
 
     # Append the attention context to the inputs
-    next_input = next_input_fn(time_, cell_output, cell_state, loop_state, outputs)
+    next_input = next_input_fn(
+      time_, (None if initial_call else cell_output), cell_state, loop_state, outputs)
     next_input = tf.concat(1, [next_input, attention_context])
 
     return DecoderStepOutput(
