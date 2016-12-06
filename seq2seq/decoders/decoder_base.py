@@ -5,7 +5,7 @@ Base class for sequence decoders.
 from collections import namedtuple
 
 import tensorflow as tf
-from seq2seq.graph_module import GraphModule
+from seq2seq import GraphModule
 
 
 class DecoderOutput(namedtuple("DecoderOutput", ["logits", "predictions"])):
@@ -102,16 +102,13 @@ class DynamicDecoderInputs(GraphModule):
     initial_inputs: An input to feed at the first time step. A tensor of shape `[B, ...]`.
     make_input_fn: A function that mapes from `(decoder_output) -> next_input`, where
       `next_input` must be a Tensor of shape `[B, ...]`.
-    sequence_length: A tensor of shape `[B]` that specifies the sequence length for each example.
   """
-  def __init__(self, initial_inputs, make_input_fn, sequence_length, name="fixed_decoder_inputs"):
+  def __init__(self, initial_inputs, make_input_fn, name="fixed_decoder_inputs"):
     super(DynamicDecoderInputs, self).__init__(name)
     self.initial_inputs = initial_inputs
     self.make_input_fn = make_input_fn
-    self.sequence_length = sequence_length
 
     with self.variable_scope():
-      self.max_seq_len = tf.reduce_max(self.sequence_length, name="max_seq_len")
       self.batch_size = tf.identity(tf.shape(self.initial_inputs)[0], name="batch_size")
       self.input_dim = tf.identity(tf.shape(self.initial_inputs)[-1], name="input_dim")
 
@@ -132,9 +129,10 @@ class DecoderBase(GraphModule):
     cell: An instance of ` tf.nn.rnn_cell.RNNCell`
     name: A name for this module
   """
-  def __init__(self, cell, name):
+  def __init__(self, cell, max_decode_length, name):
     super(DecoderBase, self).__init__(name)
     self.cell = cell
+    self.max_decode_length = max_decode_length
 
   def _step(self, time, cell_output, cell_state, loop_state, next_input_fn):
     """
@@ -178,11 +176,14 @@ class DecoderBase(GraphModule):
 
 
   def _build(self, input_fn, initial_state, sequence_length):
+    if sequence_length is None:
+      sequence_length = self.max_decode_length
+
     rnn_loop_fn = RNNStep(
       step_fn=self._step,
       input_fn=input_fn,
       initial_state=initial_state,
-      sequence_length=sequence_length)
+      sequence_length=tf.minimum(sequence_length, self.max_decode_length))
 
     outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(self.cell, rnn_loop_fn)
     return self._pack_outputs(outputs_ta, final_loop_state), final_state, final_loop_state

@@ -7,12 +7,33 @@ import tensorflow as tf
 
 SpecialVocab = collections.namedtuple(
   "SpecialVocab",
-  ["OOV", "SOURCE_START", "SOURCE_END", "TARGET_START", "TARGET_END"])
+  ["OOV", "SEQUENCE_START", "SEQUENCE_END"])
+
+class VocabInfo(collections.namedtuple("VocbabInfo", ["path", "vocab_size", "special_vocab"])):
+  @property
+  def total_size(self):
+    return self.vocab_size + len(self.special_vocab)
+
+
+def get_vocab_info(vocab_path):
+  """Creates a `VocabInfo` instance that contains the vocabulary size and
+    the special vocabulary for the given file.
+
+  Args:
+    vocab_path: Path to a vocabulary file with one word per line.
+
+  Returns:
+    A VocabInfo tuple.
+  """
+  with open(vocab_path) as file:
+    vocab_size = sum(1 for _ in file)
+  special_vocab = get_special_vocab(vocab_size)
+  return VocabInfo(vocab_path, vocab_size, special_vocab)
 
 def get_special_vocab(vocabulary_size):
   """Returns the `SpecialVocab` instance for a given vocabulary size.
   """
-  return SpecialVocab(*range(vocabulary_size, vocabulary_size + 5))
+  return SpecialVocab(*range(vocabulary_size, vocabulary_size + 3))
 
 
 def create_vocabulary_lookup_table(filename, default_value=None, name=None):
@@ -56,7 +77,7 @@ def create_vocabulary_lookup_table(filename, default_value=None, name=None):
   return vocab_to_id_table, id_to_vocab_table, vocab_size
 
 
-def make_data_provider(data_sources, num_samples=None, **kwargs):
+def make_data_provider(data_sources, reader=tf.TFRecordReader, num_samples=None, **kwargs):
   """
   Creates a TF Slim DatasetDataProvider for a list of input files.
 
@@ -91,7 +112,7 @@ def make_data_provider(data_sources, num_samples=None, **kwargs):
 
   dataset = tf.contrib.slim.dataset.Dataset(
     data_sources=data_sources,
-    reader=tf.TFRecordReader,
+    reader=reader,
     decoder=decoder,
     num_samples=num_samples,
     items_to_descriptions={})

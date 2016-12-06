@@ -20,6 +20,7 @@ class DecoderTests(object):
     self.input_depth = 10
     self.cell = tf.nn.rnn_cell.LSTMCell(32)
     self.vocab_size = 100
+    self.max_decode_length = 16
 
   def create_decoder(self):
     """Creates the decoder module.
@@ -89,8 +90,8 @@ class DecoderTests(object):
       """
       return tf.nn.embedding_lookup(embeddings, step_output.predictions)
 
-    decoder_input_fn = DynamicDecoderInputs(initial_input, make_input_fn, seq_length)
-    decoder_fn = BasicDecoder(cell=self.cell, vocab_size=self.vocab_size)
+    decoder_input_fn = DynamicDecoderInputs(initial_input, make_input_fn)
+    decoder_fn = self.create_decoder()
     decoder_output, _, _ = decoder_fn(decoder_input_fn, initial_state, seq_length)
 
     #pylint: disable=E1101
@@ -116,7 +117,10 @@ class BasicDecoderTest(tf.test.TestCase, DecoderTests):
     DecoderTests.__init__(self)
 
   def create_decoder(self):
-    return BasicDecoder(cell=self.cell, vocab_size=self.vocab_size)
+    return BasicDecoder(
+      cell=self.cell,
+      vocab_size=self.vocab_size,
+      max_decode_length=self.max_decode_length)
 
 
 class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
@@ -137,7 +141,8 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
       cell=self.cell,
       vocab_size=self.vocab_size,
       attention_inputs=self.attention_inputs,
-      attention_fn=attention_fn)
+      attention_fn=attention_fn,
+      max_decode_length=self.max_decode_length)
 
   def test_attention_scores(self):
     decoder_output_ = self.test_with_fixed_inputs()
