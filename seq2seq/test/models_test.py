@@ -16,9 +16,6 @@ class EncoderDecoderTests(tf.test.TestCase):
   inherit from this and tf.test.TestCase.
   """
 
-  # Disable testing of the base class
-  __test__ = False
-
   def setUp(self):
     super(EncoderDecoderTests, self).setUp()
     self.batch_size = 4
@@ -140,9 +137,6 @@ class EncoderDecoderTests(tf.test.TestCase):
 class TestBasicSeq2Seq(EncoderDecoderTests):
   """Tests the seq2seq.models.BasicSeq2Seq model.
   """
-
-  __test__ = True
-
   def setUp(self):
     super(TestBasicSeq2Seq, self).setUp()
 
