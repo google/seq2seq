@@ -6,3 +6,7 @@ dependencies:
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/3e39fb29521e82ee001d
+
+test:
+  override:
+    - tox
