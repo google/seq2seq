@@ -150,7 +150,8 @@ class Seq2SeqBase(ModelBase):
       global_step=tf.contrib.framework.get_global_step(),
       learning_rate=self.params["optimizer.learning_rate"],
       clip_gradients=self.params["optimizer.clip_gradients"],
-      optimizer=self.params["optimizer.name"])
+      optimizer=self.params["optimizer.name"],
+      summaries=tf.contrib.layers.optimizers.OPTIMIZER_SUMMARIES)
 
     if mode == tf.contrib.learn.ModeKeys.EVAL:
       train_op = None
