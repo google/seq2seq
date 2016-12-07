@@ -26,7 +26,6 @@ def sequence_mask(inputs, sequence_length):
       elems=tf.to_int32(sequence_length),
       dtype=tf.bool)
 
-
 def cross_entropy_sequence_loss(logits, targets, sequence_length):
   """Calculates the per-example Ccross-entropy loss for a sequence of logits and
     masks out all losses passed the sequence length.
@@ -40,22 +39,10 @@ def cross_entropy_sequence_loss(logits, targets, sequence_length):
     A tensor of shape [B, T] that contains the loss per example, per time step.
   """
   with tf.name_scope("cross_entropy_sequence_loss"):
-    vocab_size = tf.shape(logits)[2]
-
-    # Flatten logits and targets
-    logits_flat = tf.reshape(logits, [-1, vocab_size])
-    targets_flat = tf.reshape(targets, [-1])
-
-    # Calculate losses on the flattened tensor
-    # TODO: For a long sequence  this will result in a huge [B * T, vocab_size] matrix
-    # which can lead to OOM errors on a GPU. Fixing this is TODO, maybe we can use map_fn
-    # or slice the logits to max(sequence_length). Should benchmark this.
-    losses = tf.nn.sparse_softmax_cross_entropy_with_logits(logits_flat, targets_flat)
+    losses = tf.nn.sparse_softmax_cross_entropy_with_logits(logits, targets)
 
     # Mask out the losses we don't care about
     loss_mask = sequence_mask(targets, sequence_length)
-    loss_mask_flat = tf.reshape(loss_mask, [-1])
-    losses = losses * tf.to_float(loss_mask_flat)
-    losses = tf.reshape(losses, tf.shape(targets))
+    losses = losses * tf.to_float(loss_mask)
 
     return losses
