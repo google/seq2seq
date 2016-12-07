@@ -128,6 +128,10 @@ class Seq2SeqBase(ModelBase):
       decoder_input_fn=decoder_input_fn_train,
       target_len=labels["target_len"] - 1)
 
+    # TODO: For a long sequence  the logits are a huge [B * T, vocab_size] matrix
+    # which can lead to OOM errors on a GPU. Fixing this is TODO, maybe we can use map_fn
+    # or slice the logits to max(sequence_length). Should benchmark this.
+
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq.losses.cross_entropy_sequence_loss(
       logits=decoder_output.logits,
