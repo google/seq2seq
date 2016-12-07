@@ -28,8 +28,9 @@ class ModelBase(object):
     """Creates the model graph. See the model_fn documentation in
     tf.contrib.learn.Estimator class for a more detailed explanation.
     """
-    with tf.variable_scope(self.name):
-      return self._build(features, labels, params, mode)
+    with tf.variable_scope("model"):
+      with tf.variable_scope(self.name):
+        return self._build(features, labels, params, mode)
 
   def _build(self, features, labels, params, mode):
     """Subclasses should implement this method. See the model_fn documentation in
