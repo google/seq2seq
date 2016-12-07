@@ -14,7 +14,9 @@ tf.flags.DEFINE_string("data_train", None, "path to training data TFRecords")
 tf.flags.DEFINE_string("data_dev", None, "path to dev data TFRecords")
 tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
 tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
-
+tf.flags.DEFINE_string("buckets", None,
+                       """A comma-separated list of sequence lenght buckets,
+                       e.g. 10,20,30""")
 tf.flags.DEFINE_integer("batch_size", 16, "the train/dev batch size")
 tf.flags.DEFINE_string("hparams", None, "overwrite hyperparameter values")
 tf.flags.DEFINE_string("model", "BasicSeq2Seq", "model class")
@@ -23,6 +25,8 @@ tf.flags.DEFINE_integer("save_checkpoints_secs", 300, "save checkpoint every N s
 tf.flags.DEFINE_string("schedule", None,
                        """Estimator function to call, defaults to
                        train_and_evaluate for local run""")
+
+
 
 tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
 tf.flags.DEFINE_integer("eval_steps", 100, "maxmum number of eval steps")
@@ -72,9 +76,13 @@ def create_experiment(output_dir):
   featurizer = seq2seq.training.featurizers.Seq2SeqFeaturizer(
     source_vocab_info, target_vocab_info)
 
+  bucket_boundaries = None
+  if FLAGS.buckets:
+    bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
+
   # Create input functions
   train_input_fn = seq2seq.training.utils.create_input_fn(
-    train_data_provider, featurizer, FLAGS.batch_size)
+    train_data_provider, featurizer, FLAGS.batch_size, bucket_boundaries=bucket_boundaries)
   eval_input_fn = seq2seq.training.utils.create_input_fn(
     dev_data_provider, featurizer, FLAGS.batch_size)
 

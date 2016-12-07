@@ -34,7 +34,7 @@ def get_rnn_cell(cell_type, num_units, num_layers=1, dropout_input_keep_prob=1.0
   return cell
 
 
-def create_input_fn(data_provider_fn, featurizer_fn, batch_size):
+def create_input_fn(data_provider_fn, featurizer_fn, batch_size, bucket_boundaries=None):
   """Creates an input function that can be used with tf.learn estimators.
     Note that you must pass "factory funcitons" for both the data provider and featurizer
     to ensure that everything will be created as part of the same graph.
@@ -46,6 +46,7 @@ def create_input_fn(data_provider_fn, featurizer_fn, batch_size):
       returned by the data provider and transfroms them into a (features, labels) tuple.
     batch_size: Create batches of this size. A queue to hold a reasonable number of batches in
       memory is created.
+    bucket_boundaries: int list, increasing non-negative numbers. If None, no bucket is performed.
 
   Returns:
     An input function that returns (feature_batch, labels_batch) tuples when called.
@@ -62,11 +63,21 @@ def create_input_fn(data_provider_fn, featurizer_fn, batch_size):
     features_and_labels = features.copy()
     features_and_labels.update(labels)
 
-    batch = tf.train.batch(
-      tensors=features_and_labels,
-      batch_size=batch_size,
-      dynamic_pad=True,
-      capacity=5000 + 16 * batch_size)
+    if bucket_boundaries:
+      bucket_num, batch = tf.contrib.training.bucket_by_sequence_length(
+        input_length=features_and_labels["source_len"],
+        bucket_boundaries=bucket_boundaries,
+        tensors=features_and_labels,
+        batch_size=batch_size,
+        dynamic_pad=True,
+        capacity=5000 + 16 * batch_size)
+      tf.summary.histogram("buckets", bucket_num)
+    else:
+      batch = tf.train.batch(
+        tensors=features_and_labels,
+        batch_size=batch_size,
+        dynamic_pad=True,
+        capacity=5000 + 16 * batch_size)
 
     # Separate features and labels again
     features_batch = {k: batch[k] for k in feature_keys}
