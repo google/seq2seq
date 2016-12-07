@@ -20,10 +20,13 @@ class Seq2SeqFeaturizer(seq2seq.GraphModule):
     source_vocab_info: a `seq2seq.inputs.VocabInfo` for the target vocab
 
   """
-  def __init__(self, source_vocab_info, target_vocab_info, name="sequence_input"):
+  def __init__(self, source_vocab_info, target_vocab_info,
+               max_seq_len_source=None, max_seq_len_target=None, name="sequence_input"):
     super(Seq2SeqFeaturizer, self).__init__(name)
     self.source_vocab_info = source_vocab_info
     self.target_vocab_info = target_vocab_info
+    self.max_seq_len_source = max_seq_len_source
+    self.max_seq_len_target = max_seq_len_target
 
   def _build(self, input_dict):
     output_dict = input_dict.copy()
@@ -46,6 +49,13 @@ class Seq2SeqFeaturizer(seq2seq.GraphModule):
     tf.add_to_collection("source_id_to_vocab", source_id_to_vocab)
     tf.add_to_collection("target_vocab_to_id", target_vocab_to_id)
     tf.add_to_collection("target_id_to_vocab", target_id_to_vocab)
+
+    if self.max_seq_len_source is not None:
+      output_dict["source_tokens"] = output_dict["source_tokens"][:self.max_seq_len_source]
+      output_dict["source_len"] = tf.minimum(output_dict["source_len"], self.max_seq_len_source)
+    if self.max_seq_len_target is not None:
+      output_dict["target_tokens"] = output_dict["target_tokens"][:self.max_seq_len_target]
+      output_dict["target_len"] = tf.minimum(output_dict["target_len"], self.max_seq_len_target)
 
     # Look up the source and target in the vocabulary
     output_dict["source_ids"] = source_vocab_to_id.lookup(input_dict["source_tokens"])
