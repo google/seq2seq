@@ -132,12 +132,6 @@ class Seq2SeqBase(ModelBase):
       decoder_input_fn=decoder_input_fn_train,
       target_len=labels["target_len"] - 1)
 
-    # Slice logits and labels to the same length. This is necessary because we may stop decoding
-    # at some maximum length even though we're not done yet.
-    decoded_seq_len = tf.shape(decoder_output.logits)[1]
-    target_labels = tf.slice(labels["target_ids"], [0, 1], [-1, decoded_seq_len])
-    target_label_len = tf.minimum(labels["target_len"] - 1, decoded_seq_len)
-
     # TODO: For a long sequence  the logits are a huge [B * T, vocab_size] matrix
     # which can lead to OOM errors on a GPU. Fixing this is TODO, maybe we can use map_fn
     # or slice the logits to max(sequence_length). Should benchmark this.
@@ -145,12 +139,12 @@ class Seq2SeqBase(ModelBase):
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq.losses.cross_entropy_sequence_loss(
       logits=decoder_output.logits,
-      targets=target_labels,
-      sequence_length=target_label_len)
+      targets=labels["target_ids"][:, 1:],
+      sequence_length=labels["target_len"] - 1)
 
     # Calulate per-example losses of shape [B]
     log_perplexities = tf.div(tf.reduce_sum(
-      losses, reduction_indices=1), tf.to_float(target_label_len))
+      losses, reduction_indices=1), tf.to_float(labels["target_len"] - 1))
 
     loss = tf.reduce_mean(log_perplexities)
 
