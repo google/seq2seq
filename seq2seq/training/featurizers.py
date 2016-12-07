@@ -79,6 +79,10 @@ class Seq2SeqFeaturizer(seq2seq.GraphModule):
       self.target_vocab_info.special_vocab.SEQUENCE_START)
     output_dict["target_end_id"] = tf.to_int32(self.target_vocab_info.special_vocab.SEQUENCE_END)
 
+    # Add summaries
+    tf.summary.histogram("source_len", output_dict["source_len"])
+    tf.summary.histogram("target_len", output_dict["target_len"])
+
     # Separate "features" and "labels"
     features = output_dict
     labels = {}
