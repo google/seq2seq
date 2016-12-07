@@ -27,7 +27,7 @@ tf.flags.DEFINE_string("schedule", None,
 tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
 tf.flags.DEFINE_integer("eval_steps", 100, "maxmum number of eval steps")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000, "evaluate after this many training steps")
-tf.flags.DEFINE_integer("sample_every_n_secs", 300, "sample training predictions every N steps")
+tf.flags.DEFINE_integer("sample_every_n_steps", 500, "sample training predictions every N steps")
 
 FLAGS = tf.flags.FLAGS
 
@@ -91,7 +91,7 @@ def create_experiment(output_dir):
   #   input_fn=eval_input_fn, eval_steps=FLAGS.eval_steps, every_n_steps=FLAGS.eval_every_n_steps)
   model_analysis_hook = seq2seq.training.hooks.PrintModelAnalysisHook(
     filename=os.path.join(estimator.model_dir, "model_analysis.txt"))
-  train_sample_hook = seq2seq.training.hooks.TrainSampleHook(every_n_secs=FLAGS.sample_every_n_secs)
+  train_sample_hook = seq2seq.training.hooks.TrainSampleHook(every_n_steps=FLAGS.sample_every_n_steps)
   metadata_hook = seq2seq.training.hooks.MetadataCaptureHook(
     output_dir=os.path.join(estimator.model_dir, "metadata"), step=10)
   train_monitors = [model_analysis_hook, train_sample_hook, metadata_hook]
