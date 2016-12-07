@@ -96,3 +96,6 @@ ENV/
 
 # Sublime
 .sublimelinterrc
+
+# Tensorflow
+.tfprof_history.txt

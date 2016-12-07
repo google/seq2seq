@@ -6,11 +6,62 @@ import numpy as np
 import tensorflow as tf
 
 from tensorflow.contrib.learn import basic_session_run_hooks, session_run_hook
+from tensorflow.python.client import timeline
 
 class SecondOrStepTimer(basic_session_run_hooks.basic_session_run_hooks._SecondOrStepTimer):
   """Helper class to count both seconds and steps.
   """
   pass
+
+
+class MetadataCaptureHook(session_run_hook.SessionRunHook):
+  """A hook to capture metadata for a single step. Useful for performance debugging.
+  It performs a full trace and saves run_metadata and Chrome timeline information to a file.
+
+  Args:
+    output_dir: Directory to write file(s) to
+    step: The step number to trace. The hook is only enable for this step.
+  """
+  def __init__(self, output_dir, step=10):
+    self._iter = 0
+    self.step = step
+    self.output_dir = os.path.abspath(output_dir)
+
+  def before_run(self, _run_context):
+    if self._iter == self.step:
+      tf.logging.info("Step %s coming up, performing full trace.", self._iter)
+      run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+      return session_run_hook.SessionRunArgs({}, options=run_options)
+
+  def after_run(self, _run_context, run_values):
+    if self._iter == self.step:
+      tf.logging.info("Step %s complete, captured full trace.", self._iter)
+      # Create output directory
+      os.makedirs(self.output_dir, exist_ok=True)
+
+      # Save run metadata
+      trace_path = os.path.join(self.output_dir, "run_meta")
+      with open(trace_path, "wb") as trace_file:
+        trace_file.write(run_values.run_metadata.SerializeToString())
+        tf.logging.info("Saved run_metadata to %s", trace_path)
+
+      # Save timeline
+      timeline_path = os.path.join(self.output_dir, "timeline.json")
+      with open(timeline_path, "w") as timeline_file:
+        tl_info = timeline.Timeline(run_values.run_metadata.step_stats)
+        tl_chrome = tl_info.generate_chrome_trace_format(show_memory=True)
+        timeline_file.write(tl_chrome)
+        tf.logging.info("Saved timeline to %s", timeline_path)
+
+      # Save tfprof op log
+      tf.contrib.tfprof.tfprof_logger.write_op_log(
+        graph=tf.get_default_graph(),
+        log_dir=self.output_dir,
+        run_meta=run_values.run_metadata)
+      tf.logging.info("Saved op log to %s", self.output_dir)
+
+    self._iter += 1
+
 
 class TrainSampleHook(session_run_hook.SessionRunHook):
   """Occasionally samples predictions from the training run and prints them.

@@ -91,7 +91,9 @@ def create_experiment(output_dir):
   model_analysis_hook = seq2seq.training.hooks.PrintModelAnalysisHook(
     filename=os.path.join(estimator.model_dir, "model_analysis.txt"))
   train_sample_hook = seq2seq.training.hooks.TrainSampleHook(every_n_secs=60)
-  train_monitors = [model_analysis_hook, train_sample_hook]
+  metadata_hook = seq2seq.training.hooks.MetadataCaptureHook(
+    output_dir=os.path.join(estimator.model_dir, "metadata"), step=10)
+  train_monitors = [model_analysis_hook, train_sample_hook, metadata_hook]
 
   experiment = tf.contrib.learn.experiment.Experiment(
     estimator=estimator,
