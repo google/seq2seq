@@ -128,8 +128,8 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
       target_len = result["target_len"]
       predicted_slice = result["predicted_words"][:target_len]
       target_slice = result["target_words"][1:target_len]
-      tf.logging.info(u" ".join(predicted_slice.astype("U")))
-      tf.logging.info(u" ".join(target_slice.astype("U")))
+      tf.logging.info(b" ".join(predicted_slice).decode("utf-8"))
+      tf.logging.info(b" ".join(target_slice).decode("utf-8"))
       tf.logging.info("")
     self._timer.update_last_triggered_step(self._iter_count)
 
