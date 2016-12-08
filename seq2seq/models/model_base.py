@@ -54,12 +54,15 @@ class Seq2SeqBase(ModelBase):
   def create_featurizer(self):
     return seq2seq.training.featurizers.Seq2SeqFeaturizer(
       source_vocab_info=self.source_vocab_info,
-      target_vocab_info=self.target_vocab_info)
+      target_vocab_info=self.target_vocab_info,
+      max_seq_len_source=self.params["source.max_seq_len"],
+      max_seq_len_target=self.params["target.max_seq_len"])
 
   @staticmethod
   def default_params():
     return {
-      "decoder.max_seq_len": 40,
+      "source.max_seq_len": 40,
+      "target.max_seq_len": 40,
       "embedding.dim": 100,
       "optimizer.name": "Adam",
       "optimizer.learning_rate": 1e-4,
@@ -107,7 +110,7 @@ class Seq2SeqBase(ModelBase):
         source=source_embedded,
         source_len=features["source_len"],
         decoder_input_fn=decoder_input_fn_infer,
-        target_len=self.params["decoder.max_seq_len"])
+        target_len=self.params["target.max_seq_len"])
       predictions = self._create_predictions(
         features=features,
         labels=-labels,
@@ -127,7 +130,7 @@ class Seq2SeqBase(ModelBase):
       source=source_embedded,
       source_len=features["source_len"],
       decoder_input_fn=decoder_input_fn_train,
-      target_len=labels["target_len"] - 1)
+      target_len=labels["target_len"])
 
     # TODO: For a long sequence  the logits are a huge [B * T, vocab_size] matrix
     # which can lead to OOM errors on a GPU. Fixing this is TODO, maybe we can use map_fn
@@ -135,13 +138,13 @@ class Seq2SeqBase(ModelBase):
 
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq.losses.cross_entropy_sequence_loss(
-      logits=decoder_output.logits,
+      logits=decoder_output.logits[:, :-1, :],
       targets=labels["target_ids"][:, 1:],
       sequence_length=labels["target_len"] - 1)
 
     # Calulate per-example losses of shape [B]
     log_perplexities = tf.div(tf.reduce_sum(
-      losses, reduction_indices=1), tf.to_float(labels["target_len"]))
+      losses, reduction_indices=1), tf.to_float(labels["target_len"] - 1))
 
     loss = tf.reduce_mean(log_perplexities)
 
@@ -150,7 +153,8 @@ class Seq2SeqBase(ModelBase):
       global_step=tf.contrib.framework.get_global_step(),
       learning_rate=self.params["optimizer.learning_rate"],
       clip_gradients=self.params["optimizer.clip_gradients"],
-      optimizer=self.params["optimizer.name"])
+      optimizer=self.params["optimizer.name"],
+      summaries=tf.contrib.layers.optimizers.OPTIMIZER_SUMMARIES)
 
     if mode == tf.contrib.learn.ModeKeys.EVAL:
       train_op = None
@@ -175,5 +179,8 @@ class Seq2SeqBase(ModelBase):
     for key, tensor in labels.items():
       tf.add_to_collection("labels_keys", key)
       tf.add_to_collection("labels_values", tensor)
+
+    # Summaries
+    tf.summary.scalar("loss", loss)
 
     return predictions, loss, train_op

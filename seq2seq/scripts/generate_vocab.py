@@ -28,6 +28,7 @@ with open(args.input_file) as f:
     if args.downcase:
       line = line.lower()
     tokens = line.strip().split(" ")
+    tokens = [_ for _ in tokens if len(_) > 0]
     cnt.update(tokens)
 
 print("Found {} unique words in the vocabulary.".format(len(cnt)))

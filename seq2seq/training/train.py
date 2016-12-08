@@ -14,7 +14,9 @@ tf.flags.DEFINE_string("data_train", None, "path to training data TFRecords")
 tf.flags.DEFINE_string("data_dev", None, "path to dev data TFRecords")
 tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
 tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
-
+tf.flags.DEFINE_string("buckets", None,
+                       """A comma-separated list of sequence lenght buckets,
+                       e.g. 10,20,30""")
 tf.flags.DEFINE_integer("batch_size", 16, "the train/dev batch size")
 tf.flags.DEFINE_string("hparams", None, "overwrite hyperparameter values")
 tf.flags.DEFINE_string("model", "BasicSeq2Seq", "model class")
@@ -24,9 +26,12 @@ tf.flags.DEFINE_string("schedule", None,
                        """Estimator function to call, defaults to
                        train_and_evaluate for local run""")
 
+
+
 tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
 tf.flags.DEFINE_integer("eval_steps", 100, "maxmum number of eval steps")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000, "evaluate after this many training steps")
+tf.flags.DEFINE_integer("sample_every_n_steps", 500, "sample training predictions every N steps")
 
 FLAGS = tf.flags.FLAGS
 
@@ -68,12 +73,15 @@ def create_experiment(output_dir):
     source_vocab_info=source_vocab_info,
     target_vocab_info=target_vocab_info,
     params=hparams)
-  featurizer = seq2seq.training.featurizers.Seq2SeqFeaturizer(
-    source_vocab_info, target_vocab_info)
+  featurizer = model.create_featurizer()
+
+  bucket_boundaries = None
+  if FLAGS.buckets:
+    bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
 
   # Create input functions
   train_input_fn = seq2seq.training.utils.create_input_fn(
-    train_data_provider, featurizer, FLAGS.batch_size)
+    train_data_provider, featurizer, FLAGS.batch_size, bucket_boundaries=bucket_boundaries)
   eval_input_fn = seq2seq.training.utils.create_input_fn(
     dev_data_provider, featurizer, FLAGS.batch_size)
 
@@ -90,7 +98,8 @@ def create_experiment(output_dir):
   #   input_fn=eval_input_fn, eval_steps=FLAGS.eval_steps, every_n_steps=FLAGS.eval_every_n_steps)
   model_analysis_hook = seq2seq.training.hooks.PrintModelAnalysisHook(
     filename=os.path.join(estimator.model_dir, "model_analysis.txt"))
-  train_sample_hook = seq2seq.training.hooks.TrainSampleHook(every_n_secs=60)
+  train_sample_hook = seq2seq.training.hooks.TrainSampleHook(
+    every_n_steps=FLAGS.sample_every_n_steps)
   metadata_hook = seq2seq.training.hooks.MetadataCaptureHook(
     output_dir=os.path.join(estimator.model_dir, "metadata"), step=10)
   train_monitors = [model_analysis_hook, train_sample_hook, metadata_hook]
@@ -99,6 +108,7 @@ def create_experiment(output_dir):
     estimator=estimator,
     train_input_fn=train_input_fn,
     eval_input_fn=eval_input_fn,
+    min_eval_frequency=FLAGS.eval_every_n_steps,
     train_steps=FLAGS.train_steps,
     eval_steps=FLAGS.eval_steps,
     train_monitors=train_monitors)

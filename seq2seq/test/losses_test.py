@@ -6,27 +6,6 @@ import seq2seq.losses
 import tensorflow as tf
 import numpy as np
 
-class SequenceMaskTest(tf.test.TestCase):
-  """
-  Test for `sqe2seq.losses.sequence_mask`.
-  """
-
-  def setUp(self):
-    super(SequenceMaskTest, self).setUp()
-
-  def test_op(self):
-    inputs = np.random.randn(3, 3)
-    sequence_length = np.array([1, 2, 3])
-    mask = seq2seq.losses.sequence_mask(inputs, sequence_length)
-
-    with self.test_session() as sess:
-      mask_ = sess.run(mask)
-
-    np.testing.assert_array_equal(
-      mask_,
-      np.array([[True, False, False], [True, True, False], [True, True, True]]))
-
-
 class CrossEntropySequenceLossTest(tf.test.TestCase):
   """
   Test for `sqe2seq.losses.sequence_mask`.
@@ -34,6 +13,7 @@ class CrossEntropySequenceLossTest(tf.test.TestCase):
 
   def setUp(self):
     super(CrossEntropySequenceLossTest, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
     self.batch_size = 4
     self.sequence_length = 10
     self.vocab_size = 50

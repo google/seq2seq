@@ -49,7 +49,7 @@ class BasicSeq2Seq(Seq2SeqBase):
     decoder_fn = seq2seq.decoders.BasicDecoder(
       cell=decoder_cell,
       vocab_size=self.target_vocab_info.total_size,
-      max_decode_length=target_len)
+      max_decode_length=self.params["target.max_seq_len"])
 
     decoder_output, _, _ = decoder_fn(
       input_fn=decoder_input_fn,

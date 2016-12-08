@@ -14,6 +14,7 @@ class VocabInfoTest(tf.test.TestCase):
 
   def setUp(self):
     super(VocabInfoTest, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
     self.vocab_list = ["Hello", ".", "Bye"]
     self.vocab_file = test_utils.create_temporary_vocab_file(self.vocab_list)
 
@@ -34,6 +35,10 @@ class ReadFromDataProviderTest(tf.test.TestCase):
   """
   Tests Data Provider operations.
   """
+
+  def setUp(self):
+    super(ReadFromDataProviderTest, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
 
   def test_read_from_data_provider(self):
     file = test_utils.create_temp_tfrecords(source="Hello World .", target="Bye")
@@ -59,6 +64,7 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
 
   def setUp(self):
     super(CreateVocabularyLookupTableTest, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
     self.vocab_list = ["Hello", ".", "Bye"]
     self.vocab_file = test_utils.create_temporary_vocab_file(self.vocab_list)
 

@@ -2,7 +2,6 @@
 """
 
 import os
-import numpy as np
 import tensorflow as tf
 
 from tensorflow.contrib.learn import basic_session_run_hooks, session_run_hook
@@ -22,6 +21,9 @@ class MetadataCaptureHook(session_run_hook.SessionRunHook):
     output_dir: Directory to write file(s) to
     step: The step number to trace. The hook is only enable for this step.
   """
+
+  #pylint: disable=missing-docstring
+
   def __init__(self, output_dir, step=10):
     self._iter = 0
     self.step = step
@@ -128,8 +130,8 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
       target_len = result["target_len"]
       predicted_slice = result["predicted_words"][:target_len]
       target_slice = result["target_words"][1:target_len]
-      tf.logging.info(" ".join(predicted_slice.astype(np.str)))
-      tf.logging.info(" ".join(target_slice.astype(np.str)))
+      tf.logging.info(b" ".join(predicted_slice).decode("utf-8"))
+      tf.logging.info(b" ".join(target_slice).decode("utf-8"))
       tf.logging.info("")
     self._timer.update_last_triggered_step(self._iter_count)
 

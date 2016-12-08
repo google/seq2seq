@@ -14,6 +14,7 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
 
   def setUp(self):
     super(UnidirectionalRNNEncoderTest, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
@@ -46,6 +47,7 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
 
   def setUp(self):
     super(BidirectionalRNNEncoderTest, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10

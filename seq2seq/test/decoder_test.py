@@ -114,6 +114,7 @@ class BasicDecoderTest(tf.test.TestCase, DecoderTests):
   """
   def setUp(self):
     tf.test.TestCase.setUp(self)
+    tf.logging.set_verbosity(tf.logging.INFO)
     DecoderTests.__init__(self)
 
   def create_decoder(self):
@@ -128,6 +129,7 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
   """
   def setUp(self):
     tf.test.TestCase.setUp(self)
+    tf.logging.set_verbosity(tf.logging.INFO)
     DecoderTests.__init__(self)
     self.attention_dim = 64
     self.input_seq_len = 10

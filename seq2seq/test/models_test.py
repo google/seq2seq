@@ -18,6 +18,7 @@ class EncoderDecoderTests(tf.test.TestCase):
 
   def setUp(self):
     super(EncoderDecoderTests, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
     self.batch_size = 4
     self.input_depth = 32
     self.max_decode_length = 40
@@ -40,7 +41,7 @@ class EncoderDecoderTests(tf.test.TestCase):
     """Creates example data for a test"""
     source = np.random.randn(self.batch_size, self.max_decode_length, self.input_depth)
     source_len = np.random.randint(0, self.max_decode_length, [self.batch_size])
-    target_len = np.random.randint(0, self.max_decode_length, [self.batch_size])
+    target_len = np.random.randint(0, self.max_decode_length * 2, [self.batch_size])
     target = np.random.randn(self.batch_size, np.max(target_len), self.input_depth)
     labels = np.random.randint(0, self.vocab_size, [self.batch_size, np.max(target_len) - 1])
 
@@ -65,13 +66,16 @@ class EncoderDecoderTests(tf.test.TestCase):
       sess.run(tf.global_variables_initializer())
       decoder_output_ = sess.run(decoder_output)
 
+    max_decode_length = model.params["target.max_seq_len"]
+    expected_decode_len = np.minimum(ex.target_len, max_decode_length)
+
     # Assert shapes are correct
     np.testing.assert_array_equal(
       decoder_output_.logits.shape,
-      [self.batch_size, np.max(ex.target_len), model.target_vocab_info.total_size])
+      [self.batch_size, np.max(expected_decode_len), model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
       decoder_output_.predictions.shape,
-      [self.batch_size, np.max(ex.target_len)])
+      [self.batch_size, np.max(expected_decode_len)])
 
 
   def test_inference(self):
@@ -144,7 +148,7 @@ class EncoderDecoderTests(tf.test.TestCase):
   def test_pipeline(self):
     # Create source and target example
     source_len = 10
-    target_len = 5
+    target_len = self.max_decode_length + 10
     source = " ".join(np.random.choice(self.vocab_list, source_len))
     target = " ".join(np.random.choice(self.vocab_list, target_len))
     tfrecords_file = seq2seq.test.utils.create_temp_tfrecords(source=source, target=target)
@@ -166,12 +170,15 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     # We have predictions for each target words and the SEQUENCE_START token.
     # That's why it's `target_len + 1`
+    max_decode_length = model.params["target.max_seq_len"]
+    expected_decode_len = np.minimum(target_len + 1, max_decode_length)
+
     np.testing.assert_array_equal(
       predictions_["logits"].shape,
-      [self.batch_size, target_len + 1, model.target_vocab_info.total_size])
+      [self.batch_size, expected_decode_len, model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
       predictions_["predictions"].shape,
-      [self.batch_size, target_len + 1])
+      [self.batch_size, expected_decode_len])
     self.assertFalse(np.isnan(loss_))
 
     tfrecords_file.close()
