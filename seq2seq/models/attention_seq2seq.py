@@ -7,7 +7,7 @@ import tensorflow as tf
 from seq2seq import encoders
 from seq2seq import decoders
 from seq2seq.training import utils as training_utils
-from .model_base import Seq2SeqBase
+from seq2seq.models.model_base import Seq2SeqBase
 
 class AttentionSeq2Seq(Seq2SeqBase):
   """Sequence2Sequence model with attention mechanism.

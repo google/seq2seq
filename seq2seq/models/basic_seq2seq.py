@@ -5,7 +5,7 @@ Definition of a basic seq2seq model
 import seq2seq.training as training
 import seq2seq.encoders as encoders
 import seq2seq.decoders as decoders
-from .model_base import Seq2SeqBase
+from seq2seq.models.model_base import Seq2SeqBase
 
 class BasicSeq2Seq(Seq2SeqBase):
   """Basic Sequence2Sequence model with a unidirectional encoder and decoder. The last encoder
