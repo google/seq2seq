@@ -13,6 +13,7 @@ class AttentionLayerTest(tf.test.TestCase):
   """
   def setUp(self):
     super(AttentionLayerTest, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
     self.batch_size = 8
     self.attention_dim = 128
     self.input_dim = 16

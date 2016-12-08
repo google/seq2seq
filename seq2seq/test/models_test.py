@@ -18,6 +18,7 @@ class EncoderDecoderTests(tf.test.TestCase):
 
   def setUp(self):
     super(EncoderDecoderTests, self).setUp()
+    tf.logging.set_verbosity(tf.logging.INFO)
     self.batch_size = 4
     self.input_depth = 32
     self.max_decode_length = 40
