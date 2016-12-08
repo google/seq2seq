@@ -5,7 +5,11 @@
 
 import os
 import tempfile
-import seq2seq
+from seq2seq import inputs
+from seq2seq import models
+from seq2seq.training import HParamsParser
+from seq2seq.training import utils as training_utils
+from seq2seq.training import hooks
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
@@ -46,20 +50,20 @@ def create_experiment(output_dir):
   """
 
   # Load vocabulary info
-  source_vocab_info = seq2seq.inputs.get_vocab_info(FLAGS.vocab_source)
-  target_vocab_info = seq2seq.inputs.get_vocab_info(FLAGS.vocab_target)
+  source_vocab_info = inputs.get_vocab_info(FLAGS.vocab_source)
+  target_vocab_info = inputs.get_vocab_info(FLAGS.vocab_target)
 
   # Create data providers
-  train_data_provider = lambda: seq2seq.inputs.make_data_provider([FLAGS.data_train])
-  dev_data_provider = lambda: seq2seq.inputs.make_data_provider([FLAGS.data_dev])
+  train_data_provider = lambda: inputs.make_data_provider([FLAGS.data_train])
+  dev_data_provider = lambda: inputs.make_data_provider([FLAGS.data_dev])
 
   # Find model class
-  model_class = getattr(seq2seq.models, FLAGS.model)
+  model_class = getattr(models, FLAGS.model)
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()
   if FLAGS.hparams is not None:
-    hparams = seq2seq.training.HParamsParser(hparams).parse(FLAGS.hparams)
+    hparams = HParamsParser(hparams).parse(FLAGS.hparams)
 
   # Print hyperparameter values
   tf.logging.info("Model Hyperparameters")
@@ -80,9 +84,9 @@ def create_experiment(output_dir):
     bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
 
   # Create input functions
-  train_input_fn = seq2seq.training.utils.create_input_fn(
+  train_input_fn = training_utils.create_input_fn(
     train_data_provider, featurizer, FLAGS.batch_size, bucket_boundaries=bucket_boundaries)
-  eval_input_fn = seq2seq.training.utils.create_input_fn(
+  eval_input_fn = training_utils.create_input_fn(
     dev_data_provider, featurizer, FLAGS.batch_size)
 
   def model_fn(features, labels, params, mode):
@@ -96,11 +100,11 @@ def create_experiment(output_dir):
   # Create training Hooks
   # validation_monitor = tf.contrib.learn.monitors.ValidationMonitor(
   #   input_fn=eval_input_fn, eval_steps=FLAGS.eval_steps, every_n_steps=FLAGS.eval_every_n_steps)
-  model_analysis_hook = seq2seq.training.hooks.PrintModelAnalysisHook(
+  model_analysis_hook = hooks.PrintModelAnalysisHook(
     filename=os.path.join(estimator.model_dir, "model_analysis.txt"))
-  train_sample_hook = seq2seq.training.hooks.TrainSampleHook(
+  train_sample_hook = hooks.TrainSampleHook(
     every_n_steps=FLAGS.sample_every_n_steps)
-  metadata_hook = seq2seq.training.hooks.MetadataCaptureHook(
+  metadata_hook = hooks.MetadataCaptureHook(
     output_dir=os.path.join(estimator.model_dir, "metadata"), step=10)
   train_monitors = [model_analysis_hook, train_sample_hook, metadata_hook]
 

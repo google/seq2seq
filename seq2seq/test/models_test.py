@@ -4,7 +4,10 @@ Tests for Models
 
 from collections import namedtuple
 
-import seq2seq
+from seq2seq import inputs
+from seq2seq import losses as seq2seq_losses
+from seq2seq.training import utils as training_utils
+from seq2seq.test import utils as test_utils
 from seq2seq.models import BasicSeq2Seq, AttentionSeq2Seq
 from seq2seq.decoders import FixedDecoderInputs, DynamicDecoderInputs
 
@@ -26,8 +29,8 @@ class EncoderDecoderTests(tf.test.TestCase):
     # Create vocabulary
     self.vocab_size = 100
     self.vocab_list = [str(_) for _ in range(self.vocab_size)]
-    self.vocab_file = seq2seq.test.utils.create_temporary_vocab_file(self.vocab_list)
-    self.vocab_info = seq2seq.inputs.get_vocab_info(self.vocab_file.name)
+    self.vocab_file = test_utils.create_temporary_vocab_file(self.vocab_list)
+    self.vocab_info = inputs.get_vocab_info(self.vocab_file.name)
 
   def tearDown(self):
     self.vocab_file.close()
@@ -128,7 +131,7 @@ class EncoderDecoderTests(tf.test.TestCase):
       target_len=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     # Get a loss to optimize
-    losses = seq2seq.losses.cross_entropy_sequence_loss(
+    losses = seq2seq_losses.cross_entropy_sequence_loss(
       logits=decoder_output.logits,
       targets=tf.ones_like(decoder_output.predictions),
       sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
@@ -151,13 +154,13 @@ class EncoderDecoderTests(tf.test.TestCase):
     target_len = self.max_decode_length + 10
     source = " ".join(np.random.choice(self.vocab_list, source_len))
     target = " ".join(np.random.choice(self.vocab_list, target_len))
-    tfrecords_file = seq2seq.test.utils.create_temp_tfrecords(source=source, target=target)
+    tfrecords_file = test_utils.create_temp_tfrecords(source=source, target=target)
 
     # Build model graph
     model = self.create_model()
     featurizer = model.create_featurizer()
-    data_provider = lambda: seq2seq.inputs.make_data_provider([tfrecords_file.name])
-    input_fn = seq2seq.training.utils.create_input_fn(data_provider, featurizer, self.batch_size)
+    data_provider = lambda: inputs.make_data_provider([tfrecords_file.name])
+    input_fn = training_utils.create_input_fn(data_provider, featurizer, self.batch_size)
     features, labels = input_fn()
     predictions, loss, train_op = model(features, labels, None, tf.contrib.learn.ModeKeys.TRAIN)
 

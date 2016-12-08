@@ -4,8 +4,9 @@ Sequence to Sequence model with attention
 
 import tensorflow as tf
 
-import seq2seq.encoders
-import seq2seq.decoders
+from seq2seq import encoders
+from seq2seq import decoders
+from seq2seq.training import utils as training_utils
 from .model_base import Seq2SeqBase
 
 class AttentionSeq2Seq(Seq2SeqBase):
@@ -34,21 +35,21 @@ class AttentionSeq2Seq(Seq2SeqBase):
     return params
 
   def encode_decode(self, source, source_len, decoder_input_fn, target_len, labels=None):
-    encoder_cell = seq2seq.training.utils.get_rnn_cell(
+    encoder_cell = training_utils.get_rnn_cell(
       cell_type=self.params["rnn_cell.type"],
       num_units=self.params["rnn_cell.num_units"],
       num_layers=self.params["rnn_cell.num_layers"],
       dropout_input_keep_prob=self.params["rnn_cell.dropout_input_keep_prob"],
       dropout_output_keep_prob=self.params["rnn_cell.dropout_output_keep_prob"])
-    encoder_fn = seq2seq.encoders.BidirectionalRNNEncoder(encoder_cell)
+    encoder_fn = encoders.BidirectionalRNNEncoder(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 
     decoder_cell = encoder_cell
-    decoder_fn = seq2seq.decoders.AttentionDecoder(
+    decoder_fn = decoders.AttentionDecoder(
       cell=decoder_cell,
       vocab_size=self.target_vocab_info.total_size,
       attention_inputs=encoder_output.outputs,
-      attention_fn=seq2seq.decoders.AttentionLayer(self.params["attention.dim"]),
+      attention_fn=decoders.AttentionLayer(self.params["attention.dim"]),
       max_decode_length=self.params["target.max_seq_len"])
 
     decoder_output, _, _ = decoder_fn(

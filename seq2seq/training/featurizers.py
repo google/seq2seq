@@ -3,9 +3,10 @@
 """
 
 import tensorflow as tf
-import seq2seq.inputs
+from seq2seq import inputs
+from seq2seq.graph_module import GraphModule
 
-class Seq2SeqFeaturizer(seq2seq.GraphModule):
+class Seq2SeqFeaturizer(GraphModule):
   """Takes raw tensors read from a TFRecods file and transforms them into feature and labels
   dictionaries that can be fed to model functions. In particular, this featurizer:
 
@@ -18,8 +19,8 @@ class Seq2SeqFeaturizer(seq2seq.GraphModule):
   Args:
     source_vocab_info: a `seq2seq.inputs.VocabInfo` for the source vocab
     source_vocab_info: a `seq2seq.inputs.VocabInfo` for the target vocab
-
   """
+
   def __init__(self, source_vocab_info, target_vocab_info,
                max_seq_len_source=None, max_seq_len_target=None, name="sequence_input"):
     super(Seq2SeqFeaturizer, self).__init__(name)
@@ -36,11 +37,11 @@ class Seq2SeqFeaturizer(seq2seq.GraphModule):
 
     # Create vocabulary lookup for source
     source_vocab_to_id, source_id_to_vocab, _ = \
-      seq2seq.inputs.create_vocabulary_lookup_table(self.source_vocab_info.path)
+      inputs.create_vocabulary_lookup_table(self.source_vocab_info.path)
 
     # Create vocabulary look for target
     target_vocab_to_id, target_id_to_vocab, _ = \
-      seq2seq.inputs.create_vocabulary_lookup_table(self.target_vocab_info.path)
+      inputs.create_vocabulary_lookup_table(self.target_vocab_info.path)
 
     # Create a graph colleciton for later use
     # TODO: Is there a nicer way to do this?

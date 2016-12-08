@@ -2,9 +2,9 @@
 Definition of a basic seq2seq model
 """
 
-import seq2seq.training
-import seq2seq.encoders
-import seq2seq.decoders
+import seq2seq.training as training
+import seq2seq.encoders as encoders
+import seq2seq.decoders as decoders
 from .model_base import Seq2SeqBase
 
 class BasicSeq2Seq(Seq2SeqBase):
@@ -34,19 +34,19 @@ class BasicSeq2Seq(Seq2SeqBase):
 
   def encode_decode(self, source, source_len, decoder_input_fn, target_len, labels=None):
     # Create Encoder
-    encoder_cell = seq2seq.training.utils.get_rnn_cell(
+    encoder_cell = training.utils.get_rnn_cell(
       cell_type=self.params["rnn_cell.type"],
       num_units=self.params["rnn_cell.num_units"],
       num_layers=self.params["rnn_cell.num_layers"],
       dropout_input_keep_prob=self.params["rnn_cell.dropout_input_keep_prob"],
       dropout_output_keep_prob=self.params["rnn_cell.dropout_output_keep_prob"])
-    encoder_fn = seq2seq.encoders.UnidirectionalRNNEncoder(encoder_cell)
+    encoder_fn = encoders.UnidirectionalRNNEncoder(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 
     # Create Decoder
     # Because we pass the state between encoder and decoder we must use the same cell
     decoder_cell = encoder_cell
-    decoder_fn = seq2seq.decoders.BasicDecoder(
+    decoder_fn = decoders.BasicDecoder(
       cell=decoder_cell,
       vocab_size=self.target_vocab_info.total_size,
       max_decode_length=self.params["target.max_seq_len"])

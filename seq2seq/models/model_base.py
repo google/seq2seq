@@ -1,8 +1,10 @@
 """Base class for models"""
 
 import tensorflow as tf
-import seq2seq.decoders
-import seq2seq.training.featurizers
+
+from seq2seq import decoders
+from seq2seq import losses as seq2seq_losses
+from seq2seq.training import featurizers
 
 class ModelBase(object):
   """Abstract base class for models.
@@ -52,7 +54,7 @@ class Seq2SeqBase(ModelBase):
     self.target_vocab_info = target_vocab_info
 
   def create_featurizer(self):
-    return seq2seq.training.featurizers.Seq2SeqFeaturizer(
+    return featurizers.Seq2SeqFeaturizer(
       source_vocab_info=self.source_vocab_info,
       target_vocab_info=self.target_vocab_info,
       max_seq_len_source=self.params["source.max_seq_len"],
@@ -102,7 +104,7 @@ class Seq2SeqBase(ModelBase):
       initial_input = tf.nn.embedding_lookup(
         target_embedding, tf.ones_like(features["source_len"]) * target_start_id)
       # Use the embedded prediction as the input to the next time step
-      decoder_input_fn_infer = seq2seq.decoders.DynamicDecoderInputs(
+      decoder_input_fn_infer = decoders.DynamicDecoderInputs(
         initial_inputs=initial_input,
         make_input_fn=lambda x: tf.nn.embedding_lookup(target_embedding, x.predictions))
       # Decode
@@ -122,7 +124,7 @@ class Seq2SeqBase(ModelBase):
 
     # During training/eval, we have labels and use them for teacher forcing
     # We don't feed the last SEQUENCE_END token
-    decoder_input_fn_train = seq2seq.decoders.FixedDecoderInputs(
+    decoder_input_fn_train = decoders.FixedDecoderInputs(
       inputs=target_embedded[:, :-1],
       sequence_length=labels["target_len"] - 1)
 
@@ -137,7 +139,7 @@ class Seq2SeqBase(ModelBase):
     # or slice the logits to max(sequence_length). Should benchmark this.
 
     # Calculate loss per example-timestep of shape [B, T]
-    losses = seq2seq.losses.cross_entropy_sequence_loss(
+    losses = seq2seq_losses.cross_entropy_sequence_loss(
       logits=decoder_output.logits[:, :-1, :],
       targets=labels["target_ids"][:, 1:],
       sequence_length=labels["target_len"] - 1)

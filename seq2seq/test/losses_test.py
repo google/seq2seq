@@ -2,7 +2,7 @@
 Unit tests for loss-related operations.
 """
 
-import seq2seq.losses
+import seq2seq.losses as seq2seq_losses
 import tensorflow as tf
 import numpy as np
 
@@ -23,7 +23,7 @@ class CrossEntropySequenceLossTest(tf.test.TestCase):
     logits = logits.astype(np.float32)
     sequence_length = np.array([1, 2, 3, 4])
     targets = np.random.randint(0, self.vocab_size, [self.batch_size, self.sequence_length])
-    losses = seq2seq.losses.cross_entropy_sequence_loss(logits, targets, sequence_length)
+    losses = seq2seq_losses.cross_entropy_sequence_loss(logits, targets, sequence_length)
 
     with self.test_session() as sess:
       losses_ = sess.run(losses)
@@ -37,7 +37,6 @@ class CrossEntropySequenceLossTest(tf.test.TestCase):
     np.testing.assert_array_equal(losses_[0, 1:], np.zeros_like(losses_[0, 1:]))
     np.testing.assert_array_equal(losses_[1, 2:], np.zeros_like(losses_[1, 2:]))
     np.testing.assert_array_equal(losses_[2, 3:], np.zeros_like(losses_[2, 3:]))
-
 
 if __name__ == "__main__":
   tf.test.main()
