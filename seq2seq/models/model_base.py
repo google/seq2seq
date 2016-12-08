@@ -180,4 +180,7 @@ class Seq2SeqBase(ModelBase):
       tf.add_to_collection("labels_keys", key)
       tf.add_to_collection("labels_values", tensor)
 
+    # Summaries
+    tf.summary.scalar("loss", loss)
+
     return predictions, loss, train_op
