@@ -69,12 +69,23 @@ def create_input_fn(data_provider_fn, featurizer_fn, batch_size, bucket_boundari
         bucket_boundaries=bucket_boundaries,
         tensors=features_and_labels,
         batch_size=batch_size,
+        keep_input=features_and_labels["target_len"] >= 1,
         dynamic_pad=True,
         capacity=5000 + 16 * batch_size)
       tf.summary.histogram("buckets", bucket_num)
     else:
+      # Filter out examples with target_len < 1
+      slice_end = tf.cond(
+        features_and_labels["target_len"] >= 1,
+        lambda: tf.constant(1),
+        lambda: tf.constant(0))
+      features_and_labels = {
+        k: tf.expand_dims(v, 0)[0:slice_end]
+        for k, v in features_and_labels.items()
+      }
       batch = tf.train.batch(
         tensors=features_and_labels,
+        enqueue_many=True,
         batch_size=batch_size,
         dynamic_pad=True,
         capacity=5000 + 16 * batch_size)

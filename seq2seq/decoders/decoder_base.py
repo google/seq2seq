@@ -65,6 +65,15 @@ class FixedDecoderInputs(GraphModule):
     self.inputs = inputs
     self.sequence_length = sequence_length
 
+    with self.variable_scope():
+      self.inputs_ta = tf.TensorArray(
+        dtype=self.inputs.dtype, size=tf.shape(self.inputs)[1], name="inputs_ta")
+      self.inputs_ta = self.inputs_ta.unpack(tf.transpose(self.inputs, [1, 0, 2]))
+      self.max_seq_len = tf.reduce_max(sequence_length, name="max_seq_len")
+      self.batch_size = tf.identity(tf.shape(inputs)[0], name="batch_size")
+      self.input_dim = tf.identity(tf.shape(inputs)[-1], name="input_dim")
+
+
   def _build(self, time_, *args):
     """Returns the input for the given time step.
 
@@ -75,18 +84,11 @@ class FixedDecoderInputs(GraphModule):
       A tensor of shape `[B, ...]`. When `time_` is past the maximum sequence length
       a zero tensor is fed as input for performance purposes.
     """
-    max_seq_len = tf.reduce_max(self.sequence_length, name="max_seq_len")
-    batch_size = tf.identity(tf.shape(self.inputs)[0], name="batch_size")
-    input_dim = tf.identity(tf.shape(self.inputs)[-1], name="input_dim")
-    inputs_ta = tf.TensorArray(
-      dtype=self.inputs.dtype, size=tf.shape(self.inputs)[1], name="inputs_ta")
-    inputs_ta = inputs_ta.unpack(tf.transpose(self.inputs, [1, 0, 2]))
-
-    all_finished = (time_ >= max_seq_len)
+    all_finished = (time_ >= self.max_seq_len)
     next_input = tf.cond(
       all_finished,
-      lambda: tf.zeros([batch_size, input_dim], dtype=tf.float32),
-      lambda: inputs_ta.read(time_))
+      lambda: tf.zeros([self.batch_size, self.input_dim], dtype=tf.float32),
+      lambda: self.inputs_ta.read(time_))
     next_input.set_shape([None, self.inputs.get_shape().as_list()[-1]])
     return next_input
 
