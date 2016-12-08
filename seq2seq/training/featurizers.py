@@ -51,15 +51,15 @@ class Seq2SeqFeaturizer(seq2seq.GraphModule):
     tf.add_to_collection("target_id_to_vocab", target_id_to_vocab)
 
     if self.max_seq_len_source is not None:
-      output_dict["source_tokens"] = output_dict["source_tokens"][:self.max_seq_len_source]
-      output_dict["source_len"] = tf.minimum(output_dict["source_len"], self.max_seq_len_source)
+      output_dict["source_tokens"] = output_dict["source_tokens"][:self.max_seq_len_source - 1]
+      output_dict["source_len"] = tf.minimum(output_dict["source_len"], self.max_seq_len_source - 1)
     if self.max_seq_len_target is not None:
-      output_dict["target_tokens"] = output_dict["target_tokens"][:self.max_seq_len_target]
-      output_dict["target_len"] = tf.minimum(output_dict["target_len"], self.max_seq_len_target)
+      output_dict["target_tokens"] = output_dict["target_tokens"][:self.max_seq_len_target - 2]
+      output_dict["target_len"] = tf.minimum(output_dict["target_len"], self.max_seq_len_target - 2)
 
     # Look up the source and target in the vocabulary
-    output_dict["source_ids"] = source_vocab_to_id.lookup(input_dict["source_tokens"])
-    output_dict["target_ids"] = target_vocab_to_id.lookup(input_dict["target_tokens"])
+    output_dict["source_ids"] = source_vocab_to_id.lookup(output_dict["source_tokens"])
+    output_dict["target_ids"] = target_vocab_to_id.lookup(output_dict["target_tokens"])
 
     # Append SEQUENCE_END token to the source
     output_dict["source_ids"] = tf.concat(
