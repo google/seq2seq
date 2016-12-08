@@ -71,7 +71,8 @@ def create_input_fn(data_provider_fn, featurizer_fn, batch_size, bucket_boundari
         batch_size=batch_size,
         keep_input=features_and_labels["target_len"] >= 1,
         dynamic_pad=True,
-        capacity=5000 + 16 * batch_size)
+        capacity=5000 + 16 * batch_size,
+        name="bucket_queue")
       tf.summary.histogram("buckets", bucket_num)
     else:
       # Filter out examples with target_len < 1
@@ -88,7 +89,8 @@ def create_input_fn(data_provider_fn, featurizer_fn, batch_size, bucket_boundari
         enqueue_many=True,
         batch_size=batch_size,
         dynamic_pad=True,
-        capacity=5000 + 16 * batch_size)
+        capacity=5000 + 16 * batch_size,
+        name="batch_queue")
 
     # Separate features and labels again
     features_batch = {k: batch[k] for k in feature_keys}
