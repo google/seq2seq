@@ -107,6 +107,7 @@ def create_experiment(output_dir):
     estimator=estimator,
     train_input_fn=train_input_fn,
     eval_input_fn=eval_input_fn,
+    min_eval_frequency=FLAGS.eval_every_n_steps,
     train_steps=FLAGS.train_steps,
     eval_steps=FLAGS.eval_steps,
     train_monitors=train_monitors)
