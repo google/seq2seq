@@ -8,5 +8,6 @@
 
 ## Running Tests
 
-1. Instlal tox (`pip install tox`)
-2. From the root directory, run `tox`.
+1. Install dependeices: `pip install tox nose`
+2. From the root directory, run `nosetests`
+3. To test both Python 3 and Python 2 environments run `tox`
