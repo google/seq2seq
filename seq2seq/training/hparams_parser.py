@@ -30,5 +30,5 @@ class HParamsParser(object):
       default values.
     """
     params = params_str.split(",")
-    params = ["--" + param for param in params]
+    params = ["--" + param.strip() for param in params]
     return vars(self.parser.parse_args(params))
