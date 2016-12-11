@@ -10,6 +10,7 @@ python ./generate_examples.py --source_file <SOURCE_FILE> \
 """
 
 import tensorflow as tf
+from tensorflow.python.platform import gfile
 
 tf.flags.DEFINE_string('source_file', None,
                        'File containing content in source language.')
@@ -81,8 +82,8 @@ def generate_examples(source_file, target_file):
   Returns:
     An iterator of tf.Example objects.
   """
-  with open(source_file) as source_records:
-    with open(target_file) as target_records:
+  with gfile.GFile(source_file) as source_records:
+    with gfile.GFile(target_file) as target_records:
       for i, (source, target) in enumerate(zip(source_records, target_records)):
         if i % 10000 == 0:
           print('Processed {} records'.format(i))
