@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-
 """
 Generates a TFRecords file given sequence-aligned source and target files.
 
@@ -10,16 +9,14 @@ python ./generate_examples.py --source_file <SOURCE_FILE> \
   --output_file <OUTPUT_FILE>
 """
 
-
-
 import tensorflow as tf
 
 tf.flags.DEFINE_string('source_file', None,
                        'File containing content in source language.')
 tf.flags.DEFINE_string(
-  'target_file', None,
-  'File containing content in target language, parallel line by line to the'
-  'source file.')
+    'target_file', None,
+    'File containing content in target language, parallel line by line to the'
+    'source file.')
 tf.flags.DEFINE_string('output_file', None,
                        'File to output tf.Example TFRecords.')
 
@@ -44,7 +41,8 @@ def build_example(pair_id, source, target):
   target_tokens = target.strip().split(' ')
   ex = tf.train.Example()
 
-  ex.features.feature['pair_id'].bytes_list.value.append(pair_id.encode('utf-8'))
+  ex.features.feature['pair_id'].bytes_list.value.append(
+      pair_id.encode('utf-8'))
   ex.features.feature['source_len'].int64_list.value.append(len(source_tokens))
   ex.features.feature['target_len'].int64_list.value.append(len(target_tokens))
 
@@ -73,7 +71,8 @@ def write_tfrecords(examples, output_file):
 
 
 def generate_examples(source_file, target_file):
-  """Creates an iterator of tf.Example records given aligned source and target files.
+  """Creates an iterator of tf.Example records given aligned
+  source and target files.
 
   Args:
     source_file: path to file with newline-separated source strings
@@ -89,12 +88,12 @@ def generate_examples(source_file, target_file):
           print('Processed {} records'.format(i))
         yield build_example(i, source, target)
 
+
 def main(unused_argv):
   """Main function.
   """
   #pylint: disable=unused-argument
-  examples = generate_examples(
-    FLAGS.source_file, FLAGS.target_file)
+  examples = generate_examples(FLAGS.source_file, FLAGS.target_file)
   write_tfrecords(examples, FLAGS.output_file)
 
 

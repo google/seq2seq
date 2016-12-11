@@ -1,0 +1,4 @@
+[style]
+based_on_style = google
+indent_width = 2
+column_limit = 80
