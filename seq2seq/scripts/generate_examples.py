@@ -82,12 +82,14 @@ def generate_examples(source_file, target_file):
   Returns:
     An iterator of tf.Example objects.
   """
+  i = 0
   with gfile.GFile(source_file) as source_records:
     with gfile.GFile(target_file) as target_records:
       for i, (source, target) in enumerate(zip(source_records, target_records)):
         if i % 10000 == 0:
-          print('Processed {} records'.format(i))
+          print('Processed {} records'.format(i + 1))
         yield build_example(i, source, target)
+      print('Processed {} records. Done.'.format(i + 1))
 
 
 def main(unused_argv):
