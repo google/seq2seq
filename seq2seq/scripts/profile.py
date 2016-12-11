@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-
 """ Script to generates model profiling information
 """
 
@@ -17,6 +16,7 @@ from tensorflow.tools.tfprof import tfprof_log_pb2
 tf.flags.DEFINE_string("model_dir", None, "path to model directory")
 
 FLAGS = tf.flags.FLAGS
+
 
 def load_metadata(model_dir):
   """Loads RunMetadata, Graph and OpLog from files
@@ -58,9 +58,9 @@ def load_metadata(model_dir):
 
 
 def merge_default_with_oplog(graph, op_log=None, run_meta=None):
-  """Monkeypatch. There currently is a bug in tfprof_logger._merge_default_with_oplog that
-    prevents it from being used with Python 3. So we override the method manually until the fix
-    comes in.
+  """Monkeypatch. There currently is a bug in tfprof_logger that
+    prevents it from being used with Python 3. So we override the method
+    manually until the fix comes in.
   """
   tmp_op_log = tfprof_log_pb2.OpLog()
   # pylint: disable=W0212
@@ -93,6 +93,7 @@ def param_analysis_options(output_dir):
     options["dump_to_file"] = os.path.join(output_dir, "params.txt")
   return "scope", options
 
+
 def micro_anaylsis_options(output_dir):
   """Options for microsecond analysis
   """
@@ -104,6 +105,7 @@ def micro_anaylsis_options(output_dir):
   if output_dir:
     options["dump_to_file"] = os.path.join(output_dir, "micro.txt")
   return "graph", options
+
 
 def flops_analysis_options(output_dir):
   """Options for FLOPS analysis
@@ -117,6 +119,7 @@ def flops_analysis_options(output_dir):
     options["dump_to_file"] = os.path.join(output_dir, "flops.txt")
   return "scope", options
 
+
 def device_analysis_options(output_dir):
   """Options for device placement analysis
   """
@@ -127,6 +130,7 @@ def device_analysis_options(output_dir):
   if output_dir:
     options["dump_to_file"] = os.path.join(output_dir, "device.txt")
   return "scope", options
+
 
 def main(_argv):
   """Main functions. Runs all anaylses."""
@@ -140,22 +144,23 @@ def main(_argv):
   run_meta, graph, op_log = load_metadata(FLAGS.model_dir)
 
   param_arguments = [
-    param_analysis_options(output_dir),
-    micro_anaylsis_options(output_dir),
-    flops_analysis_options(output_dir),
-    device_analysis_options(output_dir),
+      param_analysis_options(output_dir),
+      micro_anaylsis_options(output_dir),
+      flops_analysis_options(output_dir),
+      device_analysis_options(output_dir),
   ]
 
   for tfprof_cmd, params in param_arguments:
     model_analyzer.print_model_analysis(
-      graph=graph,
-      run_meta=run_meta,
-      op_log=op_log,
-      tfprof_cmd=tfprof_cmd,
-      tfprof_options=params)
+        graph=graph,
+        run_meta=run_meta,
+        op_log=op_log,
+        tfprof_cmd=tfprof_cmd,
+        tfprof_options=params)
 
     if params["dump_to_file"] != "":
       print("Wrote {}".format(params["dump_to_file"]))
+
 
 if __name__ == '__main__':
   tf.app.run()

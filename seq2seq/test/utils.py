@@ -5,6 +5,7 @@ import tempfile
 from seq2seq.scripts import generate_examples
 from seq2seq import inputs
 
+
 def create_temp_tfrecords(source, target):
   """
   Creates a temporary TFRecords file.
@@ -51,6 +52,7 @@ def create_next_input_fn_for_test(source, target):
     A function that reads from a temporary file
   """
   file = create_temp_tfrecords(source, target)
+
   def next_input_fn():
     """
     The input function that is returned.

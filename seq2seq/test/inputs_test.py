@@ -2,12 +2,12 @@
 Unit tests for input-related operations.
 """
 
-
 import tensorflow as tf
 import numpy as np
 
 from seq2seq import inputs
 from seq2seq.test import utils as test_utils
+
 
 class VocabInfoTest(tf.test.TestCase):
   """Tests VocabInfo class"""
@@ -31,6 +31,7 @@ class VocabInfoTest(tf.test.TestCase):
     self.assertEqual(vocab_info.special_vocab.SEQUENCE_END, 5)
     self.assertEqual(vocab_info.total_size, 6)
 
+
 class ReadFromDataProviderTest(tf.test.TestCase):
   """
   Tests Data Provider operations.
@@ -41,7 +42,8 @@ class ReadFromDataProviderTest(tf.test.TestCase):
     tf.logging.set_verbosity(tf.logging.INFO)
 
   def test_read_from_data_provider(self):
-    file = test_utils.create_temp_tfrecords(source="Hello World .", target="Bye")
+    file = test_utils.create_temp_tfrecords(
+        source="Hello World .", target="Bye")
     data_provider = inputs.make_data_provider([file.name], num_epochs=5)
     features = inputs.read_from_data_provider(data_provider)
 
@@ -53,7 +55,8 @@ class ReadFromDataProviderTest(tf.test.TestCase):
 
     self.assertEqual(res["source_len"], 3)
     self.assertEqual(res["target_len"], 1)
-    np.testing.assert_array_equal(res["source_tokens"].astype("U"), ["Hello", "World", "."])
+    np.testing.assert_array_equal(res["source_tokens"].astype("U"),
+                                  ["Hello", "World", "."])
     np.testing.assert_array_equal(res["target_tokens"].astype("U"), ["Bye"])
 
 
@@ -84,13 +87,17 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
       sess.run(tf.local_variables_initializer())
       sess.run(tf.initialize_all_tables())
 
-      ids = vocab_to_id_table.lookup(tf.convert_to_tensor(["Hello", ".", "Bye", "??", "xxx"]))
+      ids = vocab_to_id_table.lookup(
+          tf.convert_to_tensor(["Hello", ".", "Bye", "??", "xxx"]))
       ids = sess.run(ids)
       np.testing.assert_array_equal(ids, [0, 1, 2, 3, 3])
 
-      words = id_to_vocab_table.lookup(tf.convert_to_tensor([0, 1, 2, 3], dtype=tf.int64))
+      words = id_to_vocab_table.lookup(
+          tf.convert_to_tensor(
+              [0, 1, 2, 3], dtype=tf.int64))
       words = sess.run(words)
-      np.testing.assert_array_equal(words.astype("U"), ["Hello", ".", "Bye", "UNK"])
+      np.testing.assert_array_equal(
+          words.astype("U"), ["Hello", ".", "Bye", "UNK"])
 
 
 if __name__ == "__main__":

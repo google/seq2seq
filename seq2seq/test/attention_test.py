@@ -7,10 +7,12 @@ import numpy as np
 
 from seq2seq.decoders.attention import AttentionLayer
 
+
 class AttentionLayerTest(tf.test.TestCase):
   """
   Tests the AttentionLayer module.
   """
+
   def setUp(self):
     super(AttentionLayerTest, self).setUp()
     tf.logging.set_verbosity(tf.logging.INFO)
@@ -30,12 +32,15 @@ class AttentionLayerTest(tf.test.TestCase):
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       feed_dict = {}
-      feed_dict[inputs_pl] = np.random.randn(self.batch_size, self.seq_len, self.input_dim)
+      feed_dict[inputs_pl] = np.random.randn(self.batch_size, self.seq_len,
+                                             self.input_dim)
       feed_dict[state_pl] = np.random.randn(self.batch_size, self.state_dim)
       scores_, context_ = sess.run([scores, context], feed_dict)
 
-    np.testing.assert_array_equal(scores_.shape, [self.batch_size, self.seq_len])
-    np.testing.assert_array_equal(context_.shape, [self.batch_size, self.input_dim])
+    np.testing.assert_array_equal(scores_.shape,
+                                  [self.batch_size, self.seq_len])
+    np.testing.assert_array_equal(context_.shape,
+                                  [self.batch_size, self.input_dim])
 
     # Scores should sum to 1
     scores_sum = np.sum(scores_, axis=1)
