@@ -2,7 +2,7 @@
 Unit tests for loss-related operations.
 """
 
-import seq2seq.losses as seq2seq_losses
+from seq2seq import losses as seq2seq_losses
 import tensorflow as tf
 import numpy as np
 

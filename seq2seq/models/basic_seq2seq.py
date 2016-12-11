@@ -2,9 +2,9 @@
 Definition of a basic seq2seq model
 """
 
-import seq2seq.training as training
-import seq2seq.encoders as encoders
-import seq2seq.decoders as decoders
+from seq2seq import training
+from seq2seq import encoders
+from seq2seq import decoders
 from seq2seq.models.model_base import Seq2SeqBase
 
 
