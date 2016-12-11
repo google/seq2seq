@@ -59,7 +59,7 @@ class AttentionLayer(GraphModule):
     state_att_flat = tf.reshape(
         tf.tile(state_att, [1, inputs_timesteps]),
         [inputs_timesteps * batch_size, self.num_units])
-    scores = tf.batch_matmul(
+    scores = tf.matmul(
         tf.expand_dims(inputs_att_flat, 1), tf.expand_dims(state_att_flat, 2))
     scores = tf.reshape(scores, [batch_size, inputs_timesteps], name="scores")
 

@@ -11,6 +11,7 @@ from google.protobuf import text_format
 import tensorflow as tf
 from tensorflow.contrib.tfprof import model_analyzer
 from tensorflow.contrib.tfprof.python.tools.tfprof import tfprof_logger
+from tensorflow.python.platform import gfile
 from tensorflow.tools.tfprof import tfprof_log_pb2
 
 tf.flags.DEFINE_string("model_dir", None, "path to model directory")
@@ -24,8 +25,8 @@ def load_metadata(model_dir):
   # Import RunMetadata
   run_meta_path = os.path.join(model_dir, "metadata/run_meta")
   run_meta = tf.RunMetadata()
-  if os.path.exists(run_meta_path):
-    with open(run_meta_path, "rb") as file:
+  if gfile.Exists(run_meta_path):
+    with gfile.GFile(run_meta_path, "rb") as file:
       run_meta.MergeFromString(file.read())
     print("Loaded RunMetadata from {}".format(run_meta_path))
   else:
@@ -34,10 +35,10 @@ def load_metadata(model_dir):
   # Import Graph
   graph_def_path = os.path.join(model_dir, "graph.pbtxt")
   graph = tf.Graph()
-  if os.path.exists(graph_def_path):
+  if gfile.Exists(graph_def_path):
     with graph.as_default():
       graph_def = tf.GraphDef()
-      with open(graph_def_path, "rb") as file:
+      with gfile.GFile(graph_def_path, "rb") as file:
         text_format.Parse(file.read(), graph_def)
       tf.import_graph_def(graph_def, name="")
       print("Loaded Graph from {}".format(graph_def_path))
@@ -47,8 +48,8 @@ def load_metadata(model_dir):
   # Import OpLog
   op_log_path = os.path.join(model_dir, "metadata/tfprof_log")
   op_log = tfprof_log_pb2.OpLog()
-  if os.path.exists(op_log_path):
-    with open(op_log_path, "rb") as file:
+  if gfile.Exists(op_log_path):
+    with gfile.GFile(op_log_path, "rb") as file:
       op_log.MergeFromString(file.read())
       print("Loaded OpLog from {}".format(op_log_path))
   else:
@@ -139,7 +140,7 @@ def main(_argv):
 
   FLAGS.model_dir = os.path.abspath(os.path.expanduser(FLAGS.model_dir))
   output_dir = os.path.join(FLAGS.model_dir, "profile")
-  os.makedirs(output_dir, exist_ok=True)
+  gfile.MakeDirs(output_dir)
 
   run_meta, graph, op_log = load_metadata(FLAGS.model_dir)
 

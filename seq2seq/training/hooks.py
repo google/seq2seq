@@ -4,12 +4,12 @@
 import os
 import tensorflow as tf
 
-from tensorflow.contrib.learn import basic_session_run_hooks, session_run_hook
+from tensorflow.python.training import basic_session_run_hooks, session_run_hook
 from tensorflow.python.client import timeline
+from tensorflow.python.platform import gfile
 
 
-class SecondOrStepTimer(
-    basic_session_run_hooks.basic_session_run_hooks._SecondOrStepTimer):
+class SecondOrStepTimer(basic_session_run_hooks._SecondOrStepTimer):
   """Helper class to count both seconds and steps.
   """
   pass
@@ -42,17 +42,17 @@ class MetadataCaptureHook(session_run_hook.SessionRunHook):
     if self._iter == self.step:
       tf.logging.info("Step %s complete, captured full trace.", self._iter)
       # Create output directory
-      os.makedirs(self.output_dir, exist_ok=True)
+      gfile.MakeDirs(self.output_dir)
 
       # Save run metadata
       trace_path = os.path.join(self.output_dir, "run_meta")
-      with open(trace_path, "wb") as trace_file:
+      with gfile.GFile(trace_path, "wb") as trace_file:
         trace_file.write(run_values.run_metadata.SerializeToString())
         tf.logging.info("Saved run_metadata to %s", trace_path)
 
       # Save timeline
       timeline_path = os.path.join(self.output_dir, "timeline.json")
-      with open(timeline_path, "w") as timeline_file:
+      with gfile.GFile(timeline_path, "w") as timeline_file:
         tl_info = timeline.Timeline(run_values.run_metadata.step_stats)
         tl_chrome = tl_info.generate_chrome_trace_format(show_memory=True)
         timeline_file.write(tl_chrome)
@@ -167,5 +167,5 @@ class PrintModelAnalysisHook(session_run_hook.SessionRunHook):
         tf.get_default_graph(), tfprof_options=opts)
 
     # Print the model analysis
-    with open(self.filename, "r") as file:
+    with gfile.GFile(self.filename, "r") as file:
       tf.logging.info(file.read())

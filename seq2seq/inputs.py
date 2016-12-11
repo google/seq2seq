@@ -1,9 +1,9 @@
 """Collection of input-related graph operations.
 """
 
-import os
 import collections
 import tensorflow as tf
+from tensorflow.python.platform import gfile
 
 SpecialVocab = collections.namedtuple("SpecialVocab",
                                       ["OOV", "SEQUENCE_START", "SEQUENCE_END"])
@@ -31,7 +31,7 @@ def get_vocab_info(vocab_path):
   Returns:
     A VocabInfo tuple.
   """
-  with open(vocab_path) as file:
+  with gfile.GFile(vocab_path) as file:
     vocab_size = sum(1 for _ in file)
   special_vocab = get_special_vocab(vocab_size)
   return VocabInfo(vocab_path, vocab_size, special_vocab)
@@ -57,10 +57,10 @@ def create_vocabulary_lookup_table(filename, default_value=None, name=None):
      A tuple (hash_table, reverse_hash_table, vocab_size). The vocab size
       does not include the OOV token.
     """
-  if not os.path.exists(filename):
+  if not gfile.Exists(filename):
     raise ValueError("File does not exist: {}".format(filename))
 
-  with open(filename) as file:
+  with gfile.GFile(filename) as file:
     vocab_size = sum(1 for line in file)
 
   if default_value is None:
