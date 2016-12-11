@@ -4,12 +4,11 @@
 import os
 import tensorflow as tf
 
-from tensorflow.contrib.learn import basic_session_run_hooks, session_run_hook
+from tensorflow.python.training import basic_session_run_hooks, session_run_hook
 from tensorflow.python.client import timeline
 
 
-class SecondOrStepTimer(
-    basic_session_run_hooks.basic_session_run_hooks._SecondOrStepTimer):
+class SecondOrStepTimer(basic_session_run_hooks._SecondOrStepTimer):
   """Helper class to count both seconds and steps.
   """
   pass
