@@ -5,6 +5,7 @@ import os
 import tensorflow as tf
 
 from tensorflow.python.training import basic_session_run_hooks, session_run_hook
+from tensorflow.python.training import training_util
 from tensorflow.python.client import timeline
 from tensorflow.python.platform import gfile
 
@@ -28,19 +29,27 @@ class MetadataCaptureHook(session_run_hook.SessionRunHook):
   #pylint: disable=missing-docstring
 
   def __init__(self, output_dir, step=10):
-    self._iter = 0
-    self.step = step
+    self._step = step
+    self._active = False
+    self._global_step = None
     self.output_dir = os.path.abspath(output_dir)
 
+  def begin(self):
+    self._global_step = training_util.get_global_step()
+
   def before_run(self, _run_context):
-    if self._iter == self.step:
-      tf.logging.info("Step %s coming up, performing full trace.", self._iter)
+    if not self._active:
+      return session_run_hook.SessionRunArgs(self._global_step)
+    else:
+      tf.logging.info("Performing full trace on next step.")
       run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-      return session_run_hook.SessionRunArgs({}, options=run_options)
+      return session_run_hook.SessionRunArgs(
+          self._global_step, options=run_options)
 
   def after_run(self, _run_context, run_values):
-    if self._iter == self.step:
-      tf.logging.info("Step %s complete, captured full trace.", self._iter)
+    step_done = run_values.results
+    if self._active:
+      tf.logging.info("Captured full trace at step %s", step_done)
       # Create output directory
       gfile.MakeDirs(self.output_dir)
 
@@ -64,8 +73,9 @@ class MetadataCaptureHook(session_run_hook.SessionRunHook):
           log_dir=self.output_dir,
           run_meta=run_values.run_metadata)
       tf.logging.info("Saved op log to %s", self.output_dir)
+      self._active = False
 
-    self._iter += 1
+    self._active = (step_done == self._step)
 
 
 class TrainSampleHook(session_run_hook.SessionRunHook):
