@@ -140,7 +140,7 @@ def main(_argv):
 
   FLAGS.model_dir = os.path.abspath(os.path.expanduser(FLAGS.model_dir))
   output_dir = os.path.join(FLAGS.model_dir, "profile")
-  gfile.MakeDirs(output_dir, exist_ok=True)
+  gfile.MakeDirs(output_dir)
 
   run_meta, graph, op_log = load_metadata(FLAGS.model_dir)
 
