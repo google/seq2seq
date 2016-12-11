@@ -1,6 +1,6 @@
 # Created by https://www.gitignore.io/api/python
 
-notebooks
+notebooks/WIP
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
@@ -99,3 +99,6 @@ ENV/
 
 # Tensorflow
 .tfprof_history.txt
+
+# Mac OS X
+.DS_Store

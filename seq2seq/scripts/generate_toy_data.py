@@ -6,7 +6,6 @@ Functions to generate various toy datasets.
 import argparse
 import os
 import numpy as np
-from sklearn.cross_validation import train_test_split
 
 PARSER = argparse.ArgumentParser(description="Generates toy datasets.")
 PARSER.add_argument(
@@ -17,11 +16,6 @@ PARSER.add_argument(
     "--min_len", type=int, default=5, help="minimum sequence length")
 PARSER.add_argument(
     "--max_len", type=int, default=40, help="maximum sequence length")
-PARSER.add_argument(
-    "--dev_split",
-    type=float,
-    default=0.1,
-    help="Fraction of data to use for the dev set")
 PARSER.add_argument(
     "--type",
     type=str,
@@ -91,8 +85,8 @@ def write_parallel_text(sources, targets, output_prefix):
     targets: Iterator of target strings
     output_prefix: Prefix for the output file
   """
-  source_filename = os.path.abspath(output_prefix + ".sources.txt")
-  target_filename = os.path.abspath(output_prefix + ".targets.txt")
+  source_filename = os.path.abspath(os.path.join(output_prefix, "sources.txt"))
+  target_filename = os.path.abspath(os.path.join(output_prefix, "targets.txt"))
 
   with open(source_filename, "w") as source_file:
     for record in sources:
@@ -115,19 +109,11 @@ def main():
 
   # Generate dataset
   examples = list(generate_fn(ARGS.num_examples, ARGS.min_len, ARGS.max_len))
-  examples_train, examples_dev = train_test_split(
-      examples, test_size=ARGS.dev_split)
   os.makedirs(ARGS.output_dir, exist_ok=True)
 
   # Write train data
-  train_sources, train_targets = zip(*examples_train)
-  write_parallel_text(train_sources, train_targets,
-                      os.path.join(ARGS.output_dir, "train"))
-
-  # Write dev data
-  dev_sources, dev_targets = list(zip(*examples_dev))
-  write_parallel_text(dev_sources, dev_targets,
-                      os.path.join(ARGS.output_dir, "dev"))
+  train_sources, train_targets = zip(*examples)
+  write_parallel_text(train_sources, train_targets, ARGS.output_dir)
 
 
 if __name__ == "__main__":
