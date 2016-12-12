@@ -74,7 +74,12 @@ class Seq2SeqBase(ModelBase):
         "optimizer.clip_gradients": 5.0,
     }
 
-  def encode_decode(self, source, source_len, decoder_input_fn, target_len):
+  def encode_decode(self,
+                    source,
+                    source_len,
+                    decoder_input_fn,
+                    target_len,
+                    mode=tf.contrib.learn.ModeKeys.TRAIN):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
@@ -113,18 +118,23 @@ class Seq2SeqBase(ModelBase):
       initial_input = tf.nn.embedding_lookup(
           target_embedding,
           tf.ones_like(features["source_len"]) * target_start_id)
-      # Use the embedded prediction as the input to the next time step
+
+      def make_input_fn(decoder_output):
+        """Use the embedded prediction as the input to the next time step
+        """
+        tf.nn.embedding_lookup(target_embedding, decoder_output.predictions)
+
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
           initial_inputs=initial_input,
-          make_input_fn=lambda x: tf.nn.embedding_lookup(
-              target_embedding, x.predictions)
-      )
+          make_input_fn=make_input_fn)
+
       # Decode
       decoder_output, _ = self.encode_decode(
           source=source_embedded,
           source_len=features["source_len"],
           decoder_input_fn=decoder_input_fn_infer,
-          target_len=self.params["target.max_seq_len"])
+          target_len=self.params["target.max_seq_len"],
+          mode=mode)
       predictions = self._create_predictions(
           features=features, labels=-labels, decoder_output=decoder_output)
       return predictions, None, None
@@ -143,7 +153,8 @@ class Seq2SeqBase(ModelBase):
         source=source_embedded,
         source_len=features["source_len"],
         decoder_input_fn=decoder_input_fn_train,
-        target_len=labels["target_len"])
+        target_len=labels["target_len"],
+        mode=mode)
 
     # TODO: For a long sequence  logits are a huge [B * T, vocab_size] matrix
     # which can lead to OOM errors on a GPU. Fixing this is TODO, maybe we
