@@ -2,6 +2,8 @@
 Definition of a basic seq2seq model
 """
 
+import tensorflow as tf
+
 from seq2seq import training
 from seq2seq import encoders
 from seq2seq import decoders
@@ -41,15 +43,24 @@ class BasicSeq2Seq(Seq2SeqBase):
     })
     return params
 
-  def encode_decode(self, source, source_len, decoder_input_fn, target_len):
+  def encode_decode(self,
+                    source,
+                    source_len,
+                    decoder_input_fn,
+                    target_len,
+                    mode=tf.contrib.learn.ModeKeys.TRAIN):
     # Create Encoder
+    enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
     encoder_cell = training.utils.get_rnn_cell(
         cell_type=self.params["rnn_cell.type"],
         num_units=self.params["rnn_cell.num_units"],
         num_layers=self.params["rnn_cell.num_layers"],
-        dropout_input_keep_prob=self.params["rnn_cell.dropout_input_keep_prob"],
-        dropout_output_keep_prob=self.params[
-            "rnn_cell.dropout_output_keep_prob"])
+        dropout_input_keep_prob=(
+            self.params["rnn_cell.dropout_input_keep_prob"]
+            if enable_dropout else 1.0),
+        dropout_output_keep_prob=(
+            self.params["rnn_cell.dropout_output_keep_prob"]
+            if enable_dropout else 1.0))
     encoder_fn = encoders.UnidirectionalRNNEncoder(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 
