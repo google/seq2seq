@@ -118,11 +118,16 @@ class Seq2SeqBase(ModelBase):
       initial_input = tf.nn.embedding_lookup(
           target_embedding,
           tf.ones_like(features["source_len"]) * target_start_id)
-      # Use the embedded prediction as the input to the next time step
+
+      def make_input_fn(decoder_output):
+        """Use the embedded prediction as the input to the next time step
+        """
+        tf.nn.embedding_lookup(target_embedding, decoder_output.predictions)
+
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
           initial_inputs=initial_input,
-          make_input_fn=lambda x: tf.nn.embedding_lookup(target_embedding, x.predictions)
-      )
+          make_input_fn=make_input_fn)
+
       # Decode
       decoder_output, _ = self.encode_decode(
           source=source_embedded,
