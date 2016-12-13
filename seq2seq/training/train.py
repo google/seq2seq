@@ -14,8 +14,12 @@ from seq2seq.training import hooks
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
 
-tf.flags.DEFINE_string("data_train", None, "path to training data TFRecords")
-tf.flags.DEFINE_string("data_dev", None, "path to dev data TFRecords")
+# data
+tf.flags.DEFINE_string("train_source", None, "path to source training data")
+tf.flags.DEFINE_string("train_target", None, "path to target training data")
+tf.flags.DEFINE_string("dev_source", None, "path to source dev data")
+tf.flags.DEFINE_string("dev_target", None, "path to target dev data")
+
 tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
 tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
 tf.flags.DEFINE_string("buckets", None,
@@ -57,9 +61,11 @@ def create_experiment(output_dir):
 
   # Create data providers
   train_data_provider = \
-    lambda: data_utils.make_tfrecord_data_provider([FLAGS.data_train])
+    lambda: data_utils.make_parallel_data_provider(
+        [FLAGS.train_source], [FLAGS.train_target], shuffle=True)
   dev_data_provider = \
-    lambda: data_utils.make_tfrecord_data_provider([FLAGS.data_dev])
+    lambda: data_utils.make_parallel_data_provider(
+        [FLAGS.dev_source], [FLAGS.dev_target])
 
   # Find model class
   model_class = getattr(models, FLAGS.model)
