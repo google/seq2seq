@@ -87,15 +87,15 @@ class Seq2SeqBase(ModelBase):
                           features,
                           labels,
                           decoder_output,
-                          log_perplexities=None):
+                          losses=None):
     """Creates the dictionary of predictions that is returned by the model.
     """
     predictions = {
         "logits": decoder_output.logits,
         "predictions": decoder_output.predictions,
     }
-    if log_perplexities is not None:
-      predictions["log_perplexities"] = log_perplexities
+    if losses is not None:
+      predictions["losses"] = losses
     return predictions
 
   def _build(self, features, labels, params, mode):
@@ -166,12 +166,10 @@ class Seq2SeqBase(ModelBase):
         targets=labels["target_ids"][:, 1:],
         sequence_length=labels["target_len"] - 1)
 
-    # Calulate per-example losses of shape [B]
-    log_perplexities = tf.div(tf.reduce_sum(
-        losses, reduction_indices=1),
-                              tf.to_float(labels["target_len"] - 1))
 
-    loss = tf.reduce_mean(log_perplexities)
+    # Calculate the average log perplexity
+    loss = tf.reduce_sum(losses) / tf.to_float(
+        tf.reduce_sum(labels["target_len"] - 1))
 
     train_op = tf.contrib.layers.optimize_loss(
         loss=loss,
@@ -188,7 +186,7 @@ class Seq2SeqBase(ModelBase):
         features=features,
         labels=labels,
         decoder_output=decoder_output,
-        log_perplexities=log_perplexities)
+        losses=losses)
 
     # We add "useful" tensors to the graph collection so that we
     # can easly find them in our hooks/monitors.

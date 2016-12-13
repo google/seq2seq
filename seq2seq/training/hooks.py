@@ -150,7 +150,7 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     tf.logging.info("=" * 100)
     for result in result_dicts:
       target_len = result["target_len"]
-      predicted_slice = result["predicted_words"][:target_len]
+      predicted_slice = result["predicted_words"][:target_len - 1]
       target_slice = result["target_words"][1:target_len]
       tf.logging.info(b" ".join(predicted_slice).decode("utf-8"))
       tf.logging.info(b" ".join(target_slice).decode("utf-8"))
