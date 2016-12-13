@@ -10,6 +10,7 @@ from seq2seq.data import data_utils, vocab
 from seq2seq.training import HParamsParser
 from seq2seq.training import utils as training_utils
 from seq2seq.training import hooks
+from seq2seq.training import metrics
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
@@ -118,6 +119,11 @@ def create_experiment(output_dir):
       output_dir=os.path.join(estimator.model_dir, "metadata"), step=10)
   train_monitors = [model_analysis_hook, train_sample_hook, metadata_hook]
 
+  # Metrics
+  eval_metrics = {
+      "log_perplexity": metrics.streaming_log_perplexity()
+  }
+
   experiment = tf.contrib.learn.experiment.Experiment(
       estimator=estimator,
       train_input_fn=train_input_fn,
@@ -125,6 +131,7 @@ def create_experiment(output_dir):
       min_eval_frequency=FLAGS.eval_every_n_steps,
       train_steps=FLAGS.train_steps,
       eval_steps=FLAGS.eval_steps,
+      eval_metrics=eval_metrics,
       train_monitors=train_monitors)
 
   return experiment
