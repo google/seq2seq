@@ -3,7 +3,7 @@
 
 import tempfile
 from seq2seq.scripts import generate_examples
-from seq2seq import inputs
+from seq2seq.data import data_utils
 
 
 def create_temp_tfrecords(source, target):
@@ -57,7 +57,8 @@ def create_next_input_fn_for_test(source, target):
     """
     The input function that is returned.
     """
-    data_provider = inputs.make_data_provider([file.name], num_epochs=None)
-    return inputs.read_from_data_provider(data_provider)
+    data_provider = data_utils.make_tfrecord_data_provider(
+        [file.name], num_epochs=None)
+    return data_utils.read_from_data_provider(data_provider)
 
   return next_input_fn

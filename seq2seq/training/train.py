@@ -5,8 +5,8 @@
 
 import os
 import tempfile
-from seq2seq import inputs
 from seq2seq import models
+from seq2seq.data import data_utils, vocab
 from seq2seq.training import HParamsParser
 from seq2seq.training import utils as training_utils
 from seq2seq.training import hooks
@@ -52,12 +52,14 @@ def create_experiment(output_dir):
   """
 
   # Load vocabulary info
-  source_vocab_info = inputs.get_vocab_info(FLAGS.vocab_source)
-  target_vocab_info = inputs.get_vocab_info(FLAGS.vocab_target)
+  source_vocab_info = vocab.get_vocab_info(FLAGS.vocab_source)
+  target_vocab_info = vocab.get_vocab_info(FLAGS.vocab_target)
 
   # Create data providers
-  train_data_provider = lambda: inputs.make_data_provider([FLAGS.data_train])
-  dev_data_provider = lambda: inputs.make_data_provider([FLAGS.data_dev])
+  train_data_provider = \
+    lambda: data_utils.make_tfrecord_data_provider([FLAGS.data_train])
+  dev_data_provider = \
+    lambda: data_utils.make_tfrecord_data_provider([FLAGS.data_dev])
 
   # Find model class
   model_class = getattr(models, FLAGS.model)

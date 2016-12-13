@@ -16,9 +16,9 @@ class BasicSeq2Seq(Seq2SeqBase):
   must share the same type of RNN cell.
 
   Args:
-    source_vocab_info: An instance of `seq2seq.inputs.VocabInfo`
+    source_vocab_info: An instance of `VocabInfo`
       for the source vocabulary
-    target_vocab_info: An instance of `seq2seq.inputs.VocabInfo`
+    target_vocab_info: An instance of `VocabInfo`
       for the target vocabulary
     params: A dictionary of hyperparameters
   """

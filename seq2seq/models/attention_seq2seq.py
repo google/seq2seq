@@ -14,9 +14,9 @@ class AttentionSeq2Seq(Seq2SeqBase):
   """Sequence2Sequence model with attention mechanism.
 
   Args:
-    source_vocab_info: An instance of `seq2seq.inputs.VocabInfo`
+    source_vocab_info: An instance of `VocabInfo`
       for the source vocabulary
-    target_vocab_info: An instance of `seq2seq.inputs.VocabInfo`
+    target_vocab_info: An instance of `VocabInfo`
       for the target vocabulary
     params: A dictionary of hyperparameters
   """
