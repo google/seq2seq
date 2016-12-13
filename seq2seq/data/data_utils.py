@@ -5,9 +5,12 @@ import tensorflow as tf
 
 from seq2seq.data import split_tokens_decoder, parallel_data_provider
 
-def make_parallel_data_provider(data_sources_source, data_sources_target,
+
+def make_parallel_data_provider(data_sources_source,
+                                data_sources_target,
                                 reader=tf.TextLineReader,
-                                num_samples=None, **kwargs):
+                                num_samples=None,
+                                **kwargs):
   """Creates a DataProvider that reads parallel text data.
 
   Args:
@@ -23,11 +26,9 @@ def make_parallel_data_provider(data_sources_source, data_sources_target,
 
   # Decoders for both data sources
   decoder_source = split_tokens_decoder.SplitTokensDecoder(
-      tokens_feature_name="source_tokens",
-      length_feature_name="source_len")
+      tokens_feature_name="source_tokens", length_feature_name="source_len")
   decoder_target = split_tokens_decoder.SplitTokensDecoder(
-      tokens_feature_name="target_tokens",
-      length_feature_name="target_len")
+      tokens_feature_name="target_tokens", length_feature_name="target_len")
 
   # Datasets for both data sources
   dataset_source = tf.contrib.slim.dataset.Dataset(
@@ -44,13 +45,13 @@ def make_parallel_data_provider(data_sources_source, data_sources_target,
       items_to_descriptions={})
 
   return parallel_data_provider.ParallelDataProvider(
-      dataset1=dataset_source,
-      dataset2=dataset_target,
-      **kwargs)
+      dataset1=dataset_source, dataset2=dataset_target, **kwargs)
 
 
-def make_tfrecord_data_provider(data_sources, reader=tf.TFRecordReader,
-                                num_samples=None, **kwargs):
+def make_tfrecord_data_provider(data_sources,
+                                reader=tf.TFRecordReader,
+                                num_samples=None,
+                                **kwargs):
   """
   Creates a TF Slim DatasetDataProvider for a list of input files.
 

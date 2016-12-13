@@ -11,6 +11,7 @@ from tensorflow.contrib.slim.python.slim.data import parallel_reader
 from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.training import queue_runner
 
+
 class ParallelDataProvider(data_provider.DataProvider):
   """Creates a ParallelDataProvider. This data provider reads two datasets
   in parallel, keeping them aligned.
@@ -29,9 +30,14 @@ class ParallelDataProvider(data_provider.DataProvider):
     seed: The seed to use if shuffling.
   """
 
-  def __init__(self, dataset1, dataset2,
-               shuffle=True, num_epochs=None,
-               common_queue_capacity=256, common_queue_min=128, seed=1234):
+  def __init__(self,
+               dataset1,
+               dataset2,
+               shuffle=True,
+               num_epochs=None,
+               common_queue_capacity=256,
+               common_queue_min=128,
+               seed=1234):
 
     _, data_source = parallel_reader.parallel_read(
         dataset1.data_sources,
@@ -62,8 +68,8 @@ class ParallelDataProvider(data_provider.DataProvider):
           seed=seed)
       enqueue_ops = []
       enqueue_ops.append(shuffle_queue.enqueue([data_source, data_target]))
-      queue_runner.add_queue_runner(queue_runner.QueueRunner(
-          shuffle_queue, enqueue_ops))
+      queue_runner.add_queue_runner(
+          queue_runner.QueueRunner(shuffle_queue, enqueue_ops))
       data_source, data_target = shuffle_queue.dequeue()
 
     # Decode source items

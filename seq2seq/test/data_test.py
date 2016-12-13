@@ -6,23 +6,22 @@ import tempfile
 import tensorflow as tf
 import numpy as np
 
-from seq2seq.data import parallel_data_provider
 from seq2seq.data import split_tokens_decoder
 from seq2seq.data import data_utils
 from seq2seq.test import utils as test_utils
 
+
 class SplitTokensDecoderTest(tf.test.TestCase):
   """Tests the SplitTokensDecoder class
   """
+
   def test_decode(self):
     decoder = split_tokens_decoder.SplitTokensDecoder(
         delimiter=" ",
         tokens_feature_name="source_tokens",
         length_feature_name="source_len")
 
-    self.assertEqual(
-        decoder.list_items(),
-        ["source_tokens", "source_len"])
+    self.assertEqual(decoder.list_items(), ["source_tokens", "source_len"])
 
     data = tf.constant("Hello world !")
 
@@ -37,18 +36,17 @@ class SplitTokensDecoderTest(tf.test.TestCase):
 
     self.assertEqual(decoded_length_, 3)
     np.testing.assert_array_equal(
-        decoded_tokens_.astype("U"),
-        ["Hello", "world", "!"])
+        decoded_tokens_.astype("U"), ["Hello", "world", "!"])
 
     self.assertEqual(decoded_both_[1], 3)
-    np.testing.assert_array_equal(
-        decoded_both_[0].astype("U"),
-        ["Hello", "world", "!"])
+    np.testing.assert_array_equal(decoded_both_[0].astype("U"),
+                                  ["Hello", "world", "!"])
 
 
 class ParallelDataProviderTest(tf.test.TestCase):
   """Tests the ParallelDataProvider class
   """
+
   def setUp(self):
     super(ParallelDataProviderTest, self).setUp()
     # Our data
@@ -96,9 +94,8 @@ class ParallelDataProviderTest(tf.test.TestCase):
       self.assertEqual(item_dict["target_len"], 1)
       item_dict["target_tokens"] = item_dict["target_tokens"].astype("U")
       item_dict["source_tokens"] = item_dict["source_tokens"].astype("U")
-      self.assertEqual(
-          item_dict["target_tokens"][0],
-          self.source_to_target[item_dict["source_tokens"][0]])
+      self.assertEqual(item_dict["target_tokens"][0],
+                       self.source_to_target[item_dict["source_tokens"][0]])
 
 
 class ReadFromDataProviderTest(tf.test.TestCase):

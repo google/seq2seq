@@ -125,8 +125,7 @@ class Seq2SeqBase(ModelBase):
         tf.nn.embedding_lookup(target_embedding, decoder_output.predictions)
 
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
-          initial_inputs=initial_input,
-          make_input_fn=make_input_fn)
+          initial_inputs=initial_input, make_input_fn=make_input_fn)
 
       # Decode
       decoder_output, _ = self.encode_decode(

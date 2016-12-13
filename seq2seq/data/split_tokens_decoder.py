@@ -9,6 +9,7 @@ from __future__ import print_function
 import tensorflow as tf
 from tensorflow.contrib.slim.python.slim.data import data_decoder
 
+
 class SplitTokensDecoder(data_decoder.DataDecoder):
   """A DataProvider that splits a string tensor into individual tokens and
   returns the tokens and the length.
@@ -18,7 +19,10 @@ class SplitTokensDecoder(data_decoder.DataDecoder):
     tokens_feature_name: A descriptive feature name for the token values
     length_feature_name: A descriptive feature name for the length value
   """
-  def __init__(self, delimiter=" ", tokens_feature_name="tokens",
+
+  def __init__(self,
+               delimiter=" ",
+               tokens_feature_name="tokens",
                length_feature_name="length"):
     self.delimiter = delimiter
     self.tokens_feature_name = tokens_feature_name
@@ -28,8 +32,8 @@ class SplitTokensDecoder(data_decoder.DataDecoder):
     decoded_items = {}
     decoded_items[self.tokens_feature_name] = tf.string_split(
         [data], delimiter=self.delimiter).values
-    decoded_items[self.length_feature_name] = tf.size(
-        decoded_items[self.tokens_feature_name])
+    decoded_items[self.length_feature_name] = tf.size(decoded_items[
+        self.tokens_feature_name])
     return [decoded_items[_] for _ in items]
 
   def list_items(self):

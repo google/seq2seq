@@ -53,9 +53,8 @@ class AttentionSeq2Seq(Seq2SeqBase):
         cell_type=self.params["rnn_cell.type"],
         num_units=self.params["rnn_cell.num_units"],
         num_layers=self.params["rnn_cell.num_layers"],
-        dropout_input_keep_prob=(
-            self.params["rnn_cell.dropout_input_keep_prob"]
-            if enable_dropout else 1.0),
+        dropout_input_keep_prob=(self.params["rnn_cell.dropout_input_keep_prob"]
+                                 if enable_dropout else 1.0),
         dropout_output_keep_prob=(
             self.params["rnn_cell.dropout_output_keep_prob"]
             if enable_dropout else 1.0))
