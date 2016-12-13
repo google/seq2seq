@@ -3,7 +3,7 @@
 """
 
 import tensorflow as tf
-from seq2seq import inputs
+from seq2seq.data import vocab
 from seq2seq.graph_module import GraphModule
 
 
@@ -19,8 +19,8 @@ class Seq2SeqFeaturizer(GraphModule):
   - Appends a speical "SEQUENCE_END" token to the target
 
   Args:
-    source_vocab_info: a `seq2seq.inputs.VocabInfo` for the source vocab
-    source_vocab_info: a `seq2seq.inputs.VocabInfo` for the target vocab
+    source_vocab_info: a `VocabInfo` for the source vocab
+    source_vocab_info: a `VocabInfo` for the target vocab
   """
 
   def __init__(self,
@@ -43,11 +43,11 @@ class Seq2SeqFeaturizer(GraphModule):
 
     # Create vocabulary lookup for source
     source_vocab_to_id, source_id_to_vocab, _ = \
-      inputs.create_vocabulary_lookup_table(self.source_vocab_info.path)
+      vocab.create_vocabulary_lookup_table(self.source_vocab_info.path)
 
     # Create vocabulary look for target
     target_vocab_to_id, target_id_to_vocab, _ = \
-      inputs.create_vocabulary_lookup_table(self.target_vocab_info.path)
+      vocab.create_vocabulary_lookup_table(self.target_vocab_info.path)
 
     # Create a graph colleciton for later use
     # TODO: Is there a nicer way to do this?

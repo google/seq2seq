@@ -1,7 +1,7 @@
 """Miscellaneous training utility functions.
 """
 
-from seq2seq.inputs import read_from_data_provider
+from seq2seq.data.data_utils import read_from_data_provider
 import tensorflow as tf
 
 
