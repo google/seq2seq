@@ -72,6 +72,16 @@ class AttentionDecoder(DecoderBase):
     att_scores, attention_context = self.attention_fn(cell_output,
                                                       self.attention_inputs)
 
+    # Transform attention context.
+    # This makes the softmax smaller and allows us to synthesize information
+    # between decoder state and attention context
+    # see https://arxiv.org/abs/1508.04025v5
+    attention_context = tf.contrib.layers.fully_connected(
+        inputs=tf.concat(1, [cell_output, attention_context]),
+        num_outputs=self.cell.output_size,
+        activation_fn=tf.nn.tanh,
+        scope="attention_transform")
+
     # In the first step the attention vector is set to all zeros
     if initial_call:
       attention_context = tf.zeros_like(attention_context)
@@ -79,7 +89,7 @@ class AttentionDecoder(DecoderBase):
       next_loop_state = loop_state.write(time_ - 1, att_scores)
 
     # Softmax computation
-    softmax_input = tf.concat(1, [cell_output, attention_context])
+    softmax_input = attention_context
     logits = tf.contrib.layers.fully_connected(
         inputs=softmax_input,
         num_outputs=self.vocab_size,
