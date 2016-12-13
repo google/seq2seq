@@ -176,16 +176,16 @@ class EncoderDecoderTests(tf.test.TestCase):
     target_len = self.max_decode_length + 10
     source = " ".join(np.random.choice(self.vocab_list, source_len))
     target = " ".join(np.random.choice(self.vocab_list, target_len))
-    tfrecords_file = test_utils.create_temp_tfrecords(
-        source=source, target=target)
+    sources_file, targets_file = test_utils.create_temp_parallel_data(
+        sources=[source], targets=[target])
 
     # Build model graph
     model = self.create_model()
     featurizer = model.create_featurizer()
-    data_provider = lambda: data_utils.make_tfrecord_data_provider(
-        [tfrecords_file.name])
-    input_fn = training_utils.create_input_fn(data_provider, featurizer,
-                                              self.batch_size)
+    data_provider = lambda: data_utils.make_parallel_data_provider(
+        [sources_file.name], [targets_file.name])
+    input_fn = training_utils.create_input_fn(
+        data_provider, featurizer, self.batch_size)
     features, labels = input_fn()
     predictions, loss, train_op = model(features, labels, None,
                                         tf.contrib.learn.ModeKeys.TRAIN)
@@ -209,7 +209,8 @@ class EncoderDecoderTests(tf.test.TestCase):
                                   [self.batch_size, expected_decode_len])
     self.assertFalse(np.isnan(loss_))
 
-    tfrecords_file.close()
+    sources_file.close()
+    targets_file.close()
 
 
 class TestBasicSeq2Seq(EncoderDecoderTests):
