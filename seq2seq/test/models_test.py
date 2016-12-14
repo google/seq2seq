@@ -184,8 +184,8 @@ class EncoderDecoderTests(tf.test.TestCase):
     featurizer = model.create_featurizer()
     data_provider = lambda: data_utils.make_parallel_data_provider(
         [sources_file.name], [targets_file.name])
-    input_fn = training_utils.create_input_fn(
-        data_provider, featurizer, self.batch_size)
+    input_fn = training_utils.create_input_fn(data_provider, featurizer,
+                                              self.batch_size)
     features, labels = input_fn()
     predictions, loss, train_op = model(features, labels, None,
                                         tf.contrib.learn.ModeKeys.TRAIN)
