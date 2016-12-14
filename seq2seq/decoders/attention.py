@@ -1,8 +1,8 @@
 """ Implementations of attention layers.
 """
 
-import tensorflow as tf
 from seq2seq import GraphModule
+import tensorflow as tf
 from tensorflow.python.framework import function
 
 class AttentionLayer(GraphModule):
@@ -37,7 +37,7 @@ class AttentionLayer(GraphModule):
       the weighted inputs.
       A tensor fo shape `[B, input_dim]`.
     """
-    batch_size, inputs_timesteps, _ = tf.unpack(tf.shape(inputs))
+    # batch_size, inputs_timesteps, _ = tf.unpack(tf.shape(inputs))
     inputs_dim = inputs.get_shape().as_list()[-1]
 
     # Fully connected layers to transform both inputs and state
@@ -56,14 +56,15 @@ class AttentionLayer(GraphModule):
     def bahdanau_score(inputs, state):
       """Computes Bahdanau-style attention scores
       """
-      inputs.set_shape([None, None, self.num_units])
-      state.set_shape([None, self.num_units])
       v_att = tf.get_variable("v_att", shape=[self.num_units], dtype=tf.float32)
-      att_combined = tf.nn.tanh(inputs + tf.expand_dims(state, 1))
-      att_combined_flat = tf.reshape(att_combined, [-1, self.num_units])
-      scores = tf.matmul(att_combined_flat, tf.expand_dims(v_att, 1))
-      scores = tf.reshape(scores, [batch_size, inputs_timesteps], name="scores")
-      return scores
+
+      @function.Defun(tf.float32, tf.float32, tf.float32,
+                      func_name="attention_sum",
+                      noinline=True)
+      def attention_sum(v_att, inputs, state):
+        """Calculates a batch- and timweise dot product"""
+        return tf.reduce_sum(v_att * (inputs + tf.expand_dims(state, 1)), [2])
+      return attention_sum(v_att, inputs, state)
 
     scores = bahdanau_score(inputs_att, state_att)
 
