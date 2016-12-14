@@ -118,20 +118,21 @@ class Seq2SeqBase(ModelBase):
       def make_input_fn(decoder_output):
         """Use the embedded prediction as the input to the next time step
         """
-        tf.nn.embedding_lookup(target_embedding, decoder_output.predictions)
+        return tf.nn.embedding_lookup(
+            target_embedding, decoder_output.predictions)
 
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
           initial_inputs=initial_input, make_input_fn=make_input_fn)
 
       # Decode
-      decoder_output, _ = self.encode_decode(
+      decoder_output = self.encode_decode(
           source=source_embedded,
           source_len=features["source_len"],
           decoder_input_fn=decoder_input_fn_infer,
           target_len=self.params["target.max_seq_len"],
           mode=mode)
       predictions = self._create_predictions(
-          features=features, labels=-labels, decoder_output=decoder_output)
+          features=features, labels=labels, decoder_output=decoder_output)
       return predictions, None, None
 
     # Embed target

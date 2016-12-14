@@ -107,6 +107,7 @@ class AttentionDecoder(DecoderBase):
     # Append the attention context to the inputs
     next_input = next_input_fn(time_, (None if initial_call else cell_output),
                                cell_state, loop_state, outputs)
+    print(next_input)
     next_input = tf.concat(1, [next_input, attention_context])
 
     return DecoderStepOutput(
