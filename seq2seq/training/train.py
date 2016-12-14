@@ -85,7 +85,7 @@ def create_experiment(output_dir):
   tf.logging.info("=" * 50)
   # Write hparams to file
   gfile.MakeDirs(output_dir)
-  hparams_path = os.path.join(hparams, "hparams.txt")
+  hparams_path = os.path.join(output_dir, "hparams.txt")
   training_utils.write_hparams(hparams, hparams_path)
 
   # Create model
