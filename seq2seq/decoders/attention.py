@@ -3,7 +3,7 @@
 
 import tensorflow as tf
 from seq2seq import GraphModule
-
+from tensorflow.python.framework import function
 
 class AttentionLayer(GraphModule):
   """
@@ -53,15 +53,30 @@ class AttentionLayer(GraphModule):
         activation_fn=None,
         scope="state_att")
 
+    def bahdanau_score(inputs, state):
+      """Computes Bahdanau-style attention scores
+      """
+      inputs.set_shape([None, None, self.num_units])
+      state.set_shape([None, self.num_units])
+      v_att = tf.get_variable("v_att", shape=[self.num_units], dtype=tf.float32)
+      att_combined = tf.nn.tanh(inputs + tf.expand_dims(state, 1))
+      att_combined_flat = tf.reshape(att_combined, [-1, self.num_units])
+      scores = tf.matmul(att_combined_flat, tf.expand_dims(v_att, 1))
+      scores = tf.reshape(scores, [batch_size, inputs_timesteps], name="scores")
+      return scores
+
+    scores = bahdanau_score(inputs_att, state_att)
+
+    # Show, Attend, Spell type of attention
     # Take the dot product of state for each time step in inputs
     # Result: A tensor of shape [B, T]
-    inputs_att_flat = tf.reshape(inputs_att, [-1, self.num_units])
-    state_att_flat = tf.reshape(
-        tf.tile(state_att, [1, inputs_timesteps]),
-        [inputs_timesteps * batch_size, self.num_units])
-    scores = tf.matmul(
-        tf.expand_dims(inputs_att_flat, 1), tf.expand_dims(state_att_flat, 2))
-    scores = tf.reshape(scores, [batch_size, inputs_timesteps], name="scores")
+    # inputs_att_flat = tf.reshape(inputs_att, [-1, self.num_units])
+    # state_att_flat = tf.reshape(
+    #     tf.tile(state_att, [1, inputs_timesteps]),
+    #     [inputs_timesteps * batch_size, self.num_units])
+    # scores = tf.matmul(
+    #     tf.expand_dims(inputs_att_flat, 1), tf.expand_dims(state_att_flat, 2))
+    # scores = tf.reshape(scores, [batch_size, inputs_timesteps], name="scores")
 
     # Normalize the scores
     scores_normalized = tf.nn.softmax(scores, name="scores_normalized")
