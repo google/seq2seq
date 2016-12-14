@@ -5,7 +5,7 @@ import tensorflow as tf
 from seq2seq import decoders
 from seq2seq import losses as seq2seq_losses
 from seq2seq.training import featurizers
-
+from seq2seq.training import utils as training_utils
 
 class ModelBase(object):
   """Abstract base class for models.
@@ -71,6 +71,13 @@ class Seq2SeqBase(ModelBase):
         "embedding.dim": 100,
         "optimizer.name": "Adam",
         "optimizer.learning_rate": 1e-4,
+        "optimizer.lr_decay_type": "",
+        "optimizer.lr_decay_steps": 100,
+        "optimizer.lr_decay_rate": 0.99,
+        "optimizer.lr_start_decay_at": 0,
+        "optimizer.lr_stop_decay_at": 1e9,
+        "optimizer.lr_min_learning_rate": 1e-12,
+        "optimizer.lr_staircase": False,
         "optimizer.clip_gradients": 5.0,
     }
 
@@ -167,10 +174,20 @@ class Seq2SeqBase(ModelBase):
     loss = tf.reduce_sum(losses) / tf.to_float(
         tf.reduce_sum(labels["target_len"] - 1))
 
+    learning_rate_decay_fn = training_utils.create_learning_rate_decay_fn(
+        decay_type=self.params["optimizer.lr_decay_type"] or None,
+        decay_steps=self.params["optimizer.lr_decay_steps"],
+        decay_rate=self.params["optimizer.lr_decay_rate"],
+        start_decay_at=self.params["optimizer.lr_start_decay_at"],
+        stop_decay_at=self.params["optimizer.lr_stop_decay_at"],
+        min_learning_rate=self.params["optimizer.lr_min_learning_rate"],
+        staircase=self.params["optimizer.lr_staircase"])
+
     train_op = tf.contrib.layers.optimize_loss(
         loss=loss,
         global_step=tf.contrib.framework.get_global_step(),
         learning_rate=self.params["optimizer.learning_rate"],
+        learning_rate_decay_fn=learning_rate_decay_fn,
         clip_gradients=self.params["optimizer.clip_gradients"],
         optimizer=self.params["optimizer.name"],
         summaries=tf.contrib.layers.optimizers.OPTIMIZER_SUMMARIES)
