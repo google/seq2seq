@@ -86,11 +86,12 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
       If set, `every_n_steps` must be None.
     every_n_steps: Sample predictions every N steps.
       If set, `every_n_secs` must be None.
+    file: Optional, a filename to write samples to.
   """
 
   #pylint: disable=missing-docstring
 
-  def __init__(self, every_n_secs=None, every_n_steps=None):
+  def __init__(self, every_n_secs=None, every_n_steps=None, file=None):
     super(TrainSampleHook, self).__init__()
     self._timer = SecondOrStepTimer(
         every_secs=every_n_secs, every_steps=every_n_steps)
@@ -101,9 +102,12 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     self.predicted_words = None
     self._should_trigger = False
     self._iter_count = 0
+    self._global_step = None
+    self.file = file
 
   def begin(self):
     self._iter_count = 0
+    self._global_step = training_util.get_global_step()
     # TODO: Is there a nicer way?
     # See https://github.com/dennybritz/seq2seq/issues/21
     self.predictions_dict = dict(
@@ -130,32 +134,39 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
           "target_words": self.labels_dict["target_tokens"],
           "target_len": self.labels_dict["target_len"]
       }
-      return session_run_hook.SessionRunArgs(fetches)
-    return None
+      return session_run_hook.SessionRunArgs([fetches, self._global_step])
+    return session_run_hook.SessionRunArgs([{}, self._global_step])
+
 
   def after_run(self, _run_context, run_values):
-    self._iter_count += 1
+    result_dict, step = run_values.results
+    self._iter_count = step
 
     if not self._should_trigger:
       return None
 
     # Convert dict of lists to list of dicts
-    result_dict = run_values.results
     result_dicts = [
         dict(zip(result_dict, t)) for t in zip(*result_dict.values())
     ]
 
     # Print results
-    tf.logging.info("Sampling Predictions (Prediction followed by Target)")
-    tf.logging.info("=" * 100)
+    result_str = ""
+    result_str += "Prediction followed by Target @ Step {}\n".format(step)
+    result_str += ("=" * 100) + "\n"
     for result in result_dicts:
       target_len = result["target_len"]
       predicted_slice = result["predicted_words"][:target_len - 1]
       target_slice = result["target_words"][1:target_len]
-      tf.logging.info(b" ".join(predicted_slice).decode("utf-8"))
-      tf.logging.info(b" ".join(target_slice).decode("utf-8"))
-      tf.logging.info("")
-    self._timer.update_last_triggered_step(self._iter_count)
+      result_str += b" ".join(predicted_slice).decode("utf-8")+ "\n"
+      result_str += b" ".join(target_slice).decode("utf-8") + "\n\n"
+    result_str += ("=" * 100) + "\n\n"
+    tf.logging.info(result_str)
+    if self.file:
+      with gfile.GFile(self.file, "a") as file:
+        file.write(result_str)
+    self._timer.update_last_triggered_step(self._iter_count - 1)
+
 
 
 class PrintModelAnalysisHook(session_run_hook.SessionRunHook):

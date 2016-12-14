@@ -113,8 +113,9 @@ def create_experiment(output_dir):
   # Create training Hooks
   model_analysis_hook = hooks.PrintModelAnalysisHook(
       filename=os.path.join(estimator.model_dir, "model_analysis.txt"))
+  sample_file = os.path.join(output_dir, "samples.txt")
   train_sample_hook = hooks.TrainSampleHook(
-      every_n_steps=FLAGS.sample_every_n_steps)
+      every_n_steps=FLAGS.sample_every_n_steps, file=sample_file)
   metadata_hook = hooks.MetadataCaptureHook(
       output_dir=os.path.join(estimator.model_dir, "metadata"), step=10)
   train_monitors = [model_analysis_hook, train_sample_hook, metadata_hook]
