@@ -22,11 +22,11 @@ class AttentionLayerTest(tf.test.TestCase):
     self.seq_len = 10
     self.state_dim = 32
 
-  def test_shape(self):
+  def _test_with_score_type(self, score_type):
+    """Tests Attention layer with a  given score type"""
     inputs_pl = tf.placeholder(tf.float32, (None, None, self.input_dim))
     state_pl = tf.placeholder(tf.float32, (None, self.state_dim))
-
-    attention_fn = AttentionLayer(self.attention_dim)
+    attention_fn = AttentionLayer(self.attention_dim, score_type=score_type)
     scores, context = attention_fn(state_pl, inputs_pl)
 
     with self.test_session() as sess:
@@ -45,6 +45,12 @@ class AttentionLayerTest(tf.test.TestCase):
     # Scores should sum to 1
     scores_sum = np.sum(scores_, axis=1)
     np.testing.assert_array_almost_equal(scores_sum, np.ones([self.batch_size]))
+
+  def test_bahdanau(self):
+    return self._test_with_score_type("bahdanau")
+
+  def test_dot(self):
+    return self._test_with_score_type("dot")
 
 
 if __name__ == "__main__":

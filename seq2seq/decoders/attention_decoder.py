@@ -72,6 +72,8 @@ class AttentionDecoder(DecoderBase):
     att_scores, attention_context = self.attention_fn(cell_output,
                                                       self.attention_inputs)
 
+    # TODO: Make this a parameter: We may or may not want to feed the attention
+    # outputs into the softmax.
     # Transform attention context.
     # This makes the softmax smaller and allows us to synthesize information
     # between decoder state and attention context
