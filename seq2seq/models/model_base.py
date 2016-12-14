@@ -7,6 +7,7 @@ from seq2seq import losses as seq2seq_losses
 from seq2seq.training import featurizers
 from seq2seq.training import utils as training_utils
 
+
 class ModelBase(object):
   """Abstract base class for models.
 
@@ -125,8 +126,8 @@ class Seq2SeqBase(ModelBase):
       def make_input_fn(decoder_output):
         """Use the embedded prediction as the input to the next time step
         """
-        return tf.nn.embedding_lookup(
-            target_embedding, decoder_output.predictions)
+        return tf.nn.embedding_lookup(target_embedding,
+                                      decoder_output.predictions)
 
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
           initial_inputs=initial_input, make_input_fn=make_input_fn)
@@ -158,11 +159,6 @@ class Seq2SeqBase(ModelBase):
         decoder_input_fn=decoder_input_fn_train,
         target_len=labels["target_len"],
         mode=mode)
-
-    # TODO: For a long sequence  logits are a huge [B * T, vocab_size] matrix
-    # which can lead to OOM errors on a GPU. Fixing this is TODO, maybe we
-    # can use map_fn or slice the logits to max(sequence_length).
-    # Should benchmark this.
 
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(

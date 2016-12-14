@@ -47,15 +47,11 @@ class TestLRDecay(tf.test.TestCase):
 
   def test_no_decay(self):
     decay_fn = training_utils.create_learning_rate_decay_fn(
-        decay_type=None,
-        decay_steps=5,
-        decay_rate=2.0)
+        decay_type=None, decay_steps=5, decay_rate=2.0)
     self.assertEqual(decay_fn, None)
 
     decay_fn = training_utils.create_learning_rate_decay_fn(
-        decay_type="",
-        decay_steps=5,
-        decay_rate=2.0)
+        decay_type="", decay_steps=5, decay_rate=2.0)
     self.assertEqual(decay_fn, None)
 
   def test_decay_without_min(self):
@@ -70,18 +66,14 @@ class TestLRDecay(tf.test.TestCase):
     initial_lr = 1.0
     with self.test_session() as sess:
       # Should not decay before start_decay_at
-      np.testing.assert_equal(
-          sess.run(decay_fn(initial_lr, 50)),
-          initial_lr)
+      np.testing.assert_equal(sess.run(decay_fn(initial_lr, 50)), initial_lr)
       # Proper decay
       np.testing.assert_almost_equal(
-          sess.run(decay_fn(initial_lr, 115)),
-          initial_lr * 0.9**(15.0 / 10.0))
+          sess.run(decay_fn(initial_lr, 115)), initial_lr * 0.9**(15.0 / 10.0))
       # Should not decay past stop_decay_at
       np.testing.assert_almost_equal(
-          sess.run(decay_fn(initial_lr, 5000)),
-          initial_lr * 0.9**((1000.0-100.0) / 10.0))
-
+          sess.run(decay_fn(initial_lr, 5000)), initial_lr * 0.9**(
+              (1000.0 - 100.0) / 10.0))
 
   def test_decay_with_min(self):
     decay_fn = training_utils.create_learning_rate_decay_fn(
@@ -96,9 +88,8 @@ class TestLRDecay(tf.test.TestCase):
     initial_lr = 1.0
     with self.test_session() as sess:
       # Should not decay past min_learning_rate
-      np.testing.assert_almost_equal(
-          sess.run(decay_fn(initial_lr, 900)),
-          0.01)
+      np.testing.assert_almost_equal(sess.run(decay_fn(initial_lr, 900)), 0.01)
+
 
 if __name__ == '__main__':
   tf.test.main()

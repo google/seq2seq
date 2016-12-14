@@ -91,6 +91,7 @@ def create_learning_rate_decay_fn(decay_type,
       final_lr = tf.maximum(final_lr, min_learning_rate)
 
     return final_lr
+
   return decay_fn
 
 
