@@ -3,6 +3,7 @@
 
 from seq2seq.data.data_utils import read_from_data_provider
 import tensorflow as tf
+from tensorflow.python.platform import gfile
 
 
 def get_rnn_cell(cell_type,
@@ -112,3 +113,30 @@ def create_input_fn(data_provider_fn,
     return features_batch, labels_batch
 
   return input_fn
+
+
+def write_hparams(hparams_dict, path):
+  """
+  Writes hyperparameter values to a file.
+
+  Args:
+    hparams_dict: The dictionary of hyperparameters
+    path: Absolute path to write to
+  """
+  out = "\n".join(
+      ["{}={}".format(k, v) for k, v in sorted(hparams_dict.items())])
+  with gfile.GFile(path, "w") as file:
+    file.write(out)
+
+
+def read_hparams(path):
+  """
+  Reads hyperparameters into a string that can be used with a
+  HParamsParser.
+
+  Args:
+    path: Absolute path to the file to read from
+  """
+  with gfile.GFile(path, "r") as file:
+    lines = file.readlines()
+  return ",".join(lines)

@@ -3,7 +3,6 @@
 
 import tempfile
 from seq2seq.scripts import generate_examples
-from seq2seq.data import data_utils
 
 
 def create_temp_tfrecords(source, target):
@@ -21,6 +20,7 @@ def create_temp_tfrecords(source, target):
   ex = generate_examples.build_example(pair_id=0, source=source, target=target)
   generate_examples.write_tfrecords([ex], file.name)
   return file
+
 
 def create_temp_parallel_data(sources, targets):
   """
@@ -57,4 +57,3 @@ def create_temporary_vocab_file(words):
     vocab_file.write(token + "\n")
   vocab_file.flush()
   return vocab_file
-
