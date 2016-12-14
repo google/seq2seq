@@ -83,11 +83,7 @@ class Seq2SeqBase(ModelBase):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
-  def _create_predictions(self,
-                          features,
-                          labels,
-                          decoder_output,
-                          losses=None):
+  def _create_predictions(self, features, labels, decoder_output, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
     """
     predictions = {
@@ -165,7 +161,6 @@ class Seq2SeqBase(ModelBase):
         logits=decoder_output.logits[:, :-1, :],
         targets=labels["target_ids"][:, 1:],
         sequence_length=labels["target_len"] - 1)
-
 
     # Calculate the average log perplexity
     loss = tf.reduce_sum(losses) / tf.to_float(

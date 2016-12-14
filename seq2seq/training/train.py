@@ -14,6 +14,7 @@ from seq2seq.training import metrics
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
+from tensorflow.python.platform import gfile
 
 # data
 tf.flags.DEFINE_string("train_source", None, "path to source training data")
@@ -82,6 +83,10 @@ def create_experiment(output_dir):
   for param, value in sorted(hparams.items()):
     tf.logging.info("%s=%s", param, value)
   tf.logging.info("=" * 50)
+  # Write hparams to file
+  gfile.MakeDirs(output_dir)
+  hparams_path = os.path.join(hparams, "hparams.txt")
+  training_utils.write_hparams(hparams, hparams_path)
 
   # Create model
   model = model_class(
@@ -120,9 +125,7 @@ def create_experiment(output_dir):
   train_monitors = [model_analysis_hook, train_sample_hook, metadata_hook]
 
   # Metrics
-  eval_metrics = {
-      "log_perplexity": metrics.streaming_log_perplexity()
-  }
+  eval_metrics = {"log_perplexity": metrics.streaming_log_perplexity()}
 
   experiment = tf.contrib.learn.experiment.Experiment(
       estimator=estimator,
