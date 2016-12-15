@@ -1,8 +1,10 @@
 """ Implementations of attention layers.
 """
 
-import tensorflow as tf
 from seq2seq import GraphModule
+import tensorflow as tf
+from tensorflow.python.framework import function
+from tensorflow.python.ops import math_ops
 
 
 class AttentionLayer(GraphModule):
@@ -14,9 +16,44 @@ class AttentionLayer(GraphModule):
     name: Name for this graph module
   """
 
-  def __init__(self, num_units, name="attention"):
+  def __init__(self, num_units, score_type="bahdanau", name="attention"):
     super(AttentionLayer, self).__init__(name=name)
     self.num_units = num_units
+
+    score_fn_name = "_{}_score".format(score_type)
+    if not hasattr(self, score_fn_name):
+      raise ValueError("Invalid attention score type: " + score_type)
+    self.score_fn = getattr(self, score_fn_name)
+
+  def _bahdanau_score(self, keys, query):
+    """Computes Bahdanau-style attention scores.
+    """
+    v_att = tf.get_variable("v_att", shape=[self.num_units], dtype=tf.float32)
+
+    @function.Defun(
+        tf.float32,
+        tf.float32,
+        tf.float32,
+        func_name="att_sum_bahdanau",
+        noinline=True)
+    def attention_sum(v_att, keys, query):
+      """Calculates a batch- and timweise dot product"""
+      return tf.reduce_sum(v_att *
+                           math_ops.tanh(keys + tf.expand_dims(query, 1)), [2])
+
+    return attention_sum(v_att, keys, query)
+
+  def _dot_score(self, keys, query):
+    """Computes Bahdanau-style attention scores.
+    """
+
+    @function.Defun(
+        tf.float32, tf.float32, func_name="att_sum_dot", noinline=True)
+    def attention_sum(keys, query):
+      """Calculates a batch- and timweise dot product"""
+      return tf.reduce_sum(keys + tf.expand_dims(query, 1), [2])
+
+    return attention_sum(keys, query)
 
   def _build(self, state, inputs):
     """Computes attention scores and outputs.
@@ -37,31 +74,34 @@ class AttentionLayer(GraphModule):
       the weighted inputs.
       A tensor fo shape `[B, input_dim]`.
     """
-    batch_size, inputs_timesteps, _ = tf.unpack(tf.shape(inputs))
+    # batch_size, inputs_timesteps, _ = tf.unpack(tf.shape(inputs))
     inputs_dim = inputs.get_shape().as_list()[-1]
 
     # Fully connected layers to transform both inputs and state
     # into a tensor with `num_units` units
-    inputs_att = tf.contrib.layers.fully_connected(
+    att_keys = tf.contrib.layers.fully_connected(
         inputs=inputs,
         num_outputs=self.num_units,
         activation_fn=None,
-        scope="inputs_att")
-    state_att = tf.contrib.layers.fully_connected(
+        scope="att_keys")
+    att_query = tf.contrib.layers.fully_connected(
         inputs=state,
         num_outputs=self.num_units,
         activation_fn=None,
-        scope="state_att")
+        scope="att_query")
 
+    scores = self.score_fn(att_keys, att_query)
+
+    # Show, Attend, Spell type of attention
     # Take the dot product of state for each time step in inputs
     # Result: A tensor of shape [B, T]
-    inputs_att_flat = tf.reshape(inputs_att, [-1, self.num_units])
-    state_att_flat = tf.reshape(
-        tf.tile(state_att, [1, inputs_timesteps]),
-        [inputs_timesteps * batch_size, self.num_units])
-    scores = tf.matmul(
-        tf.expand_dims(inputs_att_flat, 1), tf.expand_dims(state_att_flat, 2))
-    scores = tf.reshape(scores, [batch_size, inputs_timesteps], name="scores")
+    # att_keys_flat = tf.reshape(att_keys, [-1, self.num_units])
+    # att_query_flat = tf.reshape(
+    #     tf.tile(att_query, [1, inputs_timesteps]),
+    #     [inputs_timesteps * batch_size, self.num_units])
+    # scores = tf.matmul(
+    #     tf.expand_dims(att_keys_flat, 1), tf.expand_dims(att_query_flat, 2))
+    # scores = tf.reshape(scores, [batch_size, inputs_timesteps], name="scores")
 
     # Normalize the scores
     scores_normalized = tf.nn.softmax(scores, name="scores_normalized")

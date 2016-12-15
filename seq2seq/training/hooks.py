@@ -137,7 +137,6 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
       return session_run_hook.SessionRunArgs([fetches, self._global_step])
     return session_run_hook.SessionRunArgs([{}, self._global_step])
 
-
   def after_run(self, _run_context, run_values):
     result_dict, step = run_values.results
     self._iter_count = step
@@ -158,7 +157,7 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
       target_len = result["target_len"]
       predicted_slice = result["predicted_words"][:target_len - 1]
       target_slice = result["target_words"][1:target_len]
-      result_str += b" ".join(predicted_slice).decode("utf-8")+ "\n"
+      result_str += b" ".join(predicted_slice).decode("utf-8") + "\n"
       result_str += b" ".join(target_slice).decode("utf-8") + "\n\n"
     result_str += ("=" * 100) + "\n\n"
     tf.logging.info(result_str)
@@ -166,7 +165,6 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
       with gfile.GFile(self.file, "a") as file:
         file.write(result_str)
     self._timer.update_last_triggered_step(self._iter_count - 1)
-
 
 
 class PrintModelAnalysisHook(session_run_hook.SessionRunHook):
