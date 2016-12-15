@@ -72,24 +72,22 @@ class AttentionDecoder(DecoderBase):
     att_scores, attention_context = self.attention_fn(cell_output,
                                                       self.attention_inputs)
 
-    # TODO: Make this a parameter: We may or may not want to feed the attention
-    # outputs into the softmax.
+    # TODO: Make this a parameter: We may or may not want this.
     # Transform attention context.
     # This makes the softmax smaller and allows us to synthesize information
     # between decoder state and attention context
     # see https://arxiv.org/abs/1508.04025v5
-    # attention_context = tf.contrib.layers.fully_connected(
-    #     inputs=tf.concat(1, [cell_output, attention_context]),
-    #     num_outputs=self.cell.output_size,
-    #     activation_fn=tf.nn.tanh,
-    #     scope="attention_transform")
+    softmax_input = tf.contrib.layers.fully_connected(
+        inputs=tf.concat(1, [cell_output, attention_context]),
+        num_outputs=self.cell.output_size,
+        activation_fn=tf.nn.tanh,
+        scope="attention_mix")
 
     # In the first step the attention vector is set to all zeros
     if not initial_call:
       next_loop_state = loop_state.write(time_ - 1, att_scores)
 
     # Softmax computation
-    softmax_input = cell_output
     logits = tf.contrib.layers.fully_connected(
         inputs=softmax_input,
         num_outputs=self.vocab_size,
