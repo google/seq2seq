@@ -38,7 +38,6 @@ tf.flags.DEFINE_string("schedule", None,
                        train_and_evaluate for local run""")
 
 tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
-tf.flags.DEFINE_integer("eval_steps", 100, "maxmum number of eval steps")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
                         "evaluate after this many training steps")
 tf.flags.DEFINE_integer("sample_every_n_steps", 500,
@@ -67,7 +66,7 @@ def create_experiment(output_dir):
         [FLAGS.train_source], [FLAGS.train_target], shuffle=True)
   dev_data_provider = \
     lambda: data_utils.make_parallel_data_provider(
-        [FLAGS.dev_source], [FLAGS.dev_target])
+        [FLAGS.dev_source], [FLAGS.dev_target], num_epochs=1)
 
   # Find model class
   model_class = getattr(models, FLAGS.model)
@@ -134,7 +133,7 @@ def create_experiment(output_dir):
       eval_input_fn=eval_input_fn,
       min_eval_frequency=FLAGS.eval_every_n_steps,
       train_steps=FLAGS.train_steps,
-      eval_steps=FLAGS.eval_steps,
+      eval_steps=None,
       eval_metrics=eval_metrics,
       train_monitors=train_monitors)
 
