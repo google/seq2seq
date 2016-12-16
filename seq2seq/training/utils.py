@@ -98,7 +98,8 @@ def create_learning_rate_decay_fn(decay_type,
 def create_input_fn(data_provider_fn,
                     featurizer_fn,
                     batch_size,
-                    bucket_boundaries=None):
+                    bucket_boundaries=None,
+                    allow_smaller_final_batch=False):
   """Creates an input function that can be used with tf.learn estimators.
     Note that you must pass "factory funcitons" for both the data provider and
     featurizer to ensure that everything will be created in  the same graph.
@@ -140,6 +141,7 @@ def create_input_fn(data_provider_fn,
           keep_input=features_and_labels["target_len"] >= 1,
           dynamic_pad=True,
           capacity=5000 + 16 * batch_size,
+          allow_smaller_final_batch=allow_smaller_final_batch,
           name="bucket_queue")
       tf.summary.histogram("buckets", bucket_num)
     else:
@@ -156,6 +158,7 @@ def create_input_fn(data_provider_fn,
           batch_size=batch_size,
           dynamic_pad=True,
           capacity=5000 + 16 * batch_size,
+          allow_smaller_final_batch=allow_smaller_final_batch,
           name="batch_queue")
 
     # Separate features and labels again
