@@ -18,7 +18,7 @@ tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
 tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
 tf.flags.DEFINE_string("model", "AttentionSeq2Seq", "model class")
 tf.flags.DEFINE_string("model_dir", None, "directory to load model from")
-tf.flags.DEFINE_integer("batch_size", 10, "the train/dev batch size")
+tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
 
 FLAGS = tf.flags.FLAGS
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -91,7 +91,8 @@ def create_input_fn(model, input_file, batch_size):
   input_fn = training_utils.create_input_fn(
       data_provider_fn=data_provider,
       featurizer_fn=model.create_featurizer(),
-      batch_size=batch_size)
+      batch_size=batch_size,
+      allow_smaller_final_batch=True)
   return input_fn
 
 
