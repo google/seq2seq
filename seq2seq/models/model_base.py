@@ -20,6 +20,11 @@ class ModelBase(object):
     self.name = name
     self.params = params
 
+    # Cast parameters to correct types
+    default_params = self.default_params()
+    for key, value in self.params.items():
+      self.params[key] = type(default_params[key])(value)
+
   def create_featurizer(self):
     """"Returns a new featurizer instance to be used by this model"""
     raise NotImplementedError
