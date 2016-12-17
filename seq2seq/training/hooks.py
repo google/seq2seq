@@ -9,6 +9,8 @@ from tensorflow.python.training import training_util
 from tensorflow.python.client import timeline
 from tensorflow.python.platform import gfile
 
+from seq2seq import graph_utils
+
 
 class SecondOrStepTimer(basic_session_run_hooks._SecondOrStepTimer):
   """Helper class to count both seconds and steps.
@@ -108,20 +110,9 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
   def begin(self):
     self._iter_count = 0
     self._global_step = training_util.get_global_step()
-    # TODO: Is there a nicer way?
-    # See https://github.com/dennybritz/seq2seq/issues/21
-    self.predictions_dict = dict(
-        zip(
-            tf.get_collection("model_output_keys"),
-            tf.get_collection("model_output_values")))
-    self.features_dict = dict(
-        zip(
-            tf.get_collection("features_keys"),
-            tf.get_collection("features_values")))
-    self.labels_dict = dict(
-        zip(
-            tf.get_collection("labels_keys"), tf.get_collection(
-                "labels_values")))
+    self.predictions_dict = graph_utils.get_dict_from_collection("model_output")
+    self.features_dict = graph_utils.get_dict_from_collection("features")
+    self.labels_dict = graph_utils.get_dict_from_collection("labels")
     self.target_id_to_vocab = tf.get_collection("target_id_to_vocab")[0]
     self.predicted_words = self.target_id_to_vocab.lookup(self.predictions_dict[
         "predictions"])
