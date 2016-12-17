@@ -17,38 +17,38 @@ from seq2seq.training import hooks
 from seq2seq.test import utils as test_utils
 from seq2seq.data import vocab
 
+
 class TestPrintModelAnalysisHook(tf.test.TestCase):
   """Tests the `PrintModelAnalysisHook` hook"""
+
   def test_begin(self):
     outfile = tempfile.NamedTemporaryFile()
     tf.get_variable("weigths", [128, 128])
     hook = hooks.PrintModelAnalysisHook(filename=outfile.name)
     hook.begin()
     file_contents = outfile.read().strip()
-    self.assertEqual(
-        file_contents.decode(),
-        "_TFProfRoot (--/16.38k params)\n"
-        "  weigths (128x128, 16.38k/16.38k params)")
+    self.assertEqual(file_contents.decode(), "_TFProfRoot (--/16.38k params)\n"
+                     "  weigths (128x128, 16.38k/16.38k params)")
     outfile.close()
 
 
 class TestTrainSampleHook(tf.test.TestCase):
   """Tests `TrainSampleHook` class.
   """
+
   def setUp(self):
     super(TestTrainSampleHook, self).setUp()
 
     # The hook expects these collections to be in the graph
-    graph_utils.add_dict_to_collection(
-        {"predictions": tf.constant([[2, 3]], dtype=tf.int64)},
-        "model_output")
-    graph_utils.add_dict_to_collection(
-        {"source_ids": tf.constant([[1, 2]])},
-        "features")
+    pred_dict = {"predictions": tf.constant([[2, 3]], dtype=tf.int64)}
+    graph_utils.add_dict_to_collection(pred_dict, "model_output")
+    graph_utils.add_dict_to_collection({
+        "source_ids": tf.constant([[1, 2]])
+    }, "features")
     graph_utils.add_dict_to_collection({
         "target_tokens": tf.constant([["Hello", "World"]]),
-        "target_len": tf.constant([2])},
-      "labels")
+        "target_len": tf.constant([2])
+    }, "labels")
 
     # Create vocabulary
     self.vocab_file = test_utils.create_temporary_vocab_file(
@@ -119,15 +119,11 @@ class TestMetadataCaptureHook(tf.test.TestCase):
       # Should not trigger for step 0
       sess.run(tf.assign(global_step, 0))
       mon_sess.run(computation)
-      self.assertEqual(
-          gfile.ListDirectory(self.capture_dir),
-          [])
+      self.assertEqual(gfile.ListDirectory(self.capture_dir), [])
       # Should trigger *after* step 5
       sess.run(tf.assign(global_step, 5))
       mon_sess.run(computation)
-      self.assertEqual(
-          gfile.ListDirectory(self.capture_dir),
-          [])
+      self.assertEqual(gfile.ListDirectory(self.capture_dir), [])
       mon_sess.run(computation)
       self.assertEqual(
           set(gfile.ListDirectory(self.capture_dir)),
