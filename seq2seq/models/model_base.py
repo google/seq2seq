@@ -3,6 +3,7 @@
 import tensorflow as tf
 
 from seq2seq import decoders
+from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
 from seq2seq.training import featurizers
 from seq2seq.training import utils as training_utils
@@ -204,18 +205,9 @@ class Seq2SeqBase(ModelBase):
 
     # We add "useful" tensors to the graph collection so that we
     # can easly find them in our hooks/monitors.
-    # TODO: Is there a cleaner way to do this?
-    for key, tensor in predictions.items():
-      tf.add_to_collection("model_output_keys", key)
-      tf.add_to_collection("model_output_values", tensor)
-
-    for key, tensor in features.items():
-      tf.add_to_collection("features_keys", key)
-      tf.add_to_collection("features_values", tensor)
-
-    for key, tensor in labels.items():
-      tf.add_to_collection("labels_keys", key)
-      tf.add_to_collection("labels_values", tensor)
+    graph_utils.add_dict_to_collection(predictions, "model_output")
+    graph_utils.add_dict_to_collection(features, "features")
+    graph_utils.add_dict_to_collection(labels, "labels")
 
     # Summaries
     tf.summary.scalar("loss", loss)
