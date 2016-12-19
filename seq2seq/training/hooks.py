@@ -80,6 +80,50 @@ class MetadataCaptureHook(session_run_hook.SessionRunHook):
     self._active = (step_done == self._step)
 
 
+class TokensPerSecondCounter(basic_session_run_hooks.StepCounterHook):
+  """A hooks that counts tokens/sec, where the number of tokens is
+    defines as `len(source) + len(target)`.
+  """
+
+  def __init__(self,
+               every_n_steps=100,
+               every_n_secs=None,
+               output_dir=None,
+               summary_writer=None):
+    super(TokensPerSecondCounter, self).__init__(
+        every_n_steps, every_n_secs, output_dir, summary_writer)
+    self._summary_tag = "tokens/sec"
+    self._total_tokens = 0
+    self._num_tokens = None
+
+  def begin(self):
+    super(TokensPerSecondCounter, self).begin()
+    features = graph_utils.get_dict_from_collection("features")
+    labels = graph_utils.get_dict_from_collection("labels")
+    self._num_tokens = tf.reduce_sum(features["source_len"]) \
+      + tf.reduce_sum(labels["target_len"])
+    self._total_tokens = 0
+
+  def before_run(self, run_context):
+    return session_run_hook.SessionRunArgs(
+        [self._global_step_tensor, self._num_tokens])
+
+  def after_run(self, _run_context, run_values):
+    global_step, num_tokens = run_values.results
+    self._total_tokens += num_tokens
+
+    if self._timer.should_trigger_for_step(global_step):
+      elapsed_time, _ = self._timer.update_last_triggered_step(global_step)
+      if elapsed_time is not None:
+        tokens_per_sec = self._total_tokens / elapsed_time
+        if self._summary_writer is not None:
+          summary = tf.Summary(value=[tf.Summary.Value(
+              tag=self._summary_tag, simple_value=tokens_per_sec)])
+          self._summary_writer.add_summary(summary, global_step)
+        tf.logging.info("%s: %g", self._summary_tag, tokens_per_sec)
+      self._total_tokens = 0
+
+
 class TrainSampleHook(session_run_hook.SessionRunHook):
   """Occasionally samples predictions from the training run and prints them.
 
