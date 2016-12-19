@@ -122,7 +122,9 @@ def create_experiment(output_dir):
       every_n_steps=FLAGS.sample_every_n_steps, file=sample_file)
   metadata_hook = hooks.MetadataCaptureHook(
       output_dir=os.path.join(estimator.model_dir, "metadata"), step=10)
-  train_monitors = [model_analysis_hook, train_sample_hook, metadata_hook]
+  tokens_per_sec_counter = hooks.TokensPerSecondCounter(every_n_steps=100)
+  train_monitors = [model_analysis_hook, train_sample_hook,
+                    metadata_hook, tokens_per_sec_counter]
 
   # Metrics
   eval_metrics = {"log_perplexity": metrics.streaming_log_perplexity()}
