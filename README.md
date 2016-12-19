@@ -1,4 +1,4 @@
-## Wiki
+## Important Links
 
 - [Requirements Doc](https://docs.google.com/document/d/1av4wpAnKinbtG_0fcNC94XKyh-_rXxxJEhRXy9xn6js/edit)
 - [Wiki](https://github.com/dennybritz/seq2seq/wiki)
