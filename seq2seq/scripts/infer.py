@@ -68,7 +68,7 @@ def print_translations(predictions_iter, vocab_path):
   # Load the vocabulary in memory
   with gfile.GFile(vocab_path) as file:
     vocab_table = [l.strip() for l in file.readlines()]
-  vocab_table += ["OOV", "SEQUENCE_START", "SEQUENCE_END"]
+  vocab_table += ["UNK", "SEQUENCE_START", "SEQUENCE_END"]
 
   # Print each predictions
   for prediction_dict in predictions_iter:

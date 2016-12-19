@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 SpecialVocab = collections.namedtuple("SpecialVocab",
-                                      ["OOV", "SEQUENCE_START", "SEQUENCE_END"])
+                                      ["UNK", "SEQUENCE_START", "SEQUENCE_END"])
 
 
 class VocabInfo(
@@ -43,45 +43,50 @@ def get_special_vocab(vocabulary_size):
   return SpecialVocab(*range(vocabulary_size, vocabulary_size + 3))
 
 
-def create_vocabulary_lookup_table(filename, default_value=None, name=None):
+def create_vocabulary_lookup_table(filename, default_value=None):
   """Creates a lookup table for a vocabulary file.
 
   Args:
     filename: Path to a vocabulary file containg one word per line.
       Each word is mapped to its line number.
-    default_value: OOV tokens will be mapped to this id.
-      If None, OOV tokens will be mapped to [vocab_size]
-    name: Optional, a name for the operation
+    default_value: UNK tokens will be mapped to this id.
+      If None, UNK tokens will be mapped to [vocab_size]
 
     Returns:
      A tuple (hash_table, reverse_hash_table, vocab_size). The vocab size
-      does not include the OOV token.
+      does not include the UNK token.
     """
   if not gfile.Exists(filename):
     raise ValueError("File does not exist: {}".format(filename))
 
+  # Load vocabulary into memory
   with gfile.GFile(filename) as file:
-    vocab_size = sum(1 for line in file)
+    vocab = list(line.strip() for line in file)
+  vocab_size = len(vocab)
+
+  # Add special vocabulary items
+  special_vocab = get_special_vocab(vocab_size)
+  vocab += list(special_vocab._fields)
+  vocab_size += len(special_vocab)
 
   if default_value is None:
-    default_value = vocab_size
+    default_value = special_vocab.UNK
 
   tf.logging.info("Creating vocabulary lookup table of size %d", vocab_size)
 
-  table_init = tf.contrib.lookup.TextFileIdTableInitializer(
-      filename, vocab_size=vocab_size)
+  vocab_tensor = tf.constant(vocab)
+  vocab_idx_tensor = tf.range(vocab_size, dtype=tf.int64)
 
-  reverse_table_init = tf.contrib.lookup.TextFileInitializer(
-      filename=filename,
-      key_dtype=tf.int64,
-      key_index=tf.contrib.lookup.TextFileIndex.LINE_NUMBER,
-      value_dtype=tf.string,
-      value_index=tf.contrib.lookup.TextFileIndex.WHOLE_LINE,
-      vocab_size=vocab_size)
-
-  vocab_to_id_table = tf.contrib.lookup.HashTable(
-      table_init, default_value, name=name)
+  # Create ID -> word mapping
+  id_to_vocab_init = tf.contrib.lookup.KeyValueTensorInitializer(
+      vocab_idx_tensor, vocab_tensor, tf.int64, tf.string)
   id_to_vocab_table = tf.contrib.lookup.HashTable(
-      reverse_table_init, "UNK", name=name)
+      id_to_vocab_init, "UNK")
+
+  # Create word -> id mapping
+  vocab_to_id_init = tf.contrib.lookup.KeyValueTensorInitializer(
+      vocab_tensor, vocab_idx_tensor, tf.string, tf.int64)
+  vocab_to_id_table = tf.contrib.lookup.HashTable(
+      vocab_to_id_init, default_value)
 
   return vocab_to_id_table, id_to_vocab_table, vocab_size

@@ -5,6 +5,7 @@
 import tensorflow as tf
 from seq2seq.data import vocab
 from seq2seq.graph_module import GraphModule
+from seq2seq import graph_utils
 
 
 class Seq2SeqFeaturizer(GraphModule):
@@ -38,9 +39,6 @@ class Seq2SeqFeaturizer(GraphModule):
   def _build(self, input_dict):
     output_dict = input_dict.copy()
 
-    # TODO: Ideally we should have the "special vocabulary" in our lookup table.
-    # How to best do this? Create a temporary files with the special vocab?
-
     # Create vocabulary lookup for source
     source_vocab_to_id, source_id_to_vocab, _ = \
       vocab.create_vocabulary_lookup_table(self.source_vocab_info.path)
@@ -49,13 +47,14 @@ class Seq2SeqFeaturizer(GraphModule):
     target_vocab_to_id, target_id_to_vocab, _ = \
       vocab.create_vocabulary_lookup_table(self.target_vocab_info.path)
 
-    # Create a graph colleciton for later use
-    # TODO: Is there a nicer way to do this?
-    # See https://github.com/dennybritz/seq2seq/issues/21
-    tf.add_to_collection("source_vocab_to_id", source_vocab_to_id)
-    tf.add_to_collection("source_id_to_vocab", source_id_to_vocab)
-    tf.add_to_collection("target_vocab_to_id", target_vocab_to_id)
-    tf.add_to_collection("target_id_to_vocab", target_id_to_vocab)
+    # Add vocab tables to graph colection so that we can access them in
+    # other places.
+    graph_utils.add_dict_to_collection({
+        "source_vocab_to_id": source_vocab_to_id,
+        "source_id_to_vocab": source_id_to_vocab,
+        "target_vocab_to_id": target_vocab_to_id,
+        "target_id_to_vocab": target_id_to_vocab
+    }, "vocab_tables")
 
     if self.max_seq_len_source is not None:
       output_dict["source_tokens"] = output_dict[

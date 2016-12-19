@@ -100,7 +100,7 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     self.predictions_dict = {}
     self.features_dict = {}
     self.labels_dict = {}
-    self.target_id_to_vocab = None
+    self.vocab_tables = {}
     self.predicted_words = None
     self._should_trigger = False
     self._iter_count = 0
@@ -113,9 +113,9 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     self.predictions_dict = graph_utils.get_dict_from_collection("model_output")
     self.features_dict = graph_utils.get_dict_from_collection("features")
     self.labels_dict = graph_utils.get_dict_from_collection("labels")
-    self.target_id_to_vocab = tf.get_collection("target_id_to_vocab")[0]
-    self.predicted_words = self.target_id_to_vocab.lookup(self.predictions_dict[
-        "predictions"])
+    self.vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
+    self.predicted_words = self.vocab_tables["target_id_to_vocab"].lookup(
+        self.predictions_dict["predictions"])
 
   def before_run(self, _run_context):
     self._should_trigger = self._timer.should_trigger_for_step(self._iter_count)

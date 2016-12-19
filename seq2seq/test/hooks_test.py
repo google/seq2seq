@@ -55,8 +55,9 @@ class TestTrainSampleHook(tf.test.TestCase):
         ["Hello", "World", "!"])
     _, target_id_to_vocab, _ = vocab.create_vocabulary_lookup_table(
         self.vocab_file.name)
-    tf.add_to_collection("target_id_to_vocab", target_id_to_vocab)
-
+    graph_utils.add_dict_to_collection({
+        "target_id_to_vocab": target_id_to_vocab,
+    }, "vocab_tables")
   def tearDown(self):
     super(TestTrainSampleHook, self).tearDown()
     self.vocab_file.close()

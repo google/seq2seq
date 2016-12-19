@@ -26,7 +26,7 @@ class VocabInfoTest(tf.test.TestCase):
     vocab_info = vocab.get_vocab_info(self.vocab_file.name)
     self.assertEqual(vocab_info.vocab_size, 3)
     self.assertEqual(vocab_info.path, self.vocab_file.name)
-    self.assertEqual(vocab_info.special_vocab.OOV, 3)
+    self.assertEqual(vocab_info.special_vocab.UNK, 3)
     self.assertEqual(vocab_info.special_vocab.SEQUENCE_START, 4)
     self.assertEqual(vocab_info.special_vocab.SEQUENCE_END, 5)
     self.assertEqual(vocab_info.total_size, 6)
@@ -52,7 +52,7 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
     vocab_to_id_table, id_to_vocab_table, vocab_size = \
       vocab.create_vocabulary_lookup_table(self.vocab_file.name)
 
-    self.assertEqual(vocab_size, 3)
+    self.assertEqual(vocab_size, 6)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
