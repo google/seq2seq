@@ -19,6 +19,8 @@ tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
 tf.flags.DEFINE_string("model", "AttentionSeq2Seq", "model class")
 tf.flags.DEFINE_string("model_dir", None, "directory to load model from")
 tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
+tf.flags.DEFINE_integer("beam_width", None,
+                        "Use beam search with this beam width for decoding")
 
 FLAGS = tf.flags.FLAGS
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -40,6 +42,9 @@ def load_model(vocab_source, vocab_target, model_class, model_dir):
   saved_hparams = training_utils.read_hparams(
       os.path.join(model_dir, "hparams.txt"))
   hparams = hparams_parser.parse(saved_hparams)
+
+  if FLAGS.beam_width is not None:
+    hparams["inference.beam_search.beam_width"] = FLAGS.beam_width
 
   # Create model instance
   model = model_class(
@@ -72,7 +77,11 @@ def print_translations(predictions_iter, vocab_path):
 
   # Print each predictions
   for prediction_dict in predictions_iter:
-    tokens = [vocab_table[i] for i in prediction_dict["predictions"]]
+    token_ids = prediction_dict["predictions"]
+    # If we're using beam search we take the first beam
+    if FLAGS.beam_width is not None:
+      token_ids = token_ids[0]
+    tokens = [vocab_table[i] for i in token_ids]
     # Take sentence until SEQUENCE_END
     tokens = list(itertools.takewhile(lambda x: x != "SEQUENCE_END", tokens))
     sent = " ".join(tokens)
@@ -99,6 +108,10 @@ def create_input_fn(model, input_file, batch_size):
 def main(_argv):
   """Program entrypoint.
   """
+  if FLAGS.beam_width is not None:
+    tf.logging.info("Setting batch size to 1 for beam search.")
+    FLAGS.batch_size = 1
+
   model = load_model(
       vocab_source=FLAGS.vocab_source,
       vocab_target=FLAGS.vocab_target,

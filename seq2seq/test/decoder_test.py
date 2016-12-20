@@ -147,16 +147,16 @@ class DecoderTests(object):
 
     np.testing.assert_array_equal(
         decoder_output_.logits.shape,
-        [config.beam_width, self.sequence_length, self.vocab_size])
+        [1, config.beam_width, self.sequence_length, self.vocab_size])
     np.testing.assert_array_equal(
         decoder_output_.predictions.shape,
-        [config.beam_width, self.sequence_length])
+        [1, config.beam_width, self.sequence_length])
     np.testing.assert_array_equal(
         decoder_output_.beam_parent_ids.shape,
-        [config.beam_width, self.sequence_length])
+        [1, config.beam_width, self.sequence_length])
     np.testing.assert_array_equal(
         decoder_output_.scores.shape,
-        [config.beam_width, self.sequence_length])
+        [1, config.beam_width, self.sequence_length])
 
     return decoder_output
 
@@ -198,6 +198,7 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
         vocab_size=self.vocab_size,
         attention_inputs=attention_inputs,
         attention_fn=attention_fn,
+        max_source_len=self.input_seq_len,
         max_decode_length=self.max_decode_length)
 
   def test_attention_scores(self):

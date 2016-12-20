@@ -44,9 +44,13 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
 
   def __init__(self, decoder, config):
     super(BeamSearchDecoder, self).__init__(
-        decoder.cell, decoder.max_decode_length, decoder.name + "_with_beam")
+        decoder.cell, decoder.max_decode_length, decoder.name)
     self.decoder = decoder
     self.config = config
+
+  def __call__(self, *args, **kwargs):
+    with self.decoder.variable_scope():
+      return self._build(*args, **kwargs)
 
   @staticmethod
   def _wrap_loop_state(value, loop_state):
@@ -82,11 +86,11 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
         outputs_ta.beam_parent_ids.pack(), [1, 0],
         name="beam_parent_ids")
     return BeamDecoderOutput(
-        logits=logits,
-        predictions=predictions,
-        log_probs=log_probs,
-        scores=scores,
-        beam_parent_ids=beam_parent_ids)
+        logits=tf.expand_dims(logits, 0),
+        predictions=tf.expand_dims(predictions, 0),
+        log_probs=tf.expand_dims(log_probs, 0),
+        scores=tf.expand_dims(scores, 0),
+        beam_parent_ids=tf.expand_dims(beam_parent_ids, 0))
 
   def _step(self, time_, cell_output, cell_state, loop_state, next_input_fn):
     initial_call = (cell_output is None)
@@ -127,6 +131,12 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
           scores=tf.zeros([], dtype=tf.float32),
           beam_parent_ids=tf.zeros([], dtype=tf.int32))
 
+      if "attention_context" in original_output.outputs._fields:
+        next_input = tf.concat(1, [next_input,
+          tf.tile(
+            tf.expand_dims(original_output.outputs.attention_context, 0),
+            [self.config.beam_width, 1])])
+
       # The final step output
       step_output = decoder_base.DecoderStepOutput(
           outputs=outputs,
@@ -162,6 +172,9 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
       next_input = next_input_fn(time_,
                                  (None if initial_call else cell_output),
                                  cell_state, loop_state, outputs)
+
+      if "attention_context" in original_output.outputs._fields:
+        next_input = tf.concat(1, [next_input, original_output.outputs.attention_context])
 
       # The final step output
       step_output = decoder_base.DecoderStepOutput(

@@ -8,7 +8,7 @@ from seq2seq.decoders import DecoderBase, DecoderOutput, DecoderStepOutput
 
 
 class AttentionDecoderOutput(
-    namedtuple("DecoderOutput", ["logits", "predictions", "attention_scores"])):
+    namedtuple("DecoderOutput", ["logits", "predictions", "attention_scores", "attention_context"])):
   """Augmented decoder output that also includes the attention scores.
   """
   pass
@@ -38,6 +38,7 @@ class AttentionDecoder(DecoderBase):
                vocab_size,
                attention_inputs,
                attention_fn,
+               max_source_len,
                max_decode_length,
                prediction_fn=None,
                name="attention_decoder"):
@@ -46,6 +47,7 @@ class AttentionDecoder(DecoderBase):
     self.prediction_fn = prediction_fn
     self.attention_inputs = attention_inputs
     self.attention_fn = attention_fn
+    self.max_source_len = max_source_len
 
     # By default, choose the highest logit score as the prediction
     if not prediction_fn:
@@ -55,8 +57,14 @@ class AttentionDecoder(DecoderBase):
   def _pack_outputs(outputs_ta, final_loop_state):
     logits, predictions = DecoderBase._pack_outputs(outputs_ta,
                                                     final_loop_state)
-    attention_scores = tf.transpose(final_loop_state.pack(), [1, 0, 2])
-    return AttentionDecoderOutput(logits, predictions, attention_scores)
+    attention_scores = tf.transpose(
+        outputs_ta.attention_scores.pack(),
+        [1, 0, 2])
+    attention_context = tf.transpose(
+        outputs_ta.attention_context.pack(),
+        [1, 0, 2])
+    return AttentionDecoderOutput(
+        logits, predictions, attention_scores, attention_context)
 
   def _step(self, time_, cell_output, cell_state, loop_state, next_input_fn):
     initial_call = (cell_output is None)
@@ -64,13 +72,14 @@ class AttentionDecoder(DecoderBase):
     if initial_call:
       cell_output = tf.zeros(
           [tf.shape(self.attention_inputs)[0], self.cell.output_size])
-      # Initialize the TensorArray that will hold the attention scores
-      next_loop_state = tf.TensorArray(
-          dtype=tf.float32, size=1, dynamic_size=True)
 
     # Compute attention
     att_scores, attention_context = self.attention_fn(cell_output,
                                                       self.attention_inputs)
+
+    # In the first step the attention vector is set to all zeros
+    # if not initial_call:
+    #   next_loop_state = loop_state.write(time_ - 1, att_scores)
 
     # TODO: Make this a parameter: We may or may not want this.
     # Transform attention context.
@@ -83,10 +92,6 @@ class AttentionDecoder(DecoderBase):
         activation_fn=tf.nn.tanh,
         scope="attention_mix")
 
-    # In the first step the attention vector is set to all zeros
-    if not initial_call:
-      next_loop_state = loop_state.write(time_ - 1, att_scores)
-
     # Softmax computation
     logits = tf.contrib.layers.fully_connected(
         inputs=softmax_input,
@@ -94,13 +99,26 @@ class AttentionDecoder(DecoderBase):
         activation_fn=None,
         scope="logits")
     predictions = self.prediction_fn(logits)
-    outputs = DecoderOutput(logits, predictions)
+
+    def pad_att_scores(scores, max_len=self.max_source_len):
+      """Pads attention scores to fixed length"""
+      scores = tf.pad(scores, [[0, 0], [0, max_len - tf.shape(scores)[1]]])
+      scores.set_shape([None, max_len])
+      return scores
+
+    attention_scores = pad_att_scores(att_scores)
+
+    outputs = AttentionDecoderOutput(
+        logits, predictions, attention_scores, attention_context)
 
     if initial_call:
-      outputs = DecoderOutput(
+      attention_scores = pad_att_scores(self.attention_inputs[:,:,0])[0]
+      outputs = AttentionDecoderOutput(
           logits=tf.zeros([self.vocab_size]),
           predictions=tf.zeros(
-              [], dtype=tf.int64))
+              [], dtype=tf.int64),
+          attention_scores=attention_scores,
+          attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
 
     # Append the attention context to the inputs
     next_input = next_input_fn(time_, (None if initial_call else cell_output),
@@ -111,4 +129,4 @@ class AttentionDecoder(DecoderBase):
         outputs=outputs,
         next_input=next_input,
         next_cell_state=cell_state,
-        next_loop_state=next_loop_state)
+        next_loop_state=None)

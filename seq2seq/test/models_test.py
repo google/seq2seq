@@ -36,7 +36,7 @@ class EncoderDecoderTests(tf.test.TestCase):
   def tearDown(self):
     self.vocab_file.close()
 
-  def create_model(self):
+  def create_model(self, _params=None):
     """Creates model class to be tested. Subclasses must implement this method.
     """
     self.skipTest("Base module should not be tested.")
@@ -131,6 +131,52 @@ class EncoderDecoderTests(tf.test.TestCase):
     np.testing.assert_array_equal(decoder_output_.predictions.shape,
                                   [self.batch_size, self.max_decode_length])
 
+
+  def test_inference_with_beam_search(self):
+    """Tests model inference by feeding dynamic inputs based on an embedding
+      and using beam search to decode
+    """
+    self.batch_size = 1
+    ex = self._create_example()
+
+    beam_width = 10
+    model = self.create_model({
+        "inference.beam_search.beam_width": beam_width
+    })
+
+    embeddings = tf.get_variable(
+        "W_embed", [model.target_vocab_info.total_size, self.input_depth])
+
+    def make_input_fn(step_output):
+      """Looks up the predictions in the embeddings.
+      """
+      return tf.nn.embedding_lookup(embeddings, step_output.predictions)
+
+    decoder_input_fn = DynamicDecoderInputs(
+        initial_inputs=tf.zeros(
+            [self.batch_size, self.input_depth], dtype=tf.float32),
+        make_input_fn=make_input_fn)
+
+    decoder_output = model.encode_decode(
+        source=tf.convert_to_tensor(
+            ex.source, dtype=tf.float32),
+        source_len=tf.convert_to_tensor(
+            ex.source_len, dtype=tf.int32),
+        decoder_input_fn=decoder_input_fn,
+        target_len=self.max_decode_length)
+
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      decoder_output_ = sess.run(decoder_output)
+
+    # Assert shapes are correct
+    np.testing.assert_array_equal(decoder_output_.logits.shape, [
+        1, beam_width, self.max_decode_length,
+        model.target_vocab_info.total_size
+    ])
+    np.testing.assert_array_equal(decoder_output_.predictions.shape,
+                                  [1, beam_width, self.max_decode_length])
+
   def test_gradients(self):
     """Ensures the parameter gradients can be computed and are not NaN
     """
@@ -220,11 +266,13 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
   def setUp(self):
     super(TestBasicSeq2Seq, self).setUp()
 
-  def create_model(self):
+  def create_model(self, params=None):
+    params_ = BasicSeq2Seq.default_params().copy()
+    params_.update(params or {})
     return BasicSeq2Seq(
         source_vocab_info=self.vocab_info,
         target_vocab_info=self.vocab_info,
-        params=BasicSeq2Seq.default_params())
+        params=params_)
 
 
 class TestAttentionSeq2Seq(EncoderDecoderTests):
@@ -237,11 +285,13 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
     self.decoder_rnn_cell = tf.nn.rnn_cell.LSTMCell(32)
     self.attention_dim = 128
 
-  def create_model(self):
+  def create_model(self, params=None):
+    params_ = AttentionSeq2Seq.default_params().copy()
+    params_.update(params or {})
     return AttentionSeq2Seq(
         source_vocab_info=self.vocab_info,
         target_vocab_info=self.vocab_info,
-        params=AttentionSeq2Seq.default_params())
+        params=params_)
 
 
 if __name__ == "__main__":
