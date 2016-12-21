@@ -97,6 +97,8 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
 
     if initial_call:
       cell_output = tf.zeros([self.config.beam_width, self.cell.output_size])
+      # We start out with all beams being equal, so we tile the cell state
+      # [beam_width] times
       cell_state = beam_search.nest_map(
           cell_state,
           lambda x: tf.tile(x, [self.config.beam_width, 1]))
@@ -108,7 +110,6 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
       # Create an initial Beam State
       beam_state = beam_search.BeamState(
           time=tf.constant(0, dtype=tf.int32),
-          cell_states=cell_state,
           log_probs=tf.zeros([self.config.beam_width]),
           scores=tf.zeros([self.config.beam_width]),
           predictions=tf.ones(
@@ -152,8 +153,6 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
           time_, cell_output, cell_state, original_loop_state, next_input_fn)
 
       # Perform a step of beam search
-      prev_beam_state = prev_beam_state._replace(
-          cell_states=original_output.next_cell_state)
       beam_state = beam_search.beam_search_step(
           logits=original_output.outputs.logits,
           beam_state=prev_beam_state,
@@ -169,18 +168,24 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
           scores=beam_state.scores,
           beam_parent_ids=beam_state.beam_parent_ids)
 
+      # Cell states are shuffled around by beam search
+      next_cell_state = beam_search.nest_map(
+          original_output.next_cell_state,
+          lambda x: tf.gather(x, beam_state.beam_parent_ids))
+
       next_input = next_input_fn(time_,
                                  (None if initial_call else cell_output),
                                  cell_state, loop_state, outputs)
 
       if "attention_context" in original_output.outputs._fields:
-        next_input = tf.concat(1, [next_input, original_output.outputs.attention_context])
+        next_input = tf.concat(1, [next_input,
+                                   original_output.outputs.attention_context])
 
       # The final step output
       step_output = decoder_base.DecoderStepOutput(
           outputs=outputs,
           next_input=next_input,
-          next_cell_state=beam_state.cell_states,
+          next_cell_state=next_cell_state,
           next_loop_state=next_loop_state)
 
     # print(step_output.outputs.predictions)

@@ -6,8 +6,7 @@ from collections import namedtuple
 import tensorflow as tf
 
 class BeamState(namedtuple("BeamState", [
-    "time", "cell_states", "log_probs", "scores", "predictions",
-    "beam_parent_ids"])):
+    "time", "log_probs", "scores", "predictions", "beam_parent_ids"])):
   pass
 
 
@@ -158,8 +157,6 @@ def beam_search_step(logits, beam_state, config):
   next_beam_probs.set_shape([config.beam_width])
   next_word_ids = tf.mod(word_indices, config.vocab_size)
   next_beam_ids = tf.div(word_indices, config.vocab_size)
-  next_cell_states = nest_map(beam_state.cell_states,
-                              lambda x: tf.gather(x, next_beam_ids))
 
   # Append new ids to current predictions
   next_predictions = tf.gather(beam_state.predictions, next_beam_ids)
@@ -170,7 +167,6 @@ def beam_search_step(logits, beam_state, config):
 
   next_beam_state = BeamState(
       time=time_,
-      cell_states=next_cell_states,
       log_probs=next_beam_probs,
       scores=next_beam_scores,
       predictions=next_predictions,

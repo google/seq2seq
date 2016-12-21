@@ -204,7 +204,7 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
     decoder_output_ = self.test_with_fixed_inputs()
     np.testing.assert_array_equal(
         decoder_output_.attention_scores.shape,
-        [self.batch_size, self.sequence_length, 500])
+        [self.batch_size, self.sequence_length, self.input_seq_len])
 
     # Make sure the attention scores sum to 1 for each step
     scores_sum = np.sum(decoder_output_.attention_scores, axis=2)
