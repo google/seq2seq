@@ -6,7 +6,7 @@ from collections import namedtuple
 
 import tensorflow as tf
 from seq2seq.inference import beam_search
-from seq2seq.decoders import basic_decoder, decoder_base, attention_decoder, attention
+from seq2seq.decoders.decoder_base import DecoderBase, DecoderStepOutput
 
 
 class BeamDecoderOutput(
@@ -33,7 +33,7 @@ class BeamDecoderOutput(
   pass
 
 
-class BeamSearchDecoder(decoder_base.DecoderBase):
+class BeamSearchDecoder(DecoderBase):
   """The BeamSearchDecoder wraps another decoder to perform beam search instead
   of greedy selection. This decoder must be used with batch size of 1, which
   will result in an effective batch size of `beam_width`.
@@ -55,6 +55,8 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
 
   @staticmethod
   def _wrap_loop_state(value, loop_state):
+    """Wraps the loop state to also include to beam decoder state.
+    """
     if loop_state is None:
       return value
     else:
@@ -62,6 +64,8 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
 
   @staticmethod
   def _unwrap_loop_state(loop_state):
+    """Unwraps the loop state to return (beam_decoder_state, original_state)
+    """
     if isinstance(loop_state, tuple) and isinstance(loop_state[0],
                                                     beam_search.BeamState):
       return loop_state
@@ -98,7 +102,7 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
           cell_state, lambda x: tf.tile(x, [self.config.beam_width, 1]))
 
       # Call the original decoder
-      original_output = self.decoder._step(time_, None, cell_state, loop_state,
+      original_output = self.decoder._step(time_, None, cell_state, loop_state, #pylint: disable=protected-access
                                            next_input_fn)
 
       # Create an initial Beam State
@@ -139,7 +143,7 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
         ])
 
       # The final step output
-      step_output = decoder_base.DecoderStepOutput(
+      step_output = DecoderStepOutput(
           outputs=outputs,
           next_input=next_input,
           next_cell_state=cell_state,
@@ -149,7 +153,7 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
       prev_beam_state, original_loop_state = self._unwrap_loop_state(loop_state)
 
       # Call the original decoder
-      original_output = self.decoder._step(time_, cell_output, cell_state,
+      original_output = self.decoder._step(time_, cell_output, cell_state, #pylint: disable=protected-access
                                            original_loop_state, next_input_fn)
 
       # Perform a step of beam search
@@ -181,7 +185,7 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
             1, [next_input, original_output.outputs.attention_context])
 
       # The final step output
-      step_output = decoder_base.DecoderStepOutput(
+      step_output = DecoderStepOutput(
           outputs=outputs,
           next_input=next_input,
           next_cell_state=next_cell_state,

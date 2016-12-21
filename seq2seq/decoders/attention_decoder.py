@@ -4,7 +4,7 @@ A basic sequence decoder that performs a softmax based on the RNN state.
 
 from collections import namedtuple
 import tensorflow as tf
-from seq2seq.decoders import DecoderBase, DecoderOutput, DecoderStepOutput
+from seq2seq.decoders import DecoderBase, DecoderStepOutput
 
 
 class AttentionDecoderOutput(

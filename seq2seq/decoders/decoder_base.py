@@ -5,7 +5,7 @@ Base class for sequence decoders.
 from collections import namedtuple
 
 import tensorflow as tf
-from seq2seq import GraphModule
+from seq2seq.graph_module import GraphModule
 
 
 class DecoderOutput(namedtuple("DecoderOutput", ["logits", "predictions"])):

@@ -10,6 +10,22 @@ class BeamState(
     namedtuple("BeamState", [
         "time", "log_probs", "scores", "predictions", "beam_parent_ids"
     ])):
+  """Dscribes the state at each step of a beam search.
+
+  Args:
+    time: The current time step of the RNN, starting from 0. An int32.
+    log_probs: The *total* log probabilities of all beams at the current step.
+      This the sum of the all log probabilities over previous steps.
+      A float32 tensor of shape `[beam_width]`.
+    scores: The *total* scores of all beams at the current step. This is
+      different from the log probabilities in that the score may include
+      extra computation, e.g. length normalization.
+      A float32 tensor of shape `[beam_width]`.
+    predictions: The chosen word ids at the current time step. An int32 tensor
+      of shape `[beam_width]`.
+    beam_parent_ids: The indices of the continued parent beams.
+      An int32 tensor of shape `[beam_width]`.
+  """
   pass
 
 
@@ -18,14 +34,29 @@ class BeamSearchConfig(
         "beam_width", "vocab_size", "eos_token", "score_fn",
         "choose_successors_fn"
     ])):
+  """Configuration object for beam search.
+
+  Args:
+    beam_width: Number of beams to use, an integer
+    vocab_size: Output vocabulary size
+    eos_token: The id of the EOS token, used to mark beams as "done"
+    score_fn: A function used to calculate the score for each beam.
+      Should map from (log_probs, sequence_lengths) => score.
+    choose_successors_fn: A function used to choose beam successors based
+      on their scores. Maps from (scores, config) => (chosen scores, chosen_ids)
+  """
   pass
 
 
-def logprob_score(log_probs, sequence_lengths):
+def logprob_score(log_probs, _sequence_lengths):
+  """A scoring function where the beam score is equal to the log probability.
+  """
   return log_probs
 
 
 def choose_top_k(scores_flat, config):
+  """Chooses the top-k beams as successors.
+  """
   next_beam_scores, word_indices = tf.nn.top_k(scores_flat, k=config.beam_width)
   return next_beam_scores, word_indices
 
@@ -97,7 +128,8 @@ def sequence_length(sequence, eos_token, include_eos_in_length=False):
     indices = tf.where(tf.equal(sequence, eos_token))
     return tf.cond(
         tf.size(indices) > 0,
-        lambda: tf.to_int32(tf.reduce_min(indices)) + tf.to_int32(include_eos_in_length),
+        lambda: tf.to_int32(tf.reduce_min(indices)) + \
+            tf.to_int32(include_eos_in_length),
         lambda: tf.to_int32(tf.size(sequence)))
 
   return tf.map_fn(

@@ -24,7 +24,6 @@ class TestBeamStep(tf.test.TestCase):
     self.config = config
 
   def test_step(self):
-    states = np.random.randn(self.config.beam_width, self.state_size)
     beam_state = beam_search.BeamState(
         time=tf.constant(2),
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
@@ -49,7 +48,6 @@ class TestBeamStep(tf.test.TestCase):
     np.testing.assert_array_equal(res.beam_parent_ids, [1, 0, 0])
 
   def test_step_with_eos(self):
-    states = np.random.randn(self.config.beam_width, self.state_size)
     beam_state = beam_search.BeamState(
         time=tf.constant(2),
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),

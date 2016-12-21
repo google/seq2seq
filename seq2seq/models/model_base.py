@@ -5,7 +5,7 @@ import tensorflow as tf
 from seq2seq import decoders
 from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
-from seq2seq.decoders import beam_search_decoder
+from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
 from seq2seq.inference import beam_search
 from seq2seq.training import featurizers
 from seq2seq.training import utils as training_utils
@@ -114,6 +114,14 @@ class Seq2SeqBase(ModelBase):
     return predictions
 
   def _get_beam_search_decoder(self, decoder):
+    """Wraps a decoder into a Beam Search decoder.
+
+    Args:
+      decoder: The original decoder
+
+    Returns:
+      A BeamSearchDecoder with the same interfaces as the original decoder.
+    """
     config = beam_search.BeamSearchConfig(
         beam_width=self.params["inference.beam_search.beam_width"],
         vocab_size=self.target_vocab_info.total_size,
@@ -123,10 +131,12 @@ class Seq2SeqBase(ModelBase):
         choose_successors_fn=getattr(
             beam_search,
             self.params["inference.beam_search.choose_successors_fn"]))
-    return beam_search_decoder.BeamSearchDecoder(decoder=decoder, config=config)
+    return BeamSearchDecoder(decoder=decoder, config=config)
 
   @property
   def use_beam_search(self):
+    """Returns true iff the model should perform beam search.
+    """
     return self.params["inference.beam_search.beam_width"] > 1
 
   def _build(self, features, labels, params, mode):
