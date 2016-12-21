@@ -198,14 +198,13 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
         vocab_size=self.vocab_size,
         attention_inputs=attention_inputs,
         attention_fn=attention_fn,
-        max_source_len=self.input_seq_len,
         max_decode_length=self.max_decode_length)
 
   def test_attention_scores(self):
     decoder_output_ = self.test_with_fixed_inputs()
     np.testing.assert_array_equal(
         decoder_output_.attention_scores.shape,
-        [self.batch_size, self.sequence_length, self.input_seq_len])
+        [self.batch_size, self.sequence_length, 500])
 
     # Make sure the attention scores sum to 1 for each step
     scores_sum = np.sum(decoder_output_.attention_scores, axis=2)

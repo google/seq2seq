@@ -71,7 +71,6 @@ class AttentionSeq2Seq(Seq2SeqBase):
         vocab_size=self.target_vocab_info.total_size,
         attention_inputs=encoder_output.outputs,
         attention_fn=attention_layer,
-        max_source_len=self.params["source.max_seq_len"],
         max_decode_length=self.params["target.max_seq_len"])
 
     if self.use_beam_search:

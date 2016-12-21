@@ -38,8 +38,8 @@ class AttentionDecoder(DecoderBase):
                vocab_size,
                attention_inputs,
                attention_fn,
-               max_source_len,
                max_decode_length,
+               attention_inputs_max_len=500,
                prediction_fn=None,
                name="attention_decoder"):
     super(AttentionDecoder, self).__init__(cell, max_decode_length, name)
@@ -47,19 +47,22 @@ class AttentionDecoder(DecoderBase):
     self.prediction_fn = prediction_fn
     self.attention_inputs = attention_inputs
     self.attention_fn = attention_fn
-    self.max_source_len = max_source_len
+    self.attention_inputs_max_len = attention_inputs_max_len
 
     # By default, choose the highest logit score as the prediction
     if not prediction_fn:
       self.prediction_fn = lambda logits: tf.stop_gradient(tf.argmax(logits, 1))
 
-  @staticmethod
-  def _pack_outputs(outputs_ta, final_loop_state):
-    logits, predictions = DecoderBase._pack_outputs(outputs_ta,
-                                                    final_loop_state)
+  def _pack_outputs(self, outputs_ta, final_loop_state):
+    logits, predictions = DecoderBase._pack_outputs(
+      outputs_ta, final_loop_state)
+
     attention_scores = tf.transpose(
         outputs_ta.attention_scores.pack(),
         [1, 0, 2])
+    # Slice attention scores to actual length of the inputs
+    attention_input_len = tf.shape(self.attention_inputs)[1]
+    attention_scores = attention_scores[:, :, :attention_input_len]
     attention_context = tf.transpose(
         outputs_ta.attention_context.pack(),
         [1, 0, 2])
@@ -77,9 +80,6 @@ class AttentionDecoder(DecoderBase):
     att_scores, attention_context = self.attention_fn(cell_output,
                                                       self.attention_inputs)
 
-    # In the first step the attention vector is set to all zeros
-    # if not initial_call:
-    #   next_loop_state = loop_state.write(time_ - 1, att_scores)
 
     # TODO: Make this a parameter: We may or may not want this.
     # Transform attention context.
@@ -100,8 +100,10 @@ class AttentionDecoder(DecoderBase):
         scope="logits")
     predictions = self.prediction_fn(logits)
 
-    def pad_att_scores(scores, max_len=self.max_source_len):
-      """Pads attention scores to fixed length"""
+    def pad_att_scores(scores, max_len=self.attention_inputs_max_len):
+      """Pads attention scores to fixed length. This is a hack because raw_rnn
+      requirs a fully defined shape for all outputs."""
+      # TODO: File a tensorflow bug and get rid of this hack
       scores = tf.pad(scores, [[0, 0], [0, max_len - tf.shape(scores)[1]]])
       scores.set_shape([None, max_len])
       return scores
