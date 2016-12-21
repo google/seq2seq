@@ -7,8 +7,11 @@ from __future__ import print_function
 
 import tensorflow as tf
 from tensorflow.contrib import metrics
-from tensorflow.contrib.learn import metric_spec
+# from tensorflow.contrib.learn import metric_spec
+from tensorflow.contrib.learn.python.learn import metric_spec
 
+import numpy as np
+from nltk.translate import bleu
 
 def streaming_log_perplexity():
   """Creates a MetricSpec that calculates the log perplexity.
@@ -25,3 +28,23 @@ def streaming_log_perplexity():
       metric_fn=perplexity_metric,
       label_key="target_len",
       prediction_key="losses")
+
+
+def streaming_bleu():
+  """Creates a MetricSpec that calculates the BLEU score.
+  """
+
+  def calculate_bleu(labels, predictions):
+    """Calculates the BLEU score using NLTK."""
+    score = bleu(labels.astype(str), predictions.astype(str))
+    return np.array(score, dtype=np.float32)
+
+  def bleu_metric(labels, predictions):
+    """Calculates the BLEU score based on labels and predictions"""
+    return tf.py_func(calculate_bleu, [labels, predictions],
+                      [tf.float32])
+
+  return metric_spec.MetricSpec(
+      metric_fn=bleu_metric,
+      label_key="labels",
+      prediction_key="predictions")

@@ -127,7 +127,8 @@ def create_experiment(output_dir):
                     metadata_hook, tokens_per_sec_counter]
 
   # Metrics
-  eval_metrics = {"log_perplexity": metrics.streaming_log_perplexity()}
+  eval_metrics = {"log_perplexity": metrics.streaming_log_perplexity(),
+                  "bleu": metrics.streaming_bleu()}
 
   experiment = tf.contrib.learn.experiment.Experiment(
       estimator=estimator,
