@@ -80,13 +80,12 @@ def create_vocabulary_lookup_table(filename, default_value=None):
   # Create ID -> word mapping
   id_to_vocab_init = tf.contrib.lookup.KeyValueTensorInitializer(
       vocab_idx_tensor, vocab_tensor, tf.int64, tf.string)
-  id_to_vocab_table = tf.contrib.lookup.HashTable(
-      id_to_vocab_init, "UNK")
+  id_to_vocab_table = tf.contrib.lookup.HashTable(id_to_vocab_init, "UNK")
 
   # Create word -> id mapping
   vocab_to_id_init = tf.contrib.lookup.KeyValueTensorInitializer(
       vocab_tensor, vocab_idx_tensor, tf.string, tf.int64)
-  vocab_to_id_table = tf.contrib.lookup.HashTable(
-      vocab_to_id_init, default_value)
+  vocab_to_id_table = tf.contrib.lookup.HashTable(vocab_to_id_init,
+                                                  default_value)
 
   return vocab_to_id_table, id_to_vocab_table, vocab_size

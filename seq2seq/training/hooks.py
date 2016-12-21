@@ -90,8 +90,8 @@ class TokensPerSecondCounter(basic_session_run_hooks.StepCounterHook):
                every_n_secs=None,
                output_dir=None,
                summary_writer=None):
-    super(TokensPerSecondCounter, self).__init__(
-        every_n_steps, every_n_secs, output_dir, summary_writer)
+    super(TokensPerSecondCounter, self).__init__(every_n_steps, every_n_secs,
+                                                 output_dir, summary_writer)
     self._summary_tag = "tokens/sec"
     self._total_tokens = 0
     self._num_tokens = None
@@ -117,8 +117,10 @@ class TokensPerSecondCounter(basic_session_run_hooks.StepCounterHook):
       if elapsed_time is not None:
         tokens_per_sec = self._total_tokens / elapsed_time
         if self._summary_writer is not None:
-          summary = tf.Summary(value=[tf.Summary.Value(
-              tag=self._summary_tag, simple_value=tokens_per_sec)])
+          summary = tf.Summary(value=[
+              tf.Summary.Value(
+                  tag=self._summary_tag, simple_value=tokens_per_sec)
+          ])
           self._summary_writer.add_summary(summary, global_step)
         tf.logging.info("%s: %g", self._summary_tag, tokens_per_sec)
       self._total_tokens = 0

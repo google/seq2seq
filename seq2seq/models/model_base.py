@@ -5,6 +5,8 @@ import tensorflow as tf
 from seq2seq import decoders
 from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
+from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
+from seq2seq.inference import beam_search
 from seq2seq.training import featurizers
 from seq2seq.training import utils as training_utils
 
@@ -76,6 +78,9 @@ class Seq2SeqBase(ModelBase):
         "source.max_seq_len": 40,
         "target.max_seq_len": 40,
         "embedding.dim": 100,
+        "inference.beam_search.beam_width": 0,
+        "inference.beam_search.score_fn": "logprob_score",
+        "inference.beam_search.choose_successors_fn": "choose_top_k",
         "optimizer.name": "Adam",
         "optimizer.learning_rate": 1e-4,
         "optimizer.lr_decay_type": "",
@@ -107,6 +112,32 @@ class Seq2SeqBase(ModelBase):
     if losses is not None:
       predictions["losses"] = losses
     return predictions
+
+  def _get_beam_search_decoder(self, decoder):
+    """Wraps a decoder into a Beam Search decoder.
+
+    Args:
+      decoder: The original decoder
+
+    Returns:
+      A BeamSearchDecoder with the same interfaces as the original decoder.
+    """
+    config = beam_search.BeamSearchConfig(
+        beam_width=self.params["inference.beam_search.beam_width"],
+        vocab_size=self.target_vocab_info.total_size,
+        eos_token=self.target_vocab_info.special_vocab.SEQUENCE_END,
+        score_fn=getattr(beam_search,
+                         self.params["inference.beam_search.score_fn"]),
+        choose_successors_fn=getattr(
+            beam_search,
+            self.params["inference.beam_search.choose_successors_fn"]))
+    return BeamSearchDecoder(decoder=decoder, config=config)
+
+  @property
+  def use_beam_search(self):
+    """Returns true iff the model should perform beam search.
+    """
+    return self.params["inference.beam_search.beam_width"] > 1
 
   def _build(self, features, labels, params, mode):
     # Create embedddings

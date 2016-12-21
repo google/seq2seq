@@ -23,6 +23,7 @@ class GraphModule(object):
     Args:
       name: Name of this module. Used for `tf.make_template`.
     """
+    self.name = name
     self._template = tf.make_template(name, self._build, create_scope_now_=True)
     # Docstrings for the class should be the docstring for the _build method
     self.__doc__ = self._build.__doc__

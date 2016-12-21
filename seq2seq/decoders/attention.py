@@ -1,7 +1,7 @@
 """ Implementations of attention layers.
 """
 
-from seq2seq import GraphModule
+from seq2seq.graph_module import GraphModule
 import tensorflow as tf
 from tensorflow.python.framework import function
 from tensorflow.python.ops import math_ops
