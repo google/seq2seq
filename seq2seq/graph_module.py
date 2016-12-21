@@ -1,4 +1,3 @@
-
 """
 All graph components that create Variables should inherit from this
 base class defined in this file.

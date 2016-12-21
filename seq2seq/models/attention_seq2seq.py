@@ -74,7 +74,8 @@ class AttentionSeq2Seq(Seq2SeqBase):
         max_decode_length=self.params["target.max_seq_len"])
 
     if self.use_beam_search:
-      decoder_fn = self._get_beam_search_decoder(decoder_fn) #pylint: disable=r0204
+      decoder_fn = self._get_beam_search_decoder(
+          decoder_fn)  #pylint: disable=r0204
 
     decoder_output, _, _ = decoder_fn(
         input_fn=decoder_input_fn,

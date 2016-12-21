@@ -5,23 +5,30 @@ from collections import namedtuple
 
 import tensorflow as tf
 
-class BeamState(namedtuple("BeamState", [
-    "time", "log_probs", "scores", "predictions", "beam_parent_ids"])):
+
+class BeamState(
+    namedtuple("BeamState", [
+        "time", "log_probs", "scores", "predictions", "beam_parent_ids"
+    ])):
   pass
 
 
-class BeamSearchConfig(namedtuple("BeamSearchConfig", [
-    "beam_width", "vocab_size", "eos_token", "score_fn",
-    "choose_successors_fn"])):
+class BeamSearchConfig(
+    namedtuple("BeamSearchConfig", [
+        "beam_width", "vocab_size", "eos_token", "score_fn",
+        "choose_successors_fn"
+    ])):
   pass
 
 
 def logprob_score(log_probs, sequence_lengths):
   return log_probs
 
+
 def choose_top_k(scores_flat, config):
   next_beam_scores, word_indices = tf.nn.top_k(scores_flat, k=config.beam_width)
   return next_beam_scores, word_indices
+
 
 def nest_map(inputs, map_fn, name=None):
   """Applies a function to (possibly nested) tuple of tensors.
@@ -68,6 +75,7 @@ def mask_probs(probs, eos_token, finished):
   finished_examples = (1. - finished_mask) * finished_row
   return finished_examples + non_finished_examples
 
+
 def sequence_length(sequence, eos_token, include_eos_in_length=False):
   """Calculates the sequence length using an EOS token as the endpoint.
 
@@ -83,17 +91,18 @@ def sequence_length(sequence, eos_token, include_eos_in_length=False):
     corresponding input sequence. If no EOS token is found in a sequence
     its length is equal to T.
   """
+
   def single_sequence_length(sequence, eos_token, include_eos_in_length):
     """Calculats the length for a single sequence"""
     indices = tf.where(tf.equal(sequence, eos_token))
     return tf.cond(
         tf.size(indices) > 0,
-        lambda: tf.to_int32(tf.reduce_min(indices)) + tf.to_int32(
-            include_eos_in_length),
+        lambda: tf.to_int32(tf.reduce_min(indices)) + tf.to_int32(include_eos_in_length),
         lambda: tf.to_int32(tf.size(sequence)))
 
-  return tf.map_fn(lambda s: single_sequence_length(
-      s, eos_token, include_eos_in_length), sequence)
+  return tf.map_fn(
+      lambda s: single_sequence_length(s, eos_token, include_eos_in_length),
+      sequence)
 
 
 def beam_search_step(logits, beam_state, config):
@@ -112,8 +121,8 @@ def beam_search_step(logits, beam_state, config):
   time_ = beam_state.time + 1
 
   # Calculate the current lengths of the predictions
-  prediction_lengths = sequence_length(
-      beam_state.predictions, config.eos_token, False)
+  prediction_lengths = sequence_length(beam_state.predictions, config.eos_token,
+                                       False)
   prediction_lengths = tf.to_int32(prediction_lengths)
 
   # Find all beams that are "finished" (i.e. have an EOS token already)
@@ -147,8 +156,8 @@ def beam_search_step(logits, beam_state, config):
   scores_flat = tf.cond(time_ > 1, lambda: scores_flat, lambda: scores[0])
 
   # Pick the next beams according to the specified successors function
-  next_beam_scores, word_indices = config.choose_successors_fn(
-      scores_flat, config)
+  next_beam_scores, word_indices = config.choose_successors_fn(scores_flat,
+                                                               config)
   next_beam_scores.set_shape([config.beam_width])
   word_indices.set_shape([config.beam_width])
 
@@ -162,8 +171,8 @@ def beam_search_step(logits, beam_state, config):
   next_predictions = tf.gather(beam_state.predictions, next_beam_ids)
   next_predictions = tf.concat(1, [
       next_predictions[:, 0:time_ - 1],
-      tf.to_int32(tf.expand_dims(next_word_ids, 1)),
-      next_predictions[:, time_:]])
+      tf.to_int32(tf.expand_dims(next_word_ids, 1)), next_predictions[:, time_:]
+  ])
 
   next_beam_state = BeamState(
       time=time_,

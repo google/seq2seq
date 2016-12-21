@@ -131,7 +131,6 @@ class EncoderDecoderTests(tf.test.TestCase):
     np.testing.assert_array_equal(decoder_output_.predictions.shape,
                                   [self.batch_size, self.max_decode_length])
 
-
   def test_inference_with_beam_search(self):
     """Tests model inference by feeding dynamic inputs based on an embedding
       and using beam search to decode
@@ -140,9 +139,7 @@ class EncoderDecoderTests(tf.test.TestCase):
     ex = self._create_example()
 
     beam_width = 10
-    model = self.create_model({
-        "inference.beam_search.beam_width": beam_width
-    })
+    model = self.create_model({"inference.beam_search.beam_width": beam_width})
 
     embeddings = tf.get_variable(
         "W_embed", [model.target_vocab_info.total_size, self.input_depth])

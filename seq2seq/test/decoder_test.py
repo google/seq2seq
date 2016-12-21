@@ -112,7 +112,6 @@ class DecoderTests(object):
     np.testing.assert_array_equal(decoder_output_.predictions.shape,
                                   [self.batch_size, self.sequence_length])
 
-
   def test_with_beam_search(self):
     # Batch size for beam search must be 1.
     self.batch_size = 1
@@ -137,8 +136,8 @@ class DecoderTests(object):
     decoder_fn = beam_search_decoder.BeamSearchDecoder(
         decoder=decoder_fn, config=config)
 
-    decoder_output, _, _ = decoder_fn(decoder_input_fn, initial_state,
-                                      sequence_length=None)
+    decoder_output, _, _ = decoder_fn(
+        decoder_input_fn, initial_state, sequence_length=None)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -148,15 +147,12 @@ class DecoderTests(object):
     np.testing.assert_array_equal(
         decoder_output_.logits.shape,
         [1, config.beam_width, self.sequence_length, self.vocab_size])
-    np.testing.assert_array_equal(
-        decoder_output_.predictions.shape,
-        [1, config.beam_width, self.sequence_length])
-    np.testing.assert_array_equal(
-        decoder_output_.beam_parent_ids.shape,
-        [1, config.beam_width, self.sequence_length])
-    np.testing.assert_array_equal(
-        decoder_output_.scores.shape,
-        [1, config.beam_width, self.sequence_length])
+    np.testing.assert_array_equal(decoder_output_.predictions.shape,
+                                  [1, config.beam_width, self.sequence_length])
+    np.testing.assert_array_equal(decoder_output_.beam_parent_ids.shape,
+                                  [1, config.beam_width, self.sequence_length])
+    np.testing.assert_array_equal(decoder_output_.scores.shape,
+                                  [1, config.beam_width, self.sequence_length])
 
     return decoder_output
 

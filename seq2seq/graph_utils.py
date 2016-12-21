@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+
 def add_dict_to_collection(dict_, collection_name):
   """Adds a dictionary to a graph collection.
 
@@ -18,6 +19,7 @@ def add_dict_to_collection(dict_, collection_name):
   for key, value in dict_.items():
     tf.add_to_collection(key_collection, key)
     tf.add_to_collection(value_collection, value)
+
 
 def get_dict_from_collection(collection_name):
   """Adds a dictionary to a graph collection.

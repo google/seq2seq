@@ -8,7 +8,9 @@ from seq2seq.decoders import DecoderBase, DecoderOutput, DecoderStepOutput
 
 
 class AttentionDecoderOutput(
-    namedtuple("DecoderOutput", ["logits", "predictions", "attention_scores", "attention_context"])):
+    namedtuple(
+        "DecoderOutput",
+        ["logits", "predictions", "attention_scores", "attention_context"])):
   """Augmented decoder output that also includes the attention scores.
   """
   pass
@@ -54,20 +56,18 @@ class AttentionDecoder(DecoderBase):
       self.prediction_fn = lambda logits: tf.stop_gradient(tf.argmax(logits, 1))
 
   def _pack_outputs(self, outputs_ta, final_loop_state):
-    logits, predictions = DecoderBase._pack_outputs(
-      outputs_ta, final_loop_state)
+    logits, predictions = DecoderBase._pack_outputs(outputs_ta,
+                                                    final_loop_state)
 
-    attention_scores = tf.transpose(
-        outputs_ta.attention_scores.pack(),
-        [1, 0, 2])
+    attention_scores = tf.transpose(outputs_ta.attention_scores.pack(),
+                                    [1, 0, 2])
     # Slice attention scores to actual length of the inputs
     attention_input_len = tf.shape(self.attention_inputs)[1]
     attention_scores = attention_scores[:, :, :attention_input_len]
-    attention_context = tf.transpose(
-        outputs_ta.attention_context.pack(),
-        [1, 0, 2])
-    return AttentionDecoderOutput(
-        logits, predictions, attention_scores, attention_context)
+    attention_context = tf.transpose(outputs_ta.attention_context.pack(),
+                                     [1, 0, 2])
+    return AttentionDecoderOutput(logits, predictions, attention_scores,
+                                  attention_context)
 
   def _step(self, time_, cell_output, cell_state, loop_state, next_input_fn):
     initial_call = (cell_output is None)
@@ -79,7 +79,6 @@ class AttentionDecoder(DecoderBase):
     # Compute attention
     att_scores, attention_context = self.attention_fn(cell_output,
                                                       self.attention_inputs)
-
 
     # TODO: Make this a parameter: We may or may not want this.
     # Transform attention context.
@@ -110,11 +109,11 @@ class AttentionDecoder(DecoderBase):
 
     attention_scores = pad_att_scores(att_scores)
 
-    outputs = AttentionDecoderOutput(
-        logits, predictions, attention_scores, attention_context)
+    outputs = AttentionDecoderOutput(logits, predictions, attention_scores,
+                                     attention_context)
 
     if initial_call:
-      attention_scores = pad_att_scores(self.attention_inputs[:,:,0])[0]
+      attention_scores = pad_att_scores(self.attention_inputs[:, :, 0])[0]
       outputs = AttentionDecoderOutput(
           logits=tf.zeros([self.vocab_size]),
           predictions=tf.zeros(

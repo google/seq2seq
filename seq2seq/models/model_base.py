@@ -118,14 +118,12 @@ class Seq2SeqBase(ModelBase):
         beam_width=self.params["inference.beam_search.beam_width"],
         vocab_size=self.target_vocab_info.total_size,
         eos_token=self.target_vocab_info.special_vocab.SEQUENCE_END,
-        score_fn=getattr(
-            beam_search,
-            self.params["inference.beam_search.score_fn"]),
+        score_fn=getattr(beam_search,
+                         self.params["inference.beam_search.score_fn"]),
         choose_successors_fn=getattr(
             beam_search,
             self.params["inference.beam_search.choose_successors_fn"]))
-    return beam_search_decoder.BeamSearchDecoder(
-        decoder=decoder, config=config)
+    return beam_search_decoder.BeamSearchDecoder(decoder=decoder, config=config)
 
   @property
   def use_beam_search(self):
