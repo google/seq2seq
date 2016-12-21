@@ -61,7 +61,7 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
 
   @staticmethod
   def _unwrap_loop_state(loop_state):
-    if isinstance(loop_state, tuple) and len(loop_state) == 2:
+    if isinstance(loop_state, tuple) and isinstance(loop_state[0], beam_search.BeamState):
       return loop_state
     else:
       return loop_state, None
@@ -187,11 +187,5 @@ class BeamSearchDecoder(decoder_base.DecoderBase):
           next_input=next_input,
           next_cell_state=next_cell_state,
           next_loop_state=next_loop_state)
-
-    # print(step_output.outputs.predictions)
-    # print(step_output.outputs.predictions)
-    # print(step_output.next_input)
-    # print(step_output.next_cell_state)
-    # print(step_output.next_loop_state)
 
     return step_output
