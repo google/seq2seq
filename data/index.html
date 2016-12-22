@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Inference - seq2seq</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Inference";
+    var mkdocs_page_input_path = "data.md";
+    var mkdocs_page_url = "/data/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> seq2seq</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="./">Data</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../models/">Models</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="./">Training</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Inference</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#pre-processed-datasets">Pre-processed datasets</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#trainingdev-data-in-parallel-text-format">Training/Dev data in Parallel Text Format</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#generating-vocabulary">Generating Vocabulary</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#subword-unit-preprocessing">Subword Unit Preprocessing</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#trainingdev-data-in-tfrecords-format-old">Training/Dev data in TFRecords format (Old)</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../benchmarks/">Benchmarks</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../profiling/">Profiling</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../developer_guide/">Developer Guide</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../about/">About</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">seq2seq</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Inference</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="pre-processed-datasets">Pre-processed datasets</h2>
+<p><a href="https://github.com/dennybritz/seq2seq/tree/master/notebooks">See the data generation notebooks</a> for details on how this data was generated.</p>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Description</th>
+<th>Training/Dev/Test Examples</th>
+<th>Vocab Size</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WMT'16 EN-DE</td>
+<td>Data for the <a href="http://www.statmt.org/wmt16/translation-task.html">WMT'16 Translation Task</a> English to German. Training data is combined from Europarl v7, Common Crawl, and News v11. Development data is newstest2013. Test data is newstest2015.</td>
+<td>4.56M/3K/2.6K</td>
+<td>50k</td>
+<td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpdmlvajhSbS1JTXc">Download</a></td>
+</tr>
+<tr>
+<td>Toy Copy</td>
+<td>A toy dataset where the target sequence is equal to the source sequence. Thus, the network must learn to "copy" the source sequence.</td>
+<td>10k/1k/1k</td>
+<td>20</td>
+<td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpX0FFbHFRbGY3UTQ">Download</a></td>
+</tr>
+<tr>
+<td>Toy Reverse</td>
+<td>A toy dataset where the target sequence is equal to the reversed source sequence.</td>
+<td>10k/1k/1k</td>
+<td>20</td>
+<td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpR2Z1ZWRQZEZDVHM">Download</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="trainingdev-data-in-parallel-text-format">Training/Dev data in Parallel Text Format</h2>
+<p>The input pipeline expect parallel tokenized data in raw text format. That is, you need <code>sources.txt</code> and a <code>targets.txt</code> file that contain corresponding sentences, aligned line-by-line. Each line corresponds to one input/output example. These words/tokens in these files must be separated by spaces.</p>
+<h2 id="generating-vocabulary">Generating Vocabulary</h2>
+<p>A vocabulary file is a raw text file that contains one token per line. The total number of lines is the size of the vocabulary, and each token is mapped to its line number. The special words <code>UNK</code>, <code>SEQUENCE_START</code> and <code>SEQUENCE_END</code> are not part of the vocabulary file, and correspond to <code>vocab_size + 1</code>, <code>vocab_size + 2</code>, and <code>vocab_size + 3</code> respectively</p>
+<p>Given a raw text file of tokens separated by spaces you can generate a vocabulary file using the <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/scripts/generate_vocab.py"><code>generate_vocab.py</code></a> script:</p>
+<pre><code class="shell">./seq2seq/scripts/generate_vocab.py \
+  --input_file /data/source.txt \
+  --output_file /data/source_vocab \
+  --min_frequency 1 \
+  --max_vocab_size 50000
+</code></pre>
+
+<p>The resulting vocabulary file contains one word per line.</p>
+<h2 id="subword-unit-preprocessing">Subword Unit Preprocessing</h2>
+<p>In order to deal with an open vocabulary, rare words can be split into
+subword units as proposed in [1]. This improves the model's translation
+performance particularly on rare words. The authors propose to use
+Byte Pair Encoding (BPE), a simple compression algorithm, for splitting
+words into subwords. Starting from characters, BPE iteratively replaces the
+most frequent pair of symbols with a new symbol. The final symbol vocabulary
+is equal to the size of the initial vocabulary plus the number of merge
+operations, which is the only hyperparameter of the method.
+To apply BPE as a pre-processing step to your raw text input,
+follow the below steps:</p>
+<ol>
+<li>Download the open-source implementation of the paper
+   from <a href="https://github.com/rsennrich/subword-nmt">here</a>.</li>
+<li>Learn the BPE encoding: <code>cd subword-nmt</code>.
+   <code>./learn_bpe.py -s {num_operations} -i {train_file} -o {codes_file}</code>.
+   <code>num_operations</code> is the number of merge operations. Default is <code>10000</code>.</li>
+<li>Apply the BPE encoding to the training and test files:
+  <code>./apply_bpe.py -c {codes_file} -i {input_file} -o {output_file}</code>.</li>
+</ol>
+<p>The resulting BPE-processed files can be used as-is in place of the raw text
+files for training the NMT model.</p>
+<p>References:</p>
+<p>[1] Sennrich, R., Haddow, B., &amp; Birch, A. (2016). Neural Machine Translation of
+Rare Words with Subword Units. In Proceedings of the 54th Annual Meeting of
+the Association for Computational Linguistics (ACL 2016).
+Retrieved from http://arxiv.org/abs/1508.07909</p>
+<h2 id="trainingdev-data-in-tfrecords-format-old">Training/Dev data in TFRecords format (Old)</h2>
+<p>The input pipeline expects data in <a href="https://www.tensorflow.org/versions/r0.12/how_tos/reading_data/index.html#file-formats">TFRecord</a> format consisting of <a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/example/example.proto"><code>tf.Example</code></a> protocol buffers. Each <code>Example</code> record contains the following fields:</p>
+<ul>
+<li><code>pair_id (string)</code> (optional) is a dataset-unique id for this example.</li>
+<li><code>source_len (int64)</code> is the length of the source sequence.</li>
+<li><code>target_len (int64)</code> is the length of the target sequence.</li>
+<li><code>source_tokens (string)</code> is a list of source tokens.</li>
+<li><code>target_tokens (string)</code> is a list of targets tokens.</li>
+</ul>
+<p>Given a parallel corpus, i.e. source and target files aligned by line such as <a href="http://www.statmt.org/wmt16/translation-task.html">those from WMT</a>, we provide a <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/scripts/generate_examples.py">script</a> to generate a corresponding TFRecords file:</p>
+<pre><code class="bash">./seq2seq/scripts/generate_examples.py \
+  --source_file /path/to/data/train.de.txt \
+  --target_file /path/to/data/train.en.txt \
+  --output_file /path/to/data/train.tfrecords
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../benchmarks/" class="btn btn-neutral float-right" title="Benchmarks">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="./" class="btn btn-neutral" title="Training"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="./" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../benchmarks/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../js/theme.js"></script>
+
+</body>
+</html>

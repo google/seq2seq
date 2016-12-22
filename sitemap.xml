@@ -11,6 +11,62 @@
 
     
     <url>
+     <loc>/data/</loc>
+     <lastmod>2016-12-22</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/models/</loc>
+     <lastmod>2016-12-22</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/data/</loc>
+     <lastmod>2016-12-22</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/data/</loc>
+     <lastmod>2016-12-22</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/benchmarks/</loc>
+     <lastmod>2016-12-22</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/profiling/</loc>
+     <lastmod>2016-12-22</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/developer_guide/</loc>
+     <lastmod>2016-12-22</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
      <loc>/about/</loc>
      <lastmod>2016-12-22</lastmod>
      <changefreq>daily</changefreq>

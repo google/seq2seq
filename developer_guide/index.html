@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Developer Guide - seq2seq</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Developer Guide";
+    var mkdocs_page_input_path = "developer_guide.md";
+    var mkdocs_page_url = "/developer_guide/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> seq2seq</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../data/">Data</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../models/">Models</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../data/">Training</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../data/">Inference</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../benchmarks/">Benchmarks</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../profiling/">Profiling</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Developer Guide</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#development-setup">Development Setup</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#github-workflow">Github Workflow</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#general-style-guidelines">General Style Guidelines</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#tensorflow-style">Tensorflow Style</a></li>
+                
+                    <li><a class="toctree-l4" href="#graphmodule">GraphModule</a></li>
+                
+                    <li><a class="toctree-l4" href="#functions-vs-classes">Functions vs. Classes</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../about/">About</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">seq2seq</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Developer Guide</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="development-setup">Development Setup</h2>
+<ul>
+<li>Install Python3. If you're on a Mac the easiest way to do this is probably using <a href="http://brew.sh/">Homebrew</a>: <code>brew install python3</code></li>
+<li>Clone this repository: <code>git clone https://github.com/dennybritz/seq2seq.git</code>. Change into it: <code>cd seq2seq</code></li>
+<li>Create a new virtual environment and activate it: <code>python3 -m venv ~/path/to/your/venv</code>. Then, <code>source ~/path/to/your/venv/bin/activate</code></li>
+<li>Install package dependencies: <code>pip install -e .</code></li>
+<li>Install testing utilities: <code>pip install nose pylint tox yapf</code></li>
+<li>Run tests and make sure they pass: <code>nosetests</code></li>
+<li>Code :)</li>
+</ul>
+<h2 id="github-workflow">Github Workflow</h2>
+<p>Pushing directly to the master branch is blocked. In order to make changes you must:</p>
+<ul>
+<li>Make a new branch for your feature. For example, <code>git checkout -b feature/my-new-feature</code></li>
+<li>Make changes and commits</li>
+<li>Run:</li>
+<li><code>nosetests</code> to make sure tests are passing</li>
+<li><code>pylint ./seq2seq</code> for linting and catching obvious errors</li>
+<li><code>yapf -ir ./seq2seq</code> to auto-format code</li>
+<li>Push your new branch to Github: <code>git push</code></li>
+<li>Create a Pull Request on Github and make sure CircleCI tests are passing</li>
+<li>Have one person review before merging the change</li>
+</ul>
+<p>To make things easier you can also use the <a href="https://desktop.github.com/">Github Desktop app</a>.</p>
+<h2 id="general-style-guidelines">General Style Guidelines</h2>
+<ul>
+<li>Run <a href="https://github.com/google/yapf">YAPF</a> to format your code, e.g. <code>yapf -ir ./seq2seq</code>.</li>
+<li>Run <a href="https://www.pylint.org/">pylint</a>.</li>
+<li>Code must be compatible with Python 2/3 using <a href="http://python-future.org/futurize.html">futurize</a>. That is, code should be written in Python 3 style and made backwards compatible with Python 2 by adding the appropriate imports.</li>
+<li>All public functions and classes must have docstring <a href="https://google.github.io/styleguide/pyguide.html?showone=Comments#Comments">following this style</a>.</li>
+<li>When in doubt, follow <a href="https://google.github.io/styleguide/pyguide.html">this Python style guide</a>. Running pylint should take care of most issues though.</li>
+</ul>
+<h2 id="tensorflow-style">Tensorflow Style</h2>
+<h3 id="graphmodule">GraphModule</h3>
+<p>All classes that modify the Graph should inherit from <code>seq2seq.graph_module.GraphModule</code>, which is a wrapper around Tensorflow's <a href="https://www.tensorflow.org/versions/r0.12/api_docs/python/state_ops.html#make_template"><code>tf.make_template</code></a> function that allows for easy variable sharing. Basically, it allows you to do something like this:</p>
+<pre><code class="python">encode_fn = SomeEncoderModule(...)
+
+# New variables are created in this call.
+output1 = encode_fn(input1)
+
+# No new variables are created here. The variables from the above call are re-used.
+# Note how this is different from normal Tensorflow where you would need to use variable scopes.
+output2 = encode_fn(input2)
+
+# Because this is a new instance a second set of variables is created
+encode_fn2 = SomeEncoderModule(...)
+output3 = encode_fn2(input3)
+</code></pre>
+
+<h3 id="functions-vs-classes">Functions vs. Classes</h3>
+<ul>
+<li>Operations that <strong>create new variables</strong> must be implemented as classes and must inherit from <code>GraphModule</code>.</li>
+<li>Operations that <strong>do not create new variables</strong> can be implemented as standard python functions, or as classes that inherit from <code>GraphModule</code> if they have a lot of logic.</li>
+</ul>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../about/" class="btn btn-neutral float-right" title="About">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../profiling/" class="btn btn-neutral" title="Profiling"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../profiling/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../about/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../js/theme.js"></script>
+
+</body>
+</html>
