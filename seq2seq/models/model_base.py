@@ -105,10 +105,9 @@ class Seq2SeqBase(ModelBase):
   def _create_predictions(self, features, labels, decoder_output, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
     """
-    predictions = {
-        "logits": decoder_output.logits,
-        "predictions": decoder_output.predictions,
-    }
+    predictions = {}
+    predictions.update(decoder_output._asdict()) #pylint: disable=protected-access
+
     if losses is not None:
       predictions["losses"] = losses
     return predictions
