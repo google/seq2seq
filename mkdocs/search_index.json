@@ -1,19 +1,39 @@
 {
     "docs": [
         {
-            "location": "/overview/", 
-            "text": "We build this framework with the following design goals in mind.\n\n\n\n\n\n\nEase of use.\n One should be able train a  model with single command. The input data are raw text files instead of esoteric file formats. Similarly, using a pre-trained model to make predictions should be straightforward.\n\n\n\n\n\n\nEase to extend\n. Code is structured in such a way that it is easy to build upon. For example, adding a new type of attention mechanism or a new encoder architecture requires only minimal code changes.\n\n\n\n\n\n\nWell-documented\n. In addition to \ngenerated API documentation\n we have written up multiple guides to help users become familiar with the framework.\n\n\n\n\n\n\nGood performance\n. For the sake of code simplicity we have not tried to squeeze out the last bit of performance, but our implementation is fast enough to cover almost all production use cases. It also supports distributed training to trade off computational power and training time.\n\n\n\n\n\n\nStandard Benchmarks\n. We provide pre-trained models and benchmark results for several standard datasets. We hope these can  serve as a baseline for further research.", 
+            "location": "/", 
+            "text": "Design Goals\n\n\nWe build this framework with the following goals in mind.\n\n\n\n\n\n\nEase of use.\n You should be able train a model with single command. The input data are raw text files instead of esoteric file formats. Similarly, using a pre-trained model to make predictions should be straightforward.\n\n\n\n\n\n\nEase to extend\n. Code is structured in such a way that it is easy to build upon. For example, adding a new type of attention mechanism or a new encoder architecture requires only minimal code changes.\n\n\n\n\n\n\nWell-documented\n. In addition to \ngenerated API documentation\n we have written up multiple guides to help users familiarize themselves with the framework.\n\n\n\n\n\n\nGood performance\n. For the sake of code simplicity we have not tried to squeeze out every last bit of performance, but our implementation is fast enough to cover almost all production use cases. It also supports distributed training to trade off computational power and training time.\n\n\n\n\n\n\nStandard Benchmarks\n. We provide \npre-trained models and benchmark results\n for several standard datasets. We hope these can serve as a baseline for further research.", 
             "title": "Overview"
         }, 
         {
+            "location": "/#design-goals", 
+            "text": "We build this framework with the following goals in mind.    Ease of use.  You should be able train a model with single command. The input data are raw text files instead of esoteric file formats. Similarly, using a pre-trained model to make predictions should be straightforward.    Ease to extend . Code is structured in such a way that it is easy to build upon. For example, adding a new type of attention mechanism or a new encoder architecture requires only minimal code changes.    Well-documented . In addition to  generated API documentation  we have written up multiple guides to help users familiarize themselves with the framework.    Good performance . For the sake of code simplicity we have not tried to squeeze out every last bit of performance, but our implementation is fast enough to cover almost all production use cases. It also supports distributed training to trade off computational power and training time.    Standard Benchmarks . We provide  pre-trained models and benchmark results  for several standard datasets. We hope these can serve as a baseline for further research.", 
+            "title": "Design Goals"
+        }, 
+        {
             "location": "/getting_started/", 
-            "text": "TODO", 
+            "text": "Download \n Setup\n\n\nTODO\n\n\nUsing a pre-trained model\n\n\nTODO\n\n\nTraining your own model\n\n\nTODO\n\n\nDeveloping custom models\n\n\nTODO", 
             "title": "Getting Started"
         }, 
         {
-            "location": "/getting_started/#todo", 
-            "text": "", 
-            "title": "TODO"
+            "location": "/getting_started/#download-setup", 
+            "text": "TODO", 
+            "title": "Download &amp; Setup"
+        }, 
+        {
+            "location": "/getting_started/#using-a-pre-trained-model", 
+            "text": "TODO", 
+            "title": "Using a pre-trained model"
+        }, 
+        {
+            "location": "/getting_started/#training-your-own-model", 
+            "text": "TODO", 
+            "title": "Training your own model"
+        }, 
+        {
+            "location": "/getting_started/#developing-custom-models", 
+            "text": "TODO", 
+            "title": "Developing custom models"
         }, 
         {
             "location": "/data/", 
@@ -82,8 +102,13 @@
         }, 
         {
             "location": "/benchmarks/", 
-            "text": "", 
+            "text": "Machine Translation\n\n\n\n\n\n\n\n\nCorpus\n\n\nSetttings\n\n\nTraining Time\n\n\nEvaluation\n\n\nDownloads\n\n\n\n\n\n\n\n\n\n\nWMT'16 English-German\u00a0(4.5M Sentence Pairs)\n\n\nHyperparameters\n\n\nN/A\n\n\n0.00 PPL \n 0.00 BLEU\n\n\nModel\n \n \nData\n\n\n\n\n\n\nWMT'16 English-French (?? Sentence Pairs)\n\n\n---\n\n\n---\n\n\n---\n\n\n---\n\n\n\n\n\n\nIWSLT 2015 English-Vietnamese (200k Sentence Pairs)\n\n\n---\n\n\n---\n\n\n---\n\n\n---", 
             "title": "Benchmarks"
+        }, 
+        {
+            "location": "/benchmarks/#machine-translation", 
+            "text": "Corpus  Setttings  Training Time  Evaluation  Downloads      WMT'16 English-German\u00a0(4.5M Sentence Pairs)  Hyperparameters  N/A  0.00 PPL   0.00 BLEU  Model     Data    WMT'16 English-French (?? Sentence Pairs)  ---  ---  ---  ---    IWSLT 2015 English-Vietnamese (200k Sentence Pairs)  ---  ---  ---  ---", 
+            "title": "Machine Translation"
         }, 
         {
             "location": "/profiling/", 
@@ -107,23 +132,23 @@
         }, 
         {
             "location": "/developer_guide/", 
-            "text": "Development Setup\n\n\n\n\nInstall Python3. If you're on a Mac the easiest way to do this is probably using \nHomebrew\n: \nbrew install python3\n\n\nClone this repository: \ngit clone https://github.com/dennybritz/seq2seq.git\n. Change into it: \ncd seq2seq\n\n\nCreate a new virtual environment and activate it: \npython3 -m venv ~/path/to/your/venv\n. Then, \nsource ~/path/to/your/venv/bin/activate\n\n\nInstall package dependencies: \npip install -e .\n\n\nInstall testing utilities: \npip install nose pylint tox yapf\n\n\nRun tests and make sure they pass: \nnosetests\n\n\nCode :)\n\n\n\n\nGithub Workflow\n\n\nPushing directly to the master branch is blocked. In order to make changes you must:\n\n\n\n\nMake a new branch for your feature. For example, \ngit checkout -b feature/my-new-feature\n\n\nMake changes and commits\n\n\nRun:\n\n\nnosetests\n to make sure tests are passing\n\n\npylint ./seq2seq\n for linting and catching obvious errors\n\n\nyapf -ir ./seq2seq\n to auto-format code\n\n\nPush your new branch to Github: \ngit push\n\n\nCreate a Pull Request on Github and make sure CircleCI tests are passing\n\n\nHave one person review before merging the change\n\n\n\n\nTo make things easier you can also use the \nGithub Desktop app\n.\n\n\nGeneral Style Guidelines\n\n\n\n\nRun \nYAPF\n to format your code, e.g. \nyapf -ir ./seq2seq\n.\n\n\nRun \npylint\n.\n\n\nCode must be compatible with Python 2/3 using \nfuturize\n. That is, code should be written in Python 3 style and made backwards compatible with Python 2 by adding the appropriate imports.\n\n\nAll public functions and classes must have docstring \nfollowing this style\n.\n\n\nWhen in doubt, follow \nthis Python style guide\n. Running pylint should take care of most issues though.\n\n\n\n\nTensorflow Style\n\n\nGraphModule\n\n\nAll classes that modify the Graph should inherit from \nseq2seq.graph_module.GraphModule\n, which is a wrapper around Tensorflow's \ntf.make_template\n function that allows for easy variable sharing. Basically, it allows you to do something like this:\n\n\nencode_fn = SomeEncoderModule(...)\n\n# New variables are created in this call.\noutput1 = encode_fn(input1)\n\n# No new variables are created here. The variables from the above call are re-used.\n# Note how this is different from normal Tensorflow where you would need to use variable scopes.\noutput2 = encode_fn(input2)\n\n# Because this is a new instance a second set of variables is created\nencode_fn2 = SomeEncoderModule(...)\noutput3 = encode_fn2(input3)\n\n\n\n\nFunctions vs. Classes\n\n\n\n\nOperations that \ncreate new variables\n must be implemented as classes and must inherit from \nGraphModule\n.\n\n\nOperations that \ndo not create new variables\n can be implemented as standard python functions, or as classes that inherit from \nGraphModule\n if they have a lot of logic.", 
+            "text": "Development Setup\n\n\n1. Install Python3. If you're on a Mac the easiest way to do this is probably using \nHomebrew\n.\n\n\nbrew install python3\n\n\n\n\n2. Clone this repository.\n\n\ngit clone https://github.com/dennybritz/seq2seq.git\ncd seq2seq\n\n\n\n\n3. Create a new \nvirtual environment\n and activate it:\n\n\npython3 -m venv ~/tf-venv\nsource ~/tf-venv/bin/activate\n\n\n\n\n4. Install package dependencies and utilities. \n\n\npip install -e .\npip install nose pylint tox yapf mkdocs\n\n\n\n\n5. Make sure tests are passing.\n\n\nnosetests\n\n\n\n\n6. Code :)\n\n\nGithub Workflow\n\n\nPushing directly to the master branch is disabled and you must create feature branches and submit them via pull request. To make things easier you can also use the \nGithub Desktop app\n. A typical workflow looks as follows:\n\n\n# Make sure you are in the seq2seq root directory\n# Start from the master branch\ngit checkout master\n\n# Pull latest changes from github\ngit pull\n\n# Create a new feature branch\ngit checkout -b feature/my-new-feature\n\n# Make changes and commits\necho \nblabla\n \n test\ngit commit -am \nTest commit\n\n\n# Push the branch upstream\ngit push -u origin/my-new-feature\n\n# Submit a pull request on Github\n\n\n\n\nAfter you submit a Pull Request one person must review the change and\nCircleCI integration tests must be passing before you can merge into the\nmaster branch.\n\n\nPython Style\n\n\nWe use \npylint\n and \nyapf\n\nfor automated code formatting. Before submitting a pull request, make sure you\nrun them:\n\n\npylint ./seq2seq\nyapf -ir ./seq2seq\n\n\n\n\nNote that CirlceCI integrations test will fail if pylint reports any critical\nerrors, preventing you from merging your changes.\n\n\nTensorflow Style\n\n\nGraphModule\n\n\nAll classes that modify the Graph should inherit from \nseq2seq.graph_module.GraphModule\n, which is a wrapper around Tensorflow's \ntf.make_template\n function that allows for easy variable sharing. Basically, it allows you to do something like this:\n\n\nencode_fn = SomeEncoderModule(...)\n\n# New variables are created in this call.\noutput1 = encode_fn(input1)\n\n# No new variables are created here. The variables from the above call are re-used.\n# Note how this is different from normal Tensorflow where you would need to use variable scopes.\noutput2 = encode_fn(input2)\n\n# Because this is a new instance a second set of variables is created\nencode_fn2 = SomeEncoderModule(...)\noutput3 = encode_fn2(input3)\n\n\n\n\nFunctions vs. Classes\n\n\n\n\nOperations that \ncreate new variables\n must be implemented as classes and must inherit from \nGraphModule\n.\n\n\nOperations that \ndo not create new variables\n can be implemented as standard python functions, or as classes that inherit from \nGraphModule\n if they have a lot of logic.", 
             "title": "Developer Guide"
         }, 
         {
             "location": "/developer_guide/#development-setup", 
-            "text": "Install Python3. If you're on a Mac the easiest way to do this is probably using  Homebrew :  brew install python3  Clone this repository:  git clone https://github.com/dennybritz/seq2seq.git . Change into it:  cd seq2seq  Create a new virtual environment and activate it:  python3 -m venv ~/path/to/your/venv . Then,  source ~/path/to/your/venv/bin/activate  Install package dependencies:  pip install -e .  Install testing utilities:  pip install nose pylint tox yapf  Run tests and make sure they pass:  nosetests  Code :)", 
+            "text": "1. Install Python3. If you're on a Mac the easiest way to do this is probably using  Homebrew .  brew install python3  2. Clone this repository.  git clone https://github.com/dennybritz/seq2seq.git\ncd seq2seq  3. Create a new  virtual environment  and activate it:  python3 -m venv ~/tf-venv\nsource ~/tf-venv/bin/activate  4. Install package dependencies and utilities.   pip install -e .\npip install nose pylint tox yapf mkdocs  5. Make sure tests are passing.  nosetests  6. Code :)", 
             "title": "Development Setup"
         }, 
         {
             "location": "/developer_guide/#github-workflow", 
-            "text": "Pushing directly to the master branch is blocked. In order to make changes you must:   Make a new branch for your feature. For example,  git checkout -b feature/my-new-feature  Make changes and commits  Run:  nosetests  to make sure tests are passing  pylint ./seq2seq  for linting and catching obvious errors  yapf -ir ./seq2seq  to auto-format code  Push your new branch to Github:  git push  Create a Pull Request on Github and make sure CircleCI tests are passing  Have one person review before merging the change   To make things easier you can also use the  Github Desktop app .", 
+            "text": "Pushing directly to the master branch is disabled and you must create feature branches and submit them via pull request. To make things easier you can also use the  Github Desktop app . A typical workflow looks as follows:  # Make sure you are in the seq2seq root directory\n# Start from the master branch\ngit checkout master\n\n# Pull latest changes from github\ngit pull\n\n# Create a new feature branch\ngit checkout -b feature/my-new-feature\n\n# Make changes and commits\necho  blabla    test\ngit commit -am  Test commit \n\n# Push the branch upstream\ngit push -u origin/my-new-feature\n\n# Submit a pull request on Github  After you submit a Pull Request one person must review the change and\nCircleCI integration tests must be passing before you can merge into the\nmaster branch.", 
             "title": "Github Workflow"
         }, 
         {
-            "location": "/developer_guide/#general-style-guidelines", 
-            "text": "Run  YAPF  to format your code, e.g.  yapf -ir ./seq2seq .  Run  pylint .  Code must be compatible with Python 2/3 using  futurize . That is, code should be written in Python 3 style and made backwards compatible with Python 2 by adding the appropriate imports.  All public functions and classes must have docstring  following this style .  When in doubt, follow  this Python style guide . Running pylint should take care of most issues though.", 
-            "title": "General Style Guidelines"
+            "location": "/developer_guide/#python-style", 
+            "text": "We use  pylint  and  yapf \nfor automated code formatting. Before submitting a pull request, make sure you\nrun them:  pylint ./seq2seq\nyapf -ir ./seq2seq  Note that CirlceCI integrations test will fail if pylint reports any critical\nerrors, preventing you from merging your changes.", 
+            "title": "Python Style"
         }, 
         {
             "location": "/developer_guide/#tensorflow-style", 
