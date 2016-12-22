@@ -1,0 +1,5 @@
+site_name:  seq2seq
+theme: readthedocs
+pages:
+    - Home: index.md
+    - About: about.md
