@@ -15,9 +15,8 @@ def att_sum_bahdanau(v_att, keys, query):
   return tf.reduce_sum(
       v_att * math_ops.tanh(keys + tf.expand_dims(query, 1)), [2])
 
-
 @function.Defun(tf.float32, tf.float32, func_name="att_sum_dot", noinline=True)
-def att_dum_dot(keys, query):
+def att_sum_dot(keys, query):
   """Calculates a batch- and timweise dot product"""
   return tf.reduce_sum(keys + tf.expand_dims(query, 1), [2])
 
@@ -49,7 +48,7 @@ class AttentionLayer(GraphModule):
   def _dot_score(self, keys, query):
     """Computes Bahdanau-style attention scores.
     """
-    return att_dum_dot(keys, query)
+    return att_sum_dot(keys, query)
 
   def _build(self, state, inputs):
     """Computes attention scores and outputs.
