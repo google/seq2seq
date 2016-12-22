@@ -1,0 +1,19 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "Test Doc",
+            "title": "Home"
+        },
+        {
+            "location": "/#test-doc",
+            "text": "",
+            "title": "Test Doc"
+        },
+        {
+            "location": "/about/",
+            "text": "TODO",
+            "title": "About"
+        }
+    ]
+}
