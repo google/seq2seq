@@ -1,5 +1,12 @@
 site_name:  seq2seq
 theme: readthedocs
 pages:
-    - Home: index.md
+    - Getting Started: index.md
+    - Data: data.md
+    - Models: models.md
+    - Training: data.md
+    - Inference: data.md
+    - Benchmarks: benchmarks.md
+    - Profiling: profiling.md
+    - Developer Guide: developer_guide.md
     - About: about.md
