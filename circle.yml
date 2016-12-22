@@ -1,6 +1,6 @@
 dependencies:
   override:
-    - pip install tox tox-pyenv
+    - pip install tox tox-pyenv mkdocs
     - pyenv local 2.7.10 3.5.1
 
 notify:
@@ -10,3 +10,9 @@ notify:
 test:
   override:
     - tox
+
+deployment:
+  master:
+    branch: master
+    commands:
+      - mkdocs gh-deploy
