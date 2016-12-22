@@ -1,7 +1,7 @@
 site_name:  seq2seq
 theme: readthedocs
 pages:
-    - Overview: overview.md
+    - Overview: index.md
     - Getting Started: getting_started.md
     - Data: data.md
     - Models: models.md

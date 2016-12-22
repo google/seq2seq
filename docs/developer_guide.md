@@ -1,36 +1,83 @@
 ## Development Setup
 
-- Install Python3. If you're on a Mac the easiest way to do this is probably using [Homebrew](http://brew.sh/): `brew install python3`
-- Clone this repository: `git clone https://github.com/dennybritz/seq2seq.git`. Change into it: `cd seq2seq`
-- Create a new virtual environment and activate it: `python3 -m venv ~/path/to/your/venv`. Then, `source ~/path/to/your/venv/bin/activate`
-- Install package dependencies: `pip install -e .`
-- Install testing utilities: `pip install nose pylint tox yapf`
-- Run tests and make sure they pass: `nosetests`
-- Code :)
+1\. Install Python3. If you're on a Mac the easiest way to do this is probably using [Homebrew](http://brew.sh/).
+
+```
+brew install python3
+```
+
+2\. Clone this repository.
+
+```
+git clone https://github.com/dennybritz/seq2seq.git
+cd seq2seq
+```
+
+3\. Create a new [virtual environment](https://docs.python.org/3/library/venv.html) and activate it:
+
+```
+python3 -m venv ~/tf-venv
+source ~/tf-venv/bin/activate
+```
+
+4\. Install package dependencies and utilities. 
+
+```
+pip install -e .
+pip install nose pylint tox yapf mkdocs
+```
+
+5\. Make sure tests are passing.
+
+```
+nosetests
+```
+
+6\. Code :)
 
 ## Github Workflow
 
-Pushing directly to the master branch is blocked. In order to make changes you must:
+Pushing directly to the master branch is disabled and you must create feature branches and submit them via pull request. To make things easier you can also use the [Github Desktop app](https://desktop.github.com/). A typical workflow looks as follows:
 
-- Make a new branch for your feature. For example, `git checkout -b feature/my-new-feature`
-- Make changes and commits
-- Run:
-   - `nosetests` to make sure tests are passing
-   - `pylint ./seq2seq` for linting and catching obvious errors
-   - `yapf -ir ./seq2seq` to auto-format code
-- Push your new branch to Github: `git push`
-- Create a Pull Request on Github and make sure CircleCI tests are passing
-- Have one person review before merging the change
+```
+# Make sure you are in the seq2seq root directory
+# Start from the master branch
+git checkout master
 
-To make things easier you can also use the [Github Desktop app](https://desktop.github.com/).
+# Pull latest changes from github
+git pull
 
-## General Style Guidelines
+# Create a new feature branch
+git checkout -b feature/my-new-feature
 
-- Run [YAPF](https://github.com/google/yapf) to format your code, e.g. `yapf -ir ./seq2seq`.
-- Run [pylint](https://www.pylint.org/).
-- Code must be compatible with Python 2/3 using [futurize](http://python-future.org/futurize.html). That is, code should be written in Python 3 style and made backwards compatible with Python 2 by adding the appropriate imports.
-- All public functions and classes must have docstring [following this style](https://google.github.io/styleguide/pyguide.html?showone=Comments#Comments).
-- When in doubt, follow [this Python style guide](https://google.github.io/styleguide/pyguide.html). Running pylint should take care of most issues though.
+# Make changes and commits
+echo "blabla" >> test
+git commit -am "Test commit"
+
+# Push the branch upstream
+git push -u origin/my-new-feature
+
+# Submit a pull request on Github
+```
+
+After you submit a Pull Request one person must review the change and
+CircleCI integration tests must be passing before you can merge into the
+master branch.
+
+
+## Python Style
+
+We use [pylint](https://www.pylint.org/) and [yapf](https://github.com/google/yapf)
+for automated code formatting. Before submitting a pull request, make sure you
+run them:
+
+```
+pylint ./seq2seq
+yapf -ir ./seq2seq
+```
+
+Note that CirlceCI integrations test will fail if pylint reports any critical
+errors, preventing you from merging your changes.
 
 ## Tensorflow Style
 
