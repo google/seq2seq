@@ -3,7 +3,15 @@
 
     
     <url>
-     <loc>/</loc>
+     <loc>/overview/</loc>
+     <lastmod>2016-12-22</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/getting_started/</loc>
      <lastmod>2016-12-22</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -27,7 +35,7 @@
 
     
     <url>
-     <loc>/data/</loc>
+     <loc>/training/</loc>
      <lastmod>2016-12-22</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -35,7 +43,7 @@
 
     
     <url>
-     <loc>/data/</loc>
+     <loc>/inference/</loc>
      <lastmod>2016-12-22</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -60,14 +68,6 @@
     
     <url>
      <loc>/developer_guide/</loc>
-     <lastmod>2016-12-22</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    
-
-    
-    <url>
-     <loc>/about/</loc>
      <lastmod>2016-12-22</lastmod>
      <changefreq>daily</changefreq>
     </url>

@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Models - seq2seq</title>
+  <title>Training - seq2seq</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -17,9 +17,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Models";
-    var mkdocs_page_input_path = "models.md";
-    var mkdocs_page_url = "/models/";
+    var mkdocs_page_name = "Training";
+    var mkdocs_page_input_path = "training.md";
+    var mkdocs_page_url = "/training/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
@@ -68,22 +68,28 @@
 <li>
           
             <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Models</a>
-        
-            <ul>
-            
-                <li class="toctree-l3"><a href="#todo">TODO</a></li>
-                
-            
-            </ul>
+    <li class="toctree-l1 ">
+        <a class="" href="../models/">Models</a>
         
     </li>
 <li>
           
             <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../training/">Training</a>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Training</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#input-files">Input Files</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#running-training">Running Training</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#monitoring-training">Monitoring Training</a></li>
+                
+            
+            </ul>
         
     </li>
 <li>
@@ -138,7 +144,7 @@
     
       
     
-    <li>Models</li>
+    <li>Training</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -148,8 +154,47 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="todo">TODO</h1>
-<p>Model Library and Hyperparameter documentation</p>
+                <h3 id="input-files">Input Files</h3>
+<p>To train a model you need to follow files. See <a href="https://github.com/dennybritz/seq2seq/wiki/Data">Data</a> for more details on how to generate or download each of them.</p>
+<ul>
+<li>Training data: Two parallel (line by line aligned) text files that are tokenized, i.e. have words separated by spaces.</li>
+<li>Development data: Same format as the training data, but used for validation.</li>
+<li>Source vocabulary file: A file with one word per line that defines the source vocabulary.</li>
+<li>Target vocabulary file: Same format as the source vocabulary, but for the target language.</li>
+</ul>
+<h3 id="running-training">Running Training</h3>
+<p>From the root directory, run:</p>
+<pre><code class="shell">python -m seq2seq.training.train \
+--train_source=data/train.sources.txt \
+--train_target=data/train.targets.txt \
+--dev_source=data/dev.sources.txt \
+--dev_target=data/dev.targets.txt \
+--vocab_source=data/vocab_source \
+--vocab_target=data/vocab_target \
+--model AttentionSeq2Seq \
+--batch_size=16 \
+--hparams=&quot;rnn_cell.num_layers=2,
+  rnn_cell.type=GRUCell,
+  rnn_cell.num_units=128,
+  source.max_seq_len=40,
+  target.max_seq_len=40&quot; \
+--output_dir=/path/to/model/dir \
+--buckets=10,15,20,25,30,35
+</code></pre>
+
+<p>Here, <code>train_source</code>, <code>train_target</code> <code>dev_source</code>, <code>dev_source</code>, <code>vocab_source</code> and <code>vocab_target</code> are the input files described above. </p>
+<p><code>model</code> is the name of some class defined in <code>seq2seq.models</code>. Currently, the available models are:</p>
+<ul>
+<li><code>BasicSeq2Seq</code> - Uses a unidirectional RNN encoder, passes state from encoder to decoder, and uses no attention mechanism.</li>
+<li><code>AttentionSeq2Seq</code> - Uses a bidirectional RNN encoder and an attention mechanism.</li>
+</ul>
+<p>Refer to the source code comments for more details of these details.</p>
+<p><code>hparams</code> are model-specific Hyperparameters. Refer to the <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/models/attention_seq2seq.py#L25"><code>default_params</code></a> of model classes for a list of all available hyperparameters.</p>
+<p><code>buckets</code> is an optional argument that you can use to speed up training by bucketing training examples into batches of roughly equal length. <code>10,15,20,25,30,35</code> would result in 8 buckets: Sequences of length <code>&lt;10</code>, <code>10..15</code>, ..., and <code>&gt;35</code>.</p>
+<h3 id="monitoring-training">Monitoring Training</h3>
+<p>In addition to looking at the training output, you can use Tensorboard to monitor progress:</p>
+<pre><code class="shell">tensorboard --logdir=/path/to/model/dir
+</code></pre>
               
             </div>
           </div>
@@ -157,10 +202,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../training/" class="btn btn-neutral float-right" title="Training">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../inference/" class="btn btn-neutral float-right" title="Inference">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../data/" class="btn btn-neutral" title="Data"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../models/" class="btn btn-neutral" title="Models"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -186,10 +231,10 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../data/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../models/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../training/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../inference/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

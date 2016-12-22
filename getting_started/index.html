@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>About - seq2seq</title>
+  <title>Getting Started - seq2seq</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -17,9 +17,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "About";
-    var mkdocs_page_input_path = "about.md";
-    var mkdocs_page_url = "/about/";
+    var mkdocs_page_name = "Getting Started";
+    var mkdocs_page_input_path = "getting_started.md";
+    var mkdocs_page_url = "/getting_started/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
@@ -35,7 +35,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> seq2seq</a>
+        <a href="../overview/" class="icon icon-home"> seq2seq</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -48,7 +48,21 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="..">Getting Started</a>
+        <a class="" href="../overview/">Overview</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Getting Started</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#todo">TODO</a></li>
+                
+            
+            </ul>
         
     </li>
 <li>
@@ -69,14 +83,14 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../data/">Training</a>
+        <a class="" href="../training/">Training</a>
         
     </li>
 <li>
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../data/">Inference</a>
+        <a class="" href="../inference/">Inference</a>
         
     </li>
 <li>
@@ -102,17 +116,6 @@
     </li>
 <li>
           
-            <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">About</a>
-        
-            <ul>
-            
-            </ul>
-        
-    </li>
-<li>
-          
         </ul>
       </div>
       &nbsp;
@@ -123,7 +126,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="..">seq2seq</a>
+        <a href="../overview/">seq2seq</a>
       </nav>
 
       
@@ -131,11 +134,11 @@
         <div class="rst-content">
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="..">Docs</a> &raquo;</li>
+    <li><a href="../overview/">Docs</a> &raquo;</li>
     
       
     
-    <li>About</li>
+    <li>Getting Started</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -145,24 +148,7 @@
           <div role="main">
             <div class="section">
               
-                <p>We build this framework with the following design goals in mind.</p>
-<ol>
-<li>
-<p><strong>Ease of use.</strong> One should be able train a  model with single command. The input data are raw text files instead of esoteric file formats. Similarly, using a pre-trained model to make predictions should be straightforward.</p>
-</li>
-<li>
-<p><strong>Ease to extend</strong>. Code is structured in such a way that it is easy to build upon. For example, adding a new type of attention mechanism or a new encoder architecture requires only minimal code changes.</p>
-</li>
-<li>
-<p><strong>Well-documented</strong>. In addition to <a href="">generated API documentation</a> we have written up multiple guides to help users become familiar with the framework.</p>
-</li>
-<li>
-<p><strong>Good performance</strong>. For the sake of code simplicity we have not tried to squeeze out the last bit of performance, but our implementation is fast enough to cover almost all production use cases. It also supports distributed training to trade off computational power and training time.</p>
-</li>
-<li>
-<p><strong>Standard Benchmarks</strong>. We provide pre-trained models and benchmark results for several standard datasets. We hope these can  serve as a baseline for further research.</p>
-</li>
-</ol>
+                <h1 id="todo">TODO</h1>
               
             </div>
           </div>
@@ -170,8 +156,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="../data/" class="btn btn-neutral float-right" title="Data">Next <span class="icon icon-circle-arrow-right"></span></a>
       
-        <a href="../developer_guide/" class="btn btn-neutral" title="Developer Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+        <a href="../overview/" class="btn btn-neutral" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -197,8 +185,10 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../developer_guide/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../overview/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
+      
+        <span style="margin-left: 15px"><a href="../data/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
