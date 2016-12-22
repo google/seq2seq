@@ -1,5 +1,6 @@
 site_name:  seq2seq
 theme: readthedocs
+extra_css: [extra.css]
 pages:
     - Overview: index.md
     - Getting Started: getting_started.md
