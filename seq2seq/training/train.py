@@ -51,7 +51,7 @@ tf.flags.DEFINE_integer("tf_random_seed", None,
 tf.flags.DEFINE_integer("save_checkpoints_secs", 600,
                         """Save checkpoints every this many seconds.
                         Can not be specified with save_checkpoints_steps.
-                        Default is 5.""")
+                        Default is 600.""")
 tf.flags.DEFINE_integer("save_checkpoints_steps", None,
                         """Save checkpoints every this many steps.
                         Can not be specified with save_checkpoints_secs.""")
