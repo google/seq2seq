@@ -14,16 +14,18 @@ from seq2seq.training import metrics
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
+from tensorflow.contrib.learn.python.learn.estimators import run_config
 from tensorflow.python.platform import gfile
 
-# data
+# Input Data
 tf.flags.DEFINE_string("train_source", None, "path to source training data")
 tf.flags.DEFINE_string("train_target", None, "path to target training data")
 tf.flags.DEFINE_string("dev_source", None, "path to source dev data")
 tf.flags.DEFINE_string("dev_target", None, "path to target dev data")
-
 tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
 tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
+
+# Model Configuration
 tf.flags.DEFINE_string("buckets", None,
                        """A comma-separated list of sequence lenght buckets,
                        e.g. 10,20,30""")
@@ -31,17 +33,38 @@ tf.flags.DEFINE_integer("batch_size", 16, "the train/dev batch size")
 tf.flags.DEFINE_string("hparams", None, "overwrite hyperparameter values")
 tf.flags.DEFINE_string("model", "BasicSeq2Seq", "model class")
 tf.flags.DEFINE_string("output_dir", None, "directory to write to")
-tf.flags.DEFINE_integer("save_checkpoints_secs", 300,
-                        "save checkpoint every N seconds")
+
+# Training parameters
 tf.flags.DEFINE_string("schedule", None,
                        """Estimator function to call, defaults to
                        train_and_evaluate for local run""")
-
 tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
                         "evaluate after this many training steps")
 tf.flags.DEFINE_integer("sample_every_n_steps", 500,
                         "sample training predictions every N steps")
+
+# RunConfig Flags
+tf.flags.DEFINE_integer("tf_random_seed", None,
+                        """Random seed for TensorFlow initializers. Setting
+                        this value allows consistency between reruns.""")
+tf.flags.DEFINE_integer("save_checkpoints_secs", 600,
+                        """Save checkpoints every this many seconds.
+                        Can not be specified with save_checkpoints_steps.
+                        Default is 5.""")
+tf.flags.DEFINE_integer("save_checkpoints_steps", None,
+                        """Save checkpoints every this many steps.
+                        Can not be specified with save_checkpoints_secs.""")
+tf.flags.DEFINE_integer("keep_checkpoint_max", 5,
+                        """Maximum number of recent checkpoint files to keep.
+                        As new files are created, older files are deleted.
+                        If None or 0, all checkpoint files are kept.
+                        Defaults to 5 (that is, the 5 most recent checkpoint
+                        files are kept.)""")
+tf.flags.DEFINE_integer("keep_checkpoint_every_n_hours", 4,
+                        """Number of hours between each checkpoint to be saved.
+                        Default is 4.""")
+
 
 FLAGS = tf.flags.FLAGS
 
@@ -111,8 +134,15 @@ def create_experiment(output_dir):
     """Builds the model graph"""
     return model(features, labels, params, mode)
 
+  config = run_config.RunConfig(
+      tf_random_seed=FLAGS.tf_random_seed,
+      save_checkpoints_secs=FLAGS.save_checkpoints_secs,
+      save_checkpoints_steps=FLAGS.save_checkpoints_steps,
+      keep_checkpoint_max=FLAGS.keep_checkpoint_max,
+      keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
+  )
   estimator = tf.contrib.learn.estimator.Estimator(
-      model_fn=model_fn, model_dir=output_dir)
+      model_fn=model_fn, model_dir=output_dir, config=config)
 
   # Create training Hooks
   model_analysis_hook = hooks.PrintModelAnalysisHook(
