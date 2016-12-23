@@ -142,7 +142,7 @@ class DecoderBase(GraphModule):
   """Base class for RNN decoders.
 
   Args:
-    cell: An instance of ` tf.nn.rnn_cell.RNNCell`
+    cell: An instance of ` tf.contrib.rnn.rnn_cell.RNNCell`
     name: A name for this module
   """
 

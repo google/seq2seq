@@ -20,7 +20,7 @@ class AttentionDecoder(DecoderBase):
   """An RNN Decoder that uses attention over an input sequence.
 
   Args:
-    cell: An instance of ` tf.nn.rnn_cell.RNNCell`
+    cell: An instance of ` tf.contrib.rnn.rnn_cell.RNNCell`
     vocab_size: Output vocabulary size, i.e. number of units
       in the softmax layer
     attention_inputs: The sequence to take attentio over.
