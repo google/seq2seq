@@ -6,6 +6,20 @@ import tensorflow as tf
 from tensorflow.python.framework import function
 from tensorflow.python.ops import math_ops
 
+@function.Defun(
+    tf.float32, tf.float32, tf.float32,
+    func_name="att_sum_bahdanau",
+    noinline=True)
+def att_sum_bahdanau(v_att, keys, query):
+  """Calculates a batch- and timweise dot product with a variable"""
+  return tf.reduce_sum(
+      v_att * math_ops.tanh(keys + tf.expand_dims(query, 1)), [2])
+
+@function.Defun(tf.float32, tf.float32, func_name="att_sum_dot", noinline=True)
+def att_sum_dot(keys, query):
+  """Calculates a batch- and timweise dot product"""
+  return tf.reduce_sum(keys + tf.expand_dims(query, 1), [2])
+
 
 class AttentionLayer(GraphModule):
   """
@@ -29,31 +43,12 @@ class AttentionLayer(GraphModule):
     """Computes Bahdanau-style attention scores.
     """
     v_att = tf.get_variable("v_att", shape=[self.num_units], dtype=tf.float32)
-
-    @function.Defun(
-        tf.float32,
-        tf.float32,
-        tf.float32,
-        func_name="att_sum_bahdanau",
-        noinline=True)
-    def attention_sum(v_att, keys, query):
-      """Calculates a batch- and timweise dot product"""
-      return tf.reduce_sum(v_att *
-                           math_ops.tanh(keys + tf.expand_dims(query, 1)), [2])
-
-    return attention_sum(v_att, keys, query)
+    return att_sum_bahdanau(v_att, keys, query)
 
   def _dot_score(self, keys, query):
     """Computes Bahdanau-style attention scores.
     """
-
-    @function.Defun(
-        tf.float32, tf.float32, func_name="att_sum_dot", noinline=True)
-    def attention_sum(keys, query):
-      """Calculates a batch- and timweise dot product"""
-      return tf.reduce_sum(keys + tf.expand_dims(query, 1), [2])
-
-    return attention_sum(keys, query)
+    return att_sum_dot(keys, query)
 
   def _build(self, state, inputs):
     """Computes attention scores and outputs.

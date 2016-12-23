@@ -13,11 +13,29 @@ from tensorflow.contrib.tfprof import model_analyzer
 from tensorflow.contrib.tfprof.python.tools.tfprof import tfprof_logger
 from tensorflow.python.platform import gfile
 from tensorflow.tools.tfprof import tfprof_log_pb2
+from tensorflow.python.framework import op_def_registry
+from tensorflow.python.framework.ops import RegisterShape
+from tensorflow.python.framework import common_shapes
+
+# Import custom ops
+from seq2seq.decoders.attention import att_sum_bahdanau, att_sum_dot
+
 
 tf.flags.DEFINE_string("model_dir", None, "path to model directory")
 
 FLAGS = tf.flags.FLAGS
+CUSTOM_OP_FUNCTIONS = [att_sum_bahdanau, att_sum_dot]
 
+def _register_function_ops(func_list):
+  """Registers custom ops in the default graph. This is needed
+  Because our checkpoint is saved with ops that are not part of Tensorflow."""
+  op_dict = op_def_registry.get_registered_ops()
+  for func in func_list:
+    #pylint: disable=W0212
+    func._create_definition_if_needed()
+    op_def = func._definition.signature
+    op_dict[op_def.name] = op_def
+    RegisterShape(op_def.name)(common_shapes.unknown_shape)
 
 def load_metadata(model_dir):
   """Loads RunMetadata, Graph and OpLog from files
@@ -37,6 +55,7 @@ def load_metadata(model_dir):
   graph = tf.Graph()
   if gfile.Exists(graph_def_path):
     with graph.as_default():
+      _register_function_ops(CUSTOM_OP_FUNCTIONS)
       graph_def = tf.GraphDef()
       with gfile.GFile(graph_def_path, "rb") as file:
         text_format.Parse(file.read(), graph_def)
