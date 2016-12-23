@@ -98,6 +98,7 @@ class TokensPerSecondCounter(basic_session_run_hooks.StepCounterHook):
 
   def begin(self):
     super(TokensPerSecondCounter, self).begin()
+    self._summary_tag = "tokens/sec"
     features = graph_utils.get_dict_from_collection("features")
     labels = graph_utils.get_dict_from_collection("labels")
     self._num_tokens = tf.reduce_sum(features["source_len"]) \
