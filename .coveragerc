@@ -1,0 +1,19 @@
+[run]
+source =
+  seq2seq
+
+include =
+  seq2seq/*
+  seq2seq/data/*
+  seq2seq/decoders/*
+  seq2seq/encoders/*
+  seq2seq/inference/*
+  seq2seq/models/*
+  seq2seq/training/*
+
+omit =
+  seq2seq/test/*
+  seq2seq/scripts/*
+
+[report]
+show_missing=True
