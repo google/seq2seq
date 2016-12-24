@@ -48,6 +48,17 @@ class BeamSearchConfig(
   pass
 
 def create_initial_beam_state(config, max_time):
+  """Creates an instance of `BeamState` that can be used on the first
+  call to `beam_step`.
+
+  Args:
+    config: A BeamSearchConfig
+    max_time: Maximum number of beam search steps. This is used to define
+      the shape of the predictions: `[beam_width, max_time]`.
+
+  Returns:
+    An instance of `BeamState`.
+  """
   return BeamState(
       time=tf.constant(0, dtype=tf.int32),
       log_probs=tf.zeros([config.beam_width]),

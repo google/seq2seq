@@ -68,7 +68,28 @@ class RNNStep(GraphModule):
             step_output.next_loop_state)
 
 
-class FixedDecoderInputs(GraphModule):
+class DecoderInputs(GraphModule):
+  """Abstract base class for decoder input feeding.
+  """
+
+  def __init__(self, name):
+    super(DecoderInputs, self).__init__(name)
+
+  def _build(self, time_, initial_call, predictions):
+    """Returns the input for the given time step.
+
+    Args:
+      time_: An int32 scalar
+      initial_call: True iff this is the first time step.
+      predictions: The predictions of the decoder. An int32 1-d tensor.
+
+    Returns:
+      A tensor of shape `[B, ...]`. When `time_` is past the maximum
+      sequence length a zero tensor is fed as input for performance purposes.
+    """
+    raise NotImplementedError
+
+class FixedDecoderInputs(DecoderInputs):
   """An operation that feeds fixed inputs to a decoder,
   also known as "teacher forcing".
 
@@ -98,15 +119,6 @@ class FixedDecoderInputs(GraphModule):
       self.input_dim = tf.identity(tf.shape(inputs)[-1], name="input_dim")
 
   def _build(self, time_, initial_call, predictions):
-    """Returns the input for the given time step.
-
-    Args:
-      time_: An int32 scalar
-
-    Returns:
-      A tensor of shape `[B, ...]`. When `time_` is past the maximum
-      sequence length a zero tensor is fed as input for performance purposes.
-    """
     all_finished = (time_ >= self.max_seq_len)
     next_input = tf.cond(
         all_finished,
@@ -116,7 +128,7 @@ class FixedDecoderInputs(GraphModule):
     return next_input
 
 
-class DynamicDecoderInputs(GraphModule):
+class DynamicDecoderInputs(DecoderInputs):
   """An operation that feeds dynamic inputs to a decoder according to some
   arbitrary function that creates a new input from the decoder output at
   the current step, e.g. `embed(argmax(logits))`.
@@ -135,8 +147,6 @@ class DynamicDecoderInputs(GraphModule):
     self.make_input_fn = make_input_fn
 
   def _build(self, time_, initial_call, predictions):
-    """Returns the input for the given time step.
-    """
     if initial_call:
       next_input = self.initial_inputs
     else:
@@ -165,22 +175,63 @@ class DecoderBase(GraphModule):
     else:
       self.prediction_fn = prediction_fn
 
-  def get_output(self, cell_output):
+  def compute_output(self, cell_output):
+    """Compute the decoder output based on the current cell state. This method
+    should be implemented by all subclasses.
+
+    Args:
+      cell_output: The cell outputs for the current time step.
+        A float32 tensor of shape `[B, cell.output_size]`
+
+    Returns:
+      A (possibly nested) tuple of Tensors that represent decoder-specific
+      outputs.
+    """
     raise NotImplementedError
 
   def output_shapes(self):
+    """Defines decoder output shapes. Must be implemented by subclasses.
+
+    Returns:
+      A (possibly nested) tuple of tensors that defines the output type
+      of this decoder. See Tensorflow's raw_rnn initialization
+      call for more details.
+    """
     raise NotImplementedError
 
   def create_next_input(self, time_, initial_call, output):
+    """Creates the input for the next time step. For decoders that
+    do not perform any special input transformations this is a no-op.
+
+    Args:
+      time_: The current time step, an int32 scalar
+      initial_call: True iff this is the initialization call. In this case
+        we want the initial input.
+      output: The decoder output at this time step. This is of the same type
+        as the return value of `output_shapes`.
+
+    Returns:
+      The input for the next time step. A tensor of shape `[batch_size, ...]`.
+    """
     return self.input_fn(time_, initial_call, output.predictions)
 
   @staticmethod
   def time_to_batch(tensor, name=None):
+    """Transposes the first two dimensions of a tensor. Leaves the remaining
+    dimensions unchanged.
+
+    Args:
+      tensor: Input tensor to be transposed.
+
+    Returns:
+      A tensor of the same type as `tensor` with the first two dimensions
+      swapped.
+    """
     ndims = tensor.get_shape().ndims
     perm = [1, 0] + list(range(ndims))[2:]
     return tf.transpose(tensor, perm, name=name)
 
-  def _step(self, time, cell_output, cell_state, loop_state):
+  def step(self, time_, cell_output, cell_state, loop_state):
     """
     This function maps from the decoder state to the outputs of the current
     time step and the state of the next step. This is where the actual decoding
@@ -213,7 +264,7 @@ class DecoderBase(GraphModule):
     """
     raise NotImplementedError
 
-  def _pack_outputs(self, outputs_ta, _final_loop_state):
+  def pack_outputs(self, outputs_ta, _final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
     logits = self.time_to_batch(outputs_ta.logits.pack(), name="logits")
@@ -226,12 +277,12 @@ class DecoderBase(GraphModule):
       sequence_length = self.max_decode_length
 
     rnn_loop_fn = RNNStep(
-        step_fn=self._step,
+        step_fn=self.step,
         next_input_fn=self.create_next_input,
         initial_state=initial_state,
         sequence_length=tf.minimum(sequence_length, self.max_decode_length))
 
     outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(self.cell,
                                                               rnn_loop_fn)
-    return self._pack_outputs(outputs_ta,
-                              final_loop_state), final_state, final_loop_state
+    return self.pack_outputs(
+        outputs_ta, final_loop_state), final_state, final_loop_state

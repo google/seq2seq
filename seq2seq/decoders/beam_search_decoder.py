@@ -74,7 +74,7 @@ class BeamSearchDecoder(DecoderBase):
     else:
       return loop_state, None
 
-  def _pack_outputs(self, outputs_ta, final_loop_state):
+  def pack_outputs(self, outputs_ta, final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
     logits = self.time_to_batch(outputs_ta.logits.pack())
@@ -84,8 +84,15 @@ class BeamSearchDecoder(DecoderBase):
     beam_parent_ids = self.time_to_batch(outputs_ta.beam_parent_ids.pack())
 
     _, original_final_loop_state = self._unwrap_loop_state(final_loop_state)
-    orignal_output = self.decoder._pack_outputs(
+    orignal_output = self.decoder.pack_outputs(
         outputs_ta.original_output, original_final_loop_state)
+
+    # We're using a batch size of 1, so we add an extra dimension to
+    # convert tensors to [1, beam_width, ...] shape. This way Tensorflow
+    # doesn't confuse batch_size with beam_width
+    orignal_output = orignal_output.__class__(
+        *[tf.expand_dims(_, 0) for _ in orignal_output]
+    )
 
     return BeamDecoderOutput(
         logits=tf.expand_dims(logits, 0),
@@ -94,6 +101,9 @@ class BeamSearchDecoder(DecoderBase):
         scores=tf.expand_dims(scores, 0),
         beam_parent_ids=tf.expand_dims(beam_parent_ids, 0),
         original_output=orignal_output)
+
+  def compute_output(self, cell_output):
+    raise ValueError("""Beam Search decoder does not support this method.""")
 
   def output_shapes(self):
     return BeamDecoderOutput(
@@ -106,8 +116,9 @@ class BeamSearchDecoder(DecoderBase):
 
   def create_next_input(self, time_, initial_call, output):
     if initial_call:
-      # The first time we tile the initial input beam_width time
-      next_input = self.decoder.create_next_input(time_, initial_call, output.original_output)
+      next_input = self.decoder.create_next_input(
+          time_, initial_call, output.original_output)
+      # The first time we tile the initial input [beam_width] time
       return tf.tile(next_input, [self.config.beam_width, 1])
 
     # Shuffle the original output according to our beam search result
@@ -117,14 +128,16 @@ class BeamSearchDecoder(DecoderBase):
           value,
           lambda x: tf.gather(x, output.beam_parent_ids))
       original_values_shuffled.append(value_shuffled)
-
     original_output_shuffled = output.original_output.__class__(
         *original_values_shuffled)
+    original_output_shuffled = original_output_shuffled._replace(
+        predictions=output.predictions)
+
     next_input = self.decoder.create_next_input(
         time_, initial_call, original_output_shuffled)
     return next_input
 
-  def _step(self, time_, cell_output, cell_state, loop_state):
+  def step(self, time_, cell_output, cell_state, loop_state):
     initial_call = (cell_output is None)
 
     if initial_call:
@@ -136,7 +149,7 @@ class BeamSearchDecoder(DecoderBase):
           cell_state, lambda x: tf.tile(x, [self.config.beam_width, 1]))
 
       # Call the original decoder
-      original_output = self.decoder._step(
+      original_output = self.decoder.step(
           time_, None, cell_state, loop_state)
 
       # Create an initial Beam State
@@ -159,7 +172,7 @@ class BeamSearchDecoder(DecoderBase):
       prev_beam_state, original_loop_state = self._unwrap_loop_state(loop_state)
 
       # Call the original decoder
-      original_output = self.decoder._step(
+      original_output = self.decoder.step(
           time_, cell_output, cell_state, original_loop_state)
 
       # Perform a step of beam search

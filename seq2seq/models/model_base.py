@@ -11,6 +11,30 @@ from seq2seq.inference import beam_search
 from seq2seq.training import featurizers
 from seq2seq.training import utils as training_utils
 
+def _flatten_dict(dict_, parent_key="", sep="."):
+  """Flattens a nested dictionary. Namedtuples within
+  the dictionary are converted to dicts.
+
+  Args:
+    dict_: The dictionary to flatten.
+    parent_key: A prefix to prepend to each key.
+    sep: Separator between parent and child keys, a string. For example
+      { "a": { "b": 3 } } will become { "a.b": 3 } if the separator is ".".
+
+  Returns:
+    A new flattened dictionary.
+  """
+  items = []
+  for key, value in dict_.items():
+    new_key = parent_key + sep + key if parent_key else key
+    if isinstance(value, collections.MutableMapping):
+      items.extend(_flatten_dict(value, new_key, sep=sep).items())
+    elif isinstance(value, tuple) and hasattr(value, "_asdict"):
+      items.extend(_flatten_dict(value._asdict(), new_key, sep=sep).items())
+    else:
+      items.append((new_key, value))
+  return dict(items)
+
 
 class ModelBase(object):
   """Abstract base class for models.
@@ -103,23 +127,10 @@ class Seq2SeqBase(ModelBase):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
-  @staticmethod
-  def flatten_dict(dict_, parent_key="", sep="."):
-    items = []
-    for key, value in dict_.items():
-      new_key = parent_key + sep + key if parent_key else key
-      if isinstance(value, collections.MutableMapping):
-        items.extend(Seq2SeqBase.flatten_dict(value, new_key, sep=sep).items())
-      elif isinstance(value, tuple) and hasattr(value, "_asdict"):
-        items.extend(Seq2SeqBase.flatten_dict(value._asdict(), new_key, sep=sep).items())
-      else:
-        items.append((new_key, value))
-    return dict(items)
-
-  def _create_predictions(self, features, labels, decoder_output, losses=None):
+  def _create_predictions(self, decoder_output, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
     """
-    predictions = self.flatten_dict(decoder_output._asdict())
+    predictions = _flatten_dict(decoder_output._asdict())
 
     if losses is not None:
       predictions["losses"] = losses
@@ -188,8 +199,7 @@ class Seq2SeqBase(ModelBase):
           target_len=self.params["target.max_seq_len"],
           mode=mode)
       predictions = self._create_predictions(
-          features=features, labels=labels, decoder_output=decoder_output)
-      tf.logging.info(predictions)
+          decoder_output=decoder_output)
       return predictions, None, None
 
     # Embed target
@@ -241,8 +251,6 @@ class Seq2SeqBase(ModelBase):
       train_op = None
 
     predictions = self._create_predictions(
-        features=features,
-        labels=labels,
         decoder_output=decoder_output,
         losses=losses)
 

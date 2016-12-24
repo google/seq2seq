@@ -52,9 +52,9 @@ class AttentionDecoder(DecoderBase):
     self.attention_fn = attention_fn
     self.attention_inputs_max_len = attention_inputs_max_len
 
-  def _pack_outputs(self, outputs_ta, final_loop_state):
-    logits, predictions = DecoderBase._pack_outputs(self, outputs_ta,
-                                                    final_loop_state)
+  def pack_outputs(self, outputs_ta, final_loop_state):
+    logits, predictions = DecoderBase.pack_outputs(self, outputs_ta,
+                                                   final_loop_state)
 
     attention_scores = self.time_to_batch(outputs_ta.attention_scores.pack())
     # Slice attention scores to actual length of the inputs
@@ -65,7 +65,7 @@ class AttentionDecoder(DecoderBase):
     return AttentionDecoderOutput(logits, predictions, attention_scores,
                                   attention_context)
 
-  def get_output(self, cell_output):
+  def compute_output(self, cell_output):
     # Compute attention
     att_scores, attention_context = self.attention_fn(
         cell_output, self.attention_inputs)
@@ -117,17 +117,17 @@ class AttentionDecoder(DecoderBase):
     scores.set_shape([None, max_len])
     return scores
 
-  def _step(self, time_, cell_output, cell_state, loop_state):
+  def step(self, time_, cell_output, cell_state, loop_state):
     initial_call = (cell_output is None)
 
     if initial_call:
       outputs = self.output_shapes()
       cell_output = tf.zeros(
           [tf.shape(self.attention_inputs)[0], self.cell.output_size])
-      _, _, attention_context = self.get_output(cell_output)
+      _, _, attention_context = self.compute_output(cell_output)
       predictions = None
     else:
-      logits, att_scores, attention_context = self.get_output(cell_output)
+      logits, att_scores, attention_context = self.compute_output(cell_output)
       attention_scores = self._pad_att_scores(att_scores)
       predictions = self.prediction_fn(logits)
       outputs = AttentionDecoderOutput(

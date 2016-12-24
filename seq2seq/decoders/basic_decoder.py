@@ -31,7 +31,7 @@ class BasicDecoder(DecoderBase):
         cell, input_fn, max_decode_length, prediction_fn, name)
     self.vocab_size = vocab_size
 
-  def get_output(self, cell_output):
+  def compute_output(self, cell_output):
     return tf.contrib.layers.fully_connected(
         inputs=cell_output,
         num_outputs=self.vocab_size,
@@ -42,7 +42,7 @@ class BasicDecoder(DecoderBase):
         logits=tf.zeros([self.vocab_size]),
         predictions=tf.zeros([], dtype=tf.int64))
 
-  def _step(self, time_, cell_output, cell_state, loop_state):
+  def step(self, time_, cell_output, cell_state, loop_state):
     initial_call = (cell_output is None)
 
     if initial_call:
@@ -50,9 +50,9 @@ class BasicDecoder(DecoderBase):
       predictions = None
       # We need to call this here to create variables
       cell_output = tf.zeros([1, self.cell.output_size])
-      self.get_output(cell_output)
+      self.compute_output(cell_output)
     else:
-      logits = self.get_output(cell_output)
+      logits = self.compute_output(cell_output)
       predictions = self.prediction_fn(logits)
       outputs = DecoderOutput(
           logits=logits,
