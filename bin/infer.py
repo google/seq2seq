@@ -45,7 +45,10 @@ def main(_argv):
   # the target is ignored during inference. We need to pass the target anyway
   # because the featurizer expects it as an argument. Should fix that.
   data_provider = lambda: data_utils.make_parallel_data_provider(
-      [FLAGS.source], [FLAGS.source], shuffle=False, num_epochs=1)
+      data_sources_source=[FLAGS.source],
+      data_sources_target=[FLAGS.source],
+      shuffle=False,
+      num_epochs=1)
 
   input_fn = training_utils.create_input_fn(
       data_provider_fn=data_provider,
