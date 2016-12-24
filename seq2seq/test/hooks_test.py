@@ -165,8 +165,9 @@ class TestTokenCounter(tf.test.TestCase):
     # Run a few perations
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
+      #pylint: disable=W0212
       mon_sess = monitored_session._HookedSession(
-          sess, [hook])  #pylint: disable=W0212
+          sess, [hook])
       for _ in range(30):
         time.sleep(0.01)
         mon_sess.run(train_op)

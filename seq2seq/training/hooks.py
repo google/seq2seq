@@ -12,7 +12,7 @@ from tensorflow.python.platform import gfile
 from seq2seq import graph_utils
 
 
-class SecondOrStepTimer(basic_session_run_hooks._SecondOrStepTimer):
+class SecondOrStepTimer(basic_session_run_hooks._SecondOrStepTimer): # pylint: disable=protected-access
   """Helper class to count both seconds and steps.
   """
   pass

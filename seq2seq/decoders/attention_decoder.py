@@ -37,6 +37,7 @@ class AttentionDecoder(DecoderBase):
 
   def __init__(self,
                cell,
+               input_fn,
                vocab_size,
                attention_inputs,
                attention_fn,
@@ -44,41 +45,30 @@ class AttentionDecoder(DecoderBase):
                attention_inputs_max_len=500,
                prediction_fn=None,
                name="attention_decoder"):
-    super(AttentionDecoder, self).__init__(cell, max_decode_length, name)
+    super(AttentionDecoder, self).__init__(
+        cell, input_fn, max_decode_length, prediction_fn, name)
     self.vocab_size = vocab_size
-    self.prediction_fn = prediction_fn
     self.attention_inputs = attention_inputs
     self.attention_fn = attention_fn
     self.attention_inputs_max_len = attention_inputs_max_len
 
-    # By default, choose the highest logit score as the prediction
-    if not prediction_fn:
-      self.prediction_fn = lambda logits: tf.stop_gradient(tf.argmax(logits, 1))
+  def pack_outputs(self, outputs_ta, final_loop_state):
+    logits, predictions = DecoderBase.pack_outputs(self, outputs_ta,
+                                                   final_loop_state)
 
-  def _pack_outputs(self, outputs_ta, final_loop_state):
-    logits, predictions = DecoderBase._pack_outputs(outputs_ta,
-                                                    final_loop_state)
-
-    attention_scores = tf.transpose(outputs_ta.attention_scores.pack(),
-                                    [1, 0, 2])
+    attention_scores = self.time_to_batch(outputs_ta.attention_scores.pack())
     # Slice attention scores to actual length of the inputs
     attention_input_len = tf.shape(self.attention_inputs)[1]
     attention_scores = attention_scores[:, :, :attention_input_len]
-    attention_context = tf.transpose(outputs_ta.attention_context.pack(),
-                                     [1, 0, 2])
+
+    attention_context = self.time_to_batch(outputs_ta.attention_context.pack())
     return AttentionDecoderOutput(logits, predictions, attention_scores,
                                   attention_context)
 
-  def _step(self, time_, cell_output, cell_state, loop_state, next_input_fn):
-    initial_call = (cell_output is None)
-
-    if initial_call:
-      cell_output = tf.zeros(
-          [tf.shape(self.attention_inputs)[0], self.cell.output_size])
-
+  def compute_output(self, cell_output):
     # Compute attention
-    att_scores, attention_context = self.attention_fn(cell_output,
-                                                      self.attention_inputs)
+    att_scores, attention_context = self.attention_fn(
+        cell_output, self.attention_inputs)
 
     # TODO: Make this a parameter: We may or may not want this.
     # Transform attention context.
@@ -97,37 +87,56 @@ class AttentionDecoder(DecoderBase):
         num_outputs=self.vocab_size,
         activation_fn=None,
         scope="logits")
-    predictions = self.prediction_fn(logits)
 
-    def pad_att_scores(scores, max_len=self.attention_inputs_max_len):
-      """Pads attention scores to fixed length. This is a hack because raw_rnn
-      requirs a fully defined shape for all outputs."""
-      # TODO: File a tensorflow bug and get rid of this hack
-      scores = tf.pad(scores, [[0, 0], [0, max_len - tf.shape(scores)[1]]])
-      scores.set_shape([None, max_len])
-      return scores
+    return logits, att_scores, attention_context
 
-    attention_scores = pad_att_scores(att_scores)
+  def output_shapes(self):
+    return AttentionDecoderOutput(
+        logits=tf.zeros([self.vocab_size]),
+        predictions=tf.zeros([], dtype=tf.int64),
+        attention_scores=tf.zeros([self.attention_inputs_max_len]),
+        attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
 
-    outputs = AttentionDecoderOutput(logits, predictions, attention_scores,
-                                     attention_context)
+  def create_next_input(self, time_, initial_call, output):
+    next_input = self.input_fn(time_, initial_call, output.predictions)
+    if initial_call:
+      attention_context = tf.zeros([
+          tf.shape(next_input)[0],
+          self.attention_inputs.get_shape().as_list()[2]
+      ])
+    else:
+      attention_context = output.attention_context
+    return tf.concat(1, [next_input, attention_context])
+
+  def _pad_att_scores(self, scores):
+    """Pads attention scores to fixed length. This is a hack because raw_rnn
+    requirs a fully defined shape for all outputs."""
+    # TODO: File a tensorflow bug and get rid of this hack
+    max_len = self.attention_inputs_max_len
+    scores = tf.pad(scores, [[0, 0], [0, max_len - tf.shape(scores)[1]]])
+    scores.set_shape([None, max_len])
+    return scores
+
+  def step(self, time_, cell_output, cell_state, loop_state):
+    initial_call = (cell_output is None)
 
     if initial_call:
-      attention_scores = pad_att_scores(self.attention_inputs[:, :, 0])[0]
+      outputs = self.output_shapes()
+      cell_output = tf.zeros(
+          [tf.shape(self.attention_inputs)[0], self.cell.output_size])
+      _, _, attention_context = self.compute_output(cell_output)
+      predictions = None
+    else:
+      logits, att_scores, attention_context = self.compute_output(cell_output)
+      attention_scores = self._pad_att_scores(att_scores)
+      predictions = self.prediction_fn(logits)
       outputs = AttentionDecoderOutput(
-          logits=tf.zeros([self.vocab_size]),
-          predictions=tf.zeros(
-              [], dtype=tf.int64),
+          logits=logits,
+          predictions=predictions,
           attention_scores=attention_scores,
-          attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
-
-    # Append the attention context to the inputs
-    next_input = next_input_fn(time_, (None if initial_call else cell_output),
-                               cell_state, loop_state, outputs)
-    next_input = tf.concat(1, [next_input, attention_context])
+          attention_context=attention_context)
 
     return DecoderStepOutput(
         outputs=outputs,
-        next_input=next_input,
         next_cell_state=cell_state,
         next_loop_state=None)
