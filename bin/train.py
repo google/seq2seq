@@ -1,21 +1,20 @@
+#! /usr/bin/env python
+
 """Main script to run training and evaluation of models.
 """
 
-#! /usr/bin/env python
-
+import functools
 import os
 import tempfile
 from seq2seq import models
 from seq2seq.data import data_utils, vocab
 from seq2seq.training import HParamsParser
 from seq2seq.training import utils as training_utils
-from seq2seq.training import hooks
 from seq2seq.training import metrics
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
 from tensorflow.contrib.learn.python.learn.estimators import run_config
-from tensorflow.python.platform import gfile
 
 # Input Data
 tf.flags.DEFINE_string("train_source", None, "path to source training data")
@@ -65,11 +64,7 @@ tf.flags.DEFINE_integer("keep_checkpoint_every_n_hours", 4,
                         """Number of hours between each checkpoint to be saved.
                         Default is 4.""")
 
-
 FLAGS = tf.flags.FLAGS
-
-tf.logging.set_verbosity(tf.logging.INFO)
-
 
 def create_experiment(output_dir):
   """
@@ -83,14 +78,6 @@ def create_experiment(output_dir):
   source_vocab_info = vocab.get_vocab_info(FLAGS.vocab_source)
   target_vocab_info = vocab.get_vocab_info(FLAGS.vocab_target)
 
-  # Create data providers
-  train_data_provider = \
-    lambda: data_utils.make_parallel_data_provider(
-        [FLAGS.train_source], [FLAGS.train_target], shuffle=True)
-  dev_data_provider = \
-    lambda: data_utils.make_parallel_data_provider(
-        [FLAGS.dev_source], [FLAGS.dev_target], num_epochs=1)
-
   # Find model class
   model_class = getattr(models, FLAGS.model)
 
@@ -99,16 +86,10 @@ def create_experiment(output_dir):
   if FLAGS.hparams is not None:
     hparams = HParamsParser(hparams).parse(FLAGS.hparams)
 
-  # Print hyperparameter values
-  tf.logging.info("Model Hyperparameters")
-  tf.logging.info("=" * 50)
-  for param, value in sorted(hparams.items()):
-    tf.logging.info("%s=%s", param, value)
-  tf.logging.info("=" * 50)
-  # Write hparams to file
-  gfile.MakeDirs(output_dir)
-  hparams_path = os.path.join(output_dir, "hparams.txt")
-  training_utils.write_hparams(hparams, hparams_path)
+  # Print and save hparams
+  training_utils.print_hparams(hparams)
+  training_utils.write_hparams(
+      hparams, os.path.join(output_dir, "hparams.txt"))
 
   # Create model
   model = model_class(
@@ -121,14 +102,28 @@ def create_experiment(output_dir):
   if FLAGS.buckets:
     bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
 
-  # Create input functions
+  # Create training input function
   train_input_fn = training_utils.create_input_fn(
-      train_data_provider,
-      featurizer,
-      FLAGS.batch_size,
+      data_provider_fn=functools.partial(
+          data_utils.make_parallel_data_provider,
+          data_sources_source=FLAGS.train_source,
+          data_sources_target=FLAGS.train_target,
+          shuffle=True,
+          num_epochs=None),
+      featurizer_fn=featurizer,
+      batch_size=FLAGS.batch_size,
       bucket_boundaries=bucket_boundaries)
-  eval_input_fn = training_utils.create_input_fn(dev_data_provider, featurizer,
-                                                 FLAGS.batch_size)
+
+  # Create eval input function
+  eval_input_fn = training_utils.create_input_fn(
+      data_provider_fn=functools.partial(
+          data_utils.make_parallel_data_provider,
+          data_sources_source=FLAGS.dev_source,
+          data_sources_target=FLAGS.dev_target,
+          shuffle=False,
+          num_epochs=1),
+      featurizer_fn=featurizer,
+      batch_size=FLAGS.batch_size)
 
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
@@ -141,25 +136,19 @@ def create_experiment(output_dir):
       keep_checkpoint_max=FLAGS.keep_checkpoint_max,
       keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
   )
+
   estimator = tf.contrib.learn.estimator.Estimator(
-      model_fn=model_fn, model_dir=output_dir, config=config)
+      model_fn=model_fn,
+      model_dir=output_dir,
+      config=config)
 
-  # Create training Hooks
-  model_analysis_hook = hooks.PrintModelAnalysisHook(
-      filename=os.path.join(estimator.model_dir, "model_analysis.txt"))
-  sample_file = os.path.join(output_dir, "samples.txt")
-  train_sample_hook = hooks.TrainSampleHook(
-      every_n_steps=FLAGS.sample_every_n_steps, file=sample_file)
-  metadata_hook = hooks.MetadataCaptureHook(
-      output_dir=os.path.join(estimator.model_dir, "metadata"), step=10)
-  tokens_per_sec_counter = hooks.TokensPerSecondCounter(every_n_steps=100)
-  train_monitors = [
-      model_analysis_hook, train_sample_hook, metadata_hook,
-      tokens_per_sec_counter
-  ]
+  train_hooks = training_utils.create_default_training_hooks(
+      output_dir=output_dir,
+      sample_frequency=FLAGS.sample_every_n_steps)
 
-  # Metrics
-  eval_metrics = {"log_perplexity": metrics.streaming_log_perplexity()}
+  eval_metrics = {
+      "log_perplexity": metrics.streaming_log_perplexity()
+  }
 
   experiment = tf.contrib.learn.experiment.Experiment(
       estimator=estimator,
@@ -169,7 +158,7 @@ def create_experiment(output_dir):
       train_steps=FLAGS.train_steps,
       eval_steps=None,
       eval_metrics=eval_metrics,
-      train_monitors=train_monitors)
+      train_monitors=train_hooks)
 
   return experiment
 
@@ -178,10 +167,13 @@ def main(_argv):
   """The entrypoint for the script"""
   if not FLAGS.output_dir:
     FLAGS.output_dir = tempfile.mkdtemp()
-  learn_runner.run(experiment_fn=create_experiment,
-                   output_dir=FLAGS.output_dir,
-                   schedule=FLAGS.schedule)
+
+  learn_runner.run(
+      experiment_fn=create_experiment,
+      output_dir=FLAGS.output_dir,
+      schedule=FLAGS.schedule)
 
 
 if __name__ == "__main__":
+  tf.logging.set_verbosity(tf.logging.INFO)
   tf.app.run()

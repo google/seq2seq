@@ -1,10 +1,13 @@
 """Miscellaneous training utility functions.
 """
 
-from seq2seq.data.data_utils import read_from_data_provider
+import os
+
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+from seq2seq.data.data_utils import read_from_data_provider
+from seq2seq.training import hooks
 
 def get_rnn_cell(cell_type,
                  num_units,
@@ -178,6 +181,7 @@ def write_hparams(hparams_dict, path):
     hparams_dict: The dictionary of hyperparameters
     path: Absolute path to write to
   """
+  gfile.MakeDirs(os.path.dirname(path))
   out = "\n".join(
       ["{}={}".format(k, v) for k, v in sorted(hparams_dict.items())])
   with gfile.GFile(path, "w") as file:
@@ -195,3 +199,34 @@ def read_hparams(path):
   with gfile.GFile(path, "r") as file:
     lines = file.readlines()
   return ",".join(lines)
+
+
+def create_default_training_hooks(output_dir, sample_frequency=500):
+  training_hooks = []
+
+  model_analysis_hook = hooks.PrintModelAnalysisHook(
+      filename=os.path.join(output_dir, "model_analysis.txt"))
+  training_hooks.append(model_analysis_hook)
+
+  train_sample_hook = hooks.TrainSampleHook(
+      every_n_steps=sample_frequency,
+      file=os.path.join(output_dir, "samples.txt"))
+  training_hooks.append(train_sample_hook)
+
+  metadata_hook = hooks.MetadataCaptureHook(
+      output_dir=os.path.join(output_dir, "metadata"),
+      step=10)
+  training_hooks.append(metadata_hook)
+
+  tokens_per_sec_counter = hooks.TokensPerSecondCounter(
+      every_n_steps=100,
+      output_dir=output_dir)
+  training_hooks.append(tokens_per_sec_counter)
+
+  return training_hooks
+
+def print_hparams(hparams):
+  tf.logging.info("=" * 50)
+  for param, value in sorted(hparams.items()):
+    tf.logging.info("%s=%s", param, value)
+  tf.logging.info("=" * 50)
