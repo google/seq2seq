@@ -278,8 +278,8 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
 
   def setUp(self):
     super(TestAttentionSeq2Seq, self).setUp()
-    self.encoder_rnn_cell = tf.nn.rnn_cell.LSTMCell(32)
-    self.decoder_rnn_cell = tf.nn.rnn_cell.LSTMCell(32)
+    self.encoder_rnn_cell = tf.contrib.rnn.rnn_cell.LSTMCell(32)
+    self.decoder_rnn_cell = tf.contrib.rnn.rnn_cell.LSTMCell(32)
     self.attention_dim = 128
 
   def create_model(self, params=None):

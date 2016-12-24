@@ -21,7 +21,7 @@ class DecoderTests(object):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
-    self.cell = tf.nn.rnn_cell.LSTMCell(32)
+    self.cell = tf.contrib.rnn.rnn_cell.LSTMCell(32)
     self.vocab_size = 100
     self.max_decode_length = 16
 
