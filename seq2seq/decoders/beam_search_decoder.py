@@ -12,7 +12,7 @@ from seq2seq.decoders.decoder_base import DecoderBase, DecoderStepOutput
 class BeamDecoderOutput(
     namedtuple("DecoderOutput", [
         "logits", "predictions", "log_probs", "scores", "beam_parent_ids",
-        "original_output"
+        "original_outputs"
     ])):
   """Structure for the output of a beam search decoder. This class is used
   to define the output at each step as well as the final output of the decoder.
@@ -85,7 +85,7 @@ class BeamSearchDecoder(DecoderBase):
 
     _, original_final_loop_state = self._unwrap_loop_state(final_loop_state)
     orignal_output = self.decoder.pack_outputs(
-        outputs_ta.original_output, original_final_loop_state)
+        outputs_ta.original_outputs, original_final_loop_state)
 
     # We're using a batch size of 1, so we add an extra dimension to
     # convert tensors to [1, beam_width, ...] shape. This way Tensorflow
@@ -100,7 +100,7 @@ class BeamSearchDecoder(DecoderBase):
         log_probs=tf.expand_dims(log_probs, 0),
         scores=tf.expand_dims(scores, 0),
         beam_parent_ids=tf.expand_dims(beam_parent_ids, 0),
-        original_output=orignal_output)
+        original_outputs=orignal_output)
 
   def compute_output(self, cell_output):
     raise ValueError("""Beam Search decoder does not support this method.""")
@@ -112,29 +112,29 @@ class BeamSearchDecoder(DecoderBase):
         log_probs=tf.zeros([], dtype=tf.float32),
         scores=tf.zeros([], dtype=tf.float32),
         beam_parent_ids=tf.zeros([], dtype=tf.int32),
-        original_output=self.decoder.output_shapes())
+        original_outputs=self.decoder.output_shapes())
 
   def create_next_input(self, time_, initial_call, output):
     if initial_call:
       next_input = self.decoder.create_next_input(
-          time_, initial_call, output.original_output)
+          time_, initial_call, output.original_outputs)
       # The first time we tile the initial input [beam_width] time
       return tf.tile(next_input, [self.config.beam_width, 1])
 
     # Shuffle the original output according to our beam search result
     original_values_shuffled = []
-    for value in output.original_output:
+    for value in output.original_outputs:
       value_shuffled = beam_search.nest_map(
           value,
           lambda x: tf.gather(x, output.beam_parent_ids))
       original_values_shuffled.append(value_shuffled)
-    original_output_shuffled = output.original_output.__class__(
+    original_outputs_shuffled = output.original_outputs.__class__(
         *original_values_shuffled)
-    original_output_shuffled = original_output_shuffled._replace(
+    original_outputs_shuffled = original_outputs_shuffled._replace(
         predictions=output.predictions)
 
     next_input = self.decoder.create_next_input(
-        time_, initial_call, original_output_shuffled)
+        time_, initial_call, original_outputs_shuffled)
     return next_input
 
   def step(self, time_, cell_output, cell_state, loop_state):
@@ -145,11 +145,11 @@ class BeamSearchDecoder(DecoderBase):
 
       # We start out with all beams being equal, so we tile the cell state
       # [beam_width] times
-      cell_state = beam_search.nest_map(
+      next_cell_state = beam_search.nest_map(
           cell_state, lambda x: tf.tile(x, [self.config.beam_width, 1]))
 
       # Call the original decoder
-      original_output = self.decoder.step(
+      original_outputs = self.decoder.step(
           time_, None, cell_state, loop_state)
 
       # Create an initial Beam State
@@ -158,31 +158,25 @@ class BeamSearchDecoder(DecoderBase):
           max_time=self.decoder.max_decode_length)
 
       next_loop_state = self._wrap_loop_state(
-          beam_state, original_output.next_loop_state)
+          beam_state, original_outputs.next_loop_state)
 
       outputs = self.output_shapes()
-
-      # The final step output
-      step_output = DecoderStepOutput(
-          outputs=outputs,
-          next_cell_state=cell_state,
-          next_loop_state=next_loop_state)
 
     else:
       prev_beam_state, original_loop_state = self._unwrap_loop_state(loop_state)
 
       # Call the original decoder
-      original_output = self.decoder.step(
+      original_outputs = self.decoder.step(
           time_, cell_output, cell_state, original_loop_state)
 
       # Perform a step of beam search
       beam_state = beam_search.beam_search_step(
-          logits=original_output.outputs.logits,
+          logits=original_outputs.outputs.logits,
           beam_state=prev_beam_state,
           config=self.config)
       beam_state.predictions.set_shape([None, self.decoder.max_decode_length])
       next_loop_state = self._wrap_loop_state(
-          beam_state, original_output.next_loop_state)
+          beam_state, original_outputs.next_loop_state)
 
       outputs = BeamDecoderOutput(
           logits=tf.zeros([self.config.beam_width, self.config.vocab_size]),
@@ -190,17 +184,17 @@ class BeamSearchDecoder(DecoderBase):
           log_probs=beam_state.log_probs,
           scores=beam_state.scores,
           beam_parent_ids=beam_state.beam_parent_ids,
-          original_output=original_output.outputs)
+          original_outputs=original_outputs.outputs)
 
       # Cell states are shuffled around by beam search
       next_cell_state = beam_search.nest_map(
-          original_output.next_cell_state,
+          original_outputs.next_cell_state,
           lambda x: tf.gather(x, beam_state.beam_parent_ids))
 
-      # The final step output
-      step_output = DecoderStepOutput(
-          outputs=outputs,
-          next_cell_state=next_cell_state,
-          next_loop_state=next_loop_state)
+    # The final step output
+    step_output = DecoderStepOutput(
+        outputs=outputs,
+        next_cell_state=next_cell_state,
+        next_loop_state=next_loop_state)
 
     return step_output

@@ -167,12 +167,26 @@ class EncoderDecoderTests(tf.test.TestCase):
       decoder_output_ = sess.run(decoder_output)
 
     # Assert shapes are correct
-    np.testing.assert_array_equal(decoder_output_.logits.shape, [
-        1, beam_width, self.max_decode_length,
-        model.target_vocab_info.total_size
-    ])
-    np.testing.assert_array_equal(decoder_output_.predictions.shape,
-                                  [1, beam_width, self.max_decode_length])
+    np.testing.assert_array_equal(
+        decoder_output_.logits.shape,
+        [1, beam_width, self.max_decode_length,
+         model.target_vocab_info.total_size])
+    np.testing.assert_array_equal(
+        decoder_output_.predictions.shape,
+        [1, beam_width, self.max_decode_length])
+    np.testing.assert_array_equal(
+        decoder_output_.beam_parent_ids.shape,
+        [1, beam_width, self.max_decode_length])
+    np.testing.assert_array_equal(
+        decoder_output_.scores.shape,
+        [1, beam_width, self.max_decode_length])
+    np.testing.assert_array_equal(
+        decoder_output_.original_outputs.predictions.shape,
+        [1, beam_width, self.max_decode_length])
+    np.testing.assert_array_equal(
+        decoder_output_.original_outputs.logits.shape,
+        [1, beam_width, self.max_decode_length,
+         model.target_vocab_info.total_size])
 
   def test_gradients(self):
     """Ensures the parameter gradients can be computed and are not NaN
@@ -213,7 +227,7 @@ class EncoderDecoderTests(tf.test.TestCase):
     for grad, _ in grads_and_vars_:
       self.assertFalse(np.isnan(grad).any())
 
-  def test_pipeline(self):
+  def _test_pipeline(self, mode, params=None):
     # Create source and target example
     source_len = 10
     target_len = self.max_decode_length + 10
@@ -223,37 +237,87 @@ class EncoderDecoderTests(tf.test.TestCase):
         sources=[source], targets=[target])
 
     # Build model graph
-    model = self.create_model()
+    model = self.create_model(params)
     featurizer = model.create_featurizer()
     data_provider = lambda: data_utils.make_parallel_data_provider(
         [sources_file.name], [targets_file.name])
     input_fn = training_utils.create_input_fn(data_provider, featurizer,
                                               self.batch_size)
     features, labels = input_fn()
-    predictions, loss, train_op = model(features, labels, None,
-                                        tf.contrib.learn.ModeKeys.TRAIN)
+    fetches = model(features, labels, None, mode)
+    fetches = [_ for _ in fetches if _ is not None]
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       sess.run(tf.local_variables_initializer())
       sess.run(tf.initialize_all_tables())
       with tf.contrib.slim.queues.QueueRunners(sess):
-        predictions_, loss_, _ = sess.run([predictions, loss, train_op])
-
-    # We have predictions for each target words and the SEQUENCE_START token.
-    # That's why it's `target_len + 1`
-    max_decode_length = model.params["target.max_seq_len"]
-    expected_decode_len = np.minimum(target_len + 1, max_decode_length)
-
-    np.testing.assert_array_equal(predictions_["logits"].shape, [
-        self.batch_size, expected_decode_len, model.target_vocab_info.total_size
-    ])
-    np.testing.assert_array_equal(predictions_["predictions"].shape,
-                                  [self.batch_size, expected_decode_len])
-    self.assertFalse(np.isnan(loss_))
+        fetches_ = sess.run(fetches)
 
     sources_file.close()
     targets_file.close()
+
+    return model, fetches_
+
+  def test_pipeline_train(self):
+    model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.TRAIN)
+    predictions_, loss_, _ = fetches_
+
+    # We have predictions for each target words and the SEQUENCE_START token.
+    # That's why it's `target_len + 1`
+    target_len = self.max_decode_length + 10
+    max_decode_length = model.params["target.max_seq_len"]
+    expected_decode_len = np.minimum(target_len + 1, max_decode_length)
+
+    np.testing.assert_array_equal(
+        predictions_["logits"].shape,
+        [self.batch_size, expected_decode_len,
+         model.target_vocab_info.total_size])
+    np.testing.assert_array_equal(
+        predictions_["predictions"].shape,
+        [self.batch_size, expected_decode_len])
+    self.assertFalse(np.isnan(loss_))
+
+
+  def test_pipeline_inference(self):
+    model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.INFER)
+    predictions_, = fetches_
+    np.testing.assert_array_equal(
+        predictions_["logits"].shape,
+        [self.batch_size, model.params["target.max_seq_len"],
+         model.target_vocab_info.total_size])
+    np.testing.assert_array_equal(
+        predictions_["predictions"].shape,
+        [self.batch_size, model.params["target.max_seq_len"]])
+
+  def test_pipeline_beam_search_infer(self):
+    self.batch_size = 1
+    beam_width = 10
+    model, fetches_ = self._test_pipeline(
+        mode=tf.contrib.learn.ModeKeys.INFER,
+        params={"inference.beam_search.beam_width": 10})
+    predictions_, = fetches_
+
+    seq_length = model.params["target.max_seq_len"]
+    vocab_size = model.target_vocab_info.total_size
+    np.testing.assert_array_equal(
+        predictions_["logits"].shape,
+        [1, beam_width, seq_length, vocab_size])
+    np.testing.assert_array_equal(
+        predictions_["predictions"].shape,
+        [1, beam_width, seq_length])
+    np.testing.assert_array_equal(
+        predictions_["beam_parent_ids"].shape,
+        [1, beam_width, seq_length])
+    np.testing.assert_array_equal(
+        predictions_["scores"].shape,
+        [1, beam_width, seq_length])
+    np.testing.assert_array_equal(
+        predictions_["original_outputs.predictions"].shape,
+        [1, beam_width, seq_length])
+    np.testing.assert_array_equal(
+        predictions_["original_outputs.logits"].shape,
+        [1, beam_width, seq_length, vocab_size])
 
 
 class TestBasicSeq2Seq(EncoderDecoderTests):
