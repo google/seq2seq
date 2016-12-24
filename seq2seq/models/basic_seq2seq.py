@@ -69,6 +69,7 @@ class BasicSeq2Seq(Seq2SeqBase):
     decoder_cell = encoder_cell
     decoder_fn = decoders.BasicDecoder(
         cell=decoder_cell,
+        input_fn=decoder_input_fn,
         vocab_size=self.target_vocab_info.total_size,
         max_decode_length=self.params["target.max_seq_len"])
 
@@ -77,7 +78,6 @@ class BasicSeq2Seq(Seq2SeqBase):
           decoder_fn)  #pylint: disable=r0204
 
     decoder_output, _, _ = decoder_fn(
-        input_fn=decoder_input_fn,
         initial_state=encoder_output.final_state,
         sequence_length=target_len)
 

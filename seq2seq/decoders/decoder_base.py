@@ -21,7 +21,7 @@ class DecoderOutput(namedtuple("DecoderOutput", ["logits", "predictions"])):
 class DecoderStepOutput(
     namedtuple(
         "DecoderStepOutput",
-        ["outputs", "next_cell_state", "next_input", "next_loop_state"])):
+        ["outputs", "next_cell_state", "next_loop_state"])):
   """Output of a decoder step to be used with Tensorflow's `raw_rnn`.
   """
 
@@ -33,22 +33,27 @@ class RNNStep(GraphModule):
 
   def __init__(self,
                step_fn,
-               input_fn,
+               next_input_fn,
                initial_state,
                sequence_length,
                name="rnn_step"):
     super(RNNStep, self).__init__(name)
     self.step_fn = step_fn
-    self.input_fn = input_fn
+    self.next_input_fn = next_input_fn
     self.initial_state = initial_state
     self.sequence_length = sequence_length
 
   def _build(self, time_, cell_output, cell_state, loop_state):
+    initial_call = (cell_output is None)
+
     if cell_output is None:
       cell_state = self.initial_state
 
-    step_output = self.step_fn(time_, cell_output, cell_state, loop_state,
-                               self.input_fn)
+    step_output = self.step_fn(time_, cell_output, cell_state, loop_state)
+    next_input = self.next_input_fn(
+        time_=time_,
+        initial_call=initial_call,
+        output=step_output.outputs)
 
     assert isinstance(step_output, DecoderStepOutput), \
       "Step output must be an isntance of DecoderStepOutput"
@@ -58,7 +63,7 @@ class RNNStep(GraphModule):
     else:
       elements_finished = (time_ >= self.sequence_length)
 
-    return (elements_finished, step_output.next_input,
+    return (elements_finished, next_input,
             step_output.next_cell_state, step_output.outputs,
             step_output.next_loop_state)
 
@@ -92,7 +97,7 @@ class FixedDecoderInputs(GraphModule):
       self.batch_size = tf.identity(tf.shape(inputs)[0], name="batch_size")
       self.input_dim = tf.identity(tf.shape(inputs)[-1], name="input_dim")
 
-  def _build(self, time_, *args):
+  def _build(self, time_, initial_call, predictions):
     """Returns the input for the given time step.
 
     Args:
@@ -119,7 +124,7 @@ class DynamicDecoderInputs(GraphModule):
   Args:
     initial_inputs: An input to feed at the first time step.
       A tensor of shape `[B, ...]`.
-    make_input_fn: A function that mapes from `(decoder_output) -> next_input`,
+    make_input_fn: A function that mapes from `predictions -> next_input`,
       where `next_input` must be a Tensor of shape `[B, ...]`.
   """
 
@@ -129,12 +134,13 @@ class DynamicDecoderInputs(GraphModule):
     self.initial_inputs = initial_inputs
     self.make_input_fn = make_input_fn
 
-  def _build(self, _time_, cell_output, _cell_state, _loop_state, step_output):
+  def _build(self, time_, initial_call, predictions):
     """Returns the input for the given time step.
     """
-    next_input = self.make_input_fn(step_output)
-    if cell_output is None:
+    if initial_call:
       next_input = self.initial_inputs
+    else:
+      next_input = self.make_input_fn(predictions)
     return next_input
 
 
@@ -144,14 +150,37 @@ class DecoderBase(GraphModule):
   Args:
     cell: An instance of ` tf.nn.rnn_cell.RNNCell`
     name: A name for this module
+    input_fn: A function that generates the next input, e.g. an
+      instance of `FixedDecoderInputs` or `DynamicDecoderInputs`.
   """
 
-  def __init__(self, cell, max_decode_length, name):
+  def __init__(self, cell, input_fn, max_decode_length, prediction_fn, name):
     super(DecoderBase, self).__init__(name)
     self.cell = cell
     self.max_decode_length = max_decode_length
+    self.input_fn = input_fn
 
-  def _step(self, time, cell_output, cell_state, loop_state, next_input_fn):
+    if prediction_fn is None:
+      self.prediction_fn = lambda logits: tf.stop_gradient(tf.argmax(logits, 1))
+    else:
+      self.prediction_fn = prediction_fn
+
+  def get_output(self, cell_output):
+    raise NotImplementedError
+
+  def output_shapes(self):
+    raise NotImplementedError
+
+  def create_next_input(self, time_, initial_call, output):
+    return self.input_fn(time_, initial_call, output.predictions)
+
+  @staticmethod
+  def time_to_batch(tensor, name=None):
+    ndims = tensor.get_shape().ndims
+    perm = [1, 0] + list(range(ndims))[2:]
+    return tf.transpose(tensor, perm, name=name)
+
+  def _step(self, time, cell_output, cell_state, loop_state):
     """
     This function maps from the decoder state to the outputs of the current
     time step and the state of the next step. This is where the actual decoding
@@ -169,8 +198,6 @@ class DecoderBase(GraphModule):
         depending on which type of cell is being used.
       loop_state: An optional tuple that can be used to pass state through
         time steps. The shape of this is defined by the subclass.
-      next_input_fn: A function that generates the next input, e.g. an
-        instance of `FixedDecoderInputs` or `DynamicDecoderInputs`.
 
     Returns:
       A `DecoderStepOutput` tuple, where:
@@ -186,22 +213,21 @@ class DecoderBase(GraphModule):
     """
     raise NotImplementedError
 
-  @staticmethod
-  def _pack_outputs(outputs_ta, _final_loop_state):
+  def _pack_outputs(self, outputs_ta, _final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
-    logits = tf.transpose(outputs_ta.logits.pack(), [1, 0, 2], name="logits")
-    predictions = tf.transpose(
-        outputs_ta.predictions.pack(), [1, 0], name="predictions")
+    logits = self.time_to_batch(outputs_ta.logits.pack(), name="logits")
+    predictions = self.time_to_batch(outputs_ta.predictions.pack(),
+                                     name="predictions")
     return DecoderOutput(logits=logits, predictions=predictions)
 
-  def _build(self, input_fn, initial_state, sequence_length):
+  def _build(self, initial_state, sequence_length):
     if sequence_length is None:
       sequence_length = self.max_decode_length
 
     rnn_loop_fn = RNNStep(
         step_fn=self._step,
-        input_fn=input_fn,
+        next_input_fn=self.create_next_input,
         initial_state=initial_state,
         sequence_length=tf.minimum(sequence_length, self.max_decode_length))
 

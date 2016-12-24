@@ -47,6 +47,13 @@ class BeamSearchConfig(
   """
   pass
 
+def create_initial_beam_state(config, max_time):
+  return BeamState(
+      time=tf.constant(0, dtype=tf.int32),
+      log_probs=tf.zeros([config.beam_width]),
+      scores=tf.zeros([config.beam_width]),
+      predictions=tf.ones([config.beam_width, max_time], dtype=tf.int32) * -1,
+      beam_parent_ids=tf.zeros([config.beam_width], dtype=tf.int32))
 
 def logprob_score(log_probs, _sequence_lengths):
   """A scoring function where the beam score is equal to the log probability.

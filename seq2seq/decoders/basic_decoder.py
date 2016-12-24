@@ -22,40 +22,43 @@ class BasicDecoder(DecoderBase):
 
   def __init__(self,
                cell,
+               input_fn,
                vocab_size,
                max_decode_length,
                prediction_fn=None,
                name="basic_decoder"):
-    super(BasicDecoder, self).__init__(cell, max_decode_length, name)
+    super(BasicDecoder, self).__init__(
+        cell, input_fn, max_decode_length, prediction_fn, name)
     self.vocab_size = vocab_size
-    self.prediction_fn = prediction_fn
 
-    # By default, choose the highest logit score as the prediction
-    if not prediction_fn:
-      self.prediction_fn = lambda logits: tf.stop_gradient(tf.argmax(logits, 1))
+  def get_output(self, cell_output):
+    return tf.contrib.layers.fully_connected(
+        inputs=cell_output,
+        num_outputs=self.vocab_size,
+        activation_fn=None)
 
-  def _step(self, time_, cell_output, cell_state, loop_state, next_input_fn):
+  def output_shapes(self):
+    return DecoderOutput(
+        logits=tf.zeros([self.vocab_size]),
+        predictions=tf.zeros([], dtype=tf.int64))
+
+  def _step(self, time_, cell_output, cell_state, loop_state):
     initial_call = (cell_output is None)
 
     if initial_call:
+      outputs = self.output_shapes()
+      predictions = None
+      # We need to call this here to create variables
       cell_output = tf.zeros([1, self.cell.output_size])
-
-    logits = tf.contrib.layers.fully_connected(
-        inputs=cell_output, num_outputs=self.vocab_size, activation_fn=None)
-
-    if initial_call:
-      outputs = DecoderOutput(
-          logits=tf.zeros([self.vocab_size]),
-          predictions=tf.zeros(
-              [], dtype=tf.int64))
+      self.get_output(cell_output)
     else:
+      logits = self.get_output(cell_output)
       predictions = self.prediction_fn(logits)
-      outputs = DecoderOutput(logits, predictions)
+      outputs = DecoderOutput(
+          logits=logits,
+          predictions=predictions)
 
-    next_input = next_input_fn(time_, (None if initial_call else cell_output),
-                               cell_state, loop_state, outputs)
     return DecoderStepOutput(
         outputs=outputs,
-        next_input=next_input,
         next_cell_state=cell_state,
         next_loop_state=None)

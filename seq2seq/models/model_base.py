@@ -1,5 +1,6 @@
 """Base class for models"""
 
+import collections
 import tensorflow as tf
 
 from seq2seq import decoders
@@ -102,11 +103,23 @@ class Seq2SeqBase(ModelBase):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
+  @staticmethod
+  def flatten_dict(dict_, parent_key="", sep="."):
+    items = []
+    for key, value in dict_.items():
+      new_key = parent_key + sep + key if parent_key else key
+      if isinstance(value, collections.MutableMapping):
+        items.extend(Seq2SeqBase.flatten_dict(value, new_key, sep=sep).items())
+      elif isinstance(value, tuple) and hasattr(value, "_asdict"):
+        items.extend(Seq2SeqBase.flatten_dict(value._asdict(), new_key, sep=sep).items())
+      else:
+        items.append((new_key, value))
+    return dict(items)
+
   def _create_predictions(self, features, labels, decoder_output, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
     """
-    predictions = {}
-    predictions.update(decoder_output._asdict()) #pylint: disable=protected-access
+    predictions = self.flatten_dict(decoder_output._asdict())
 
     if losses is not None:
       predictions["losses"] = losses
@@ -159,11 +172,10 @@ class Seq2SeqBase(ModelBase):
           target_embedding,
           tf.ones_like(features["source_len"]) * target_start_id)
 
-      def make_input_fn(decoder_output):
+      def make_input_fn(predictions):
         """Use the embedded prediction as the input to the next time step
         """
-        return tf.nn.embedding_lookup(target_embedding,
-                                      decoder_output.predictions)
+        return tf.nn.embedding_lookup(target_embedding, predictions)
 
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
           initial_inputs=initial_input, make_input_fn=make_input_fn)
@@ -177,6 +189,7 @@ class Seq2SeqBase(ModelBase):
           mode=mode)
       predictions = self._create_predictions(
           features=features, labels=labels, decoder_output=decoder_output)
+      tf.logging.info(predictions)
       return predictions, None, None
 
     # Embed target
