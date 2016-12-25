@@ -19,6 +19,7 @@ class ParallelDataProvider(data_provider.DataProvider):
   Args:
     dataset1: The first dataset. An instance of the Dataset class.
     dataset2: The second dataset. An instance of the Dataset class.
+      Can be None. If None, only `dataset1` is read.
     num_readers: The number of parallel readers to use.
     shuffle: Whether to shuffle the data sources and common queue when
       reading.
@@ -49,15 +50,17 @@ class ParallelDataProvider(data_provider.DataProvider):
         min_after_dequeue=common_queue_min,
         seed=seed)
 
-    _, data_target = parallel_reader.parallel_read(
-        dataset2.data_sources,
-        reader_class=dataset2.reader,
-        num_epochs=num_epochs,
-        num_readers=1,
-        shuffle=False,
-        capacity=common_queue_capacity,
-        min_after_dequeue=common_queue_min,
-        seed=seed)
+    data_target = ""
+    if dataset2 is not None:
+      _, data_target = parallel_reader.parallel_read(
+          dataset2.data_sources,
+          reader_class=dataset2.reader,
+          num_epochs=num_epochs,
+          num_readers=1,
+          shuffle=False,
+          capacity=common_queue_capacity,
+          min_after_dequeue=common_queue_min,
+          seed=seed)
 
     # Optionally shuffle the data
     if shuffle:
@@ -73,16 +76,17 @@ class ParallelDataProvider(data_provider.DataProvider):
       data_source, data_target = shuffle_queue.dequeue()
 
     # Decode source items
-    items1 = dataset1.decoder.list_items()
-    tensors1 = dataset1.decoder.decode(data_source, items1)
+    items = dataset1.decoder.list_items()
+    tensors = dataset1.decoder.decode(data_source, items)
 
-    # Decode target items
-    items2 = dataset2.decoder.list_items()
-    tensors2 = dataset2.decoder.decode(data_target, items2)
+    if dataset2 is not None:
+      # Decode target items
+      items2 = dataset2.decoder.list_items()
+      tensors2 = dataset2.decoder.decode(data_target, items2)
 
-    # Merge items and results
-    items = items1 + items2
-    tensors = tensors1 + tensors2
+      # Merge items and results
+      items = items + items2
+      tensors = tensors + tensors2
 
     super(ParallelDataProvider, self).__init__(
         items_to_tensors=dict(zip(items, tensors)),

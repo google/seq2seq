@@ -228,6 +228,8 @@ class EncoderDecoderTests(tf.test.TestCase):
       self.assertFalse(np.isnan(grad).any())
 
   def _test_pipeline(self, mode, params=None):
+    """Helper function to test the full model pipeline.
+    """
     # Create source and target example
     source_len = 10
     target_len = self.max_decode_length + 10
@@ -238,11 +240,9 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     # Build model graph
     model = self.create_model(params)
-    featurizer = model.create_featurizer()
     data_provider = lambda: data_utils.make_parallel_data_provider(
         [sources_file.name], [targets_file.name])
-    input_fn = training_utils.create_input_fn(data_provider, featurizer,
-                                              self.batch_size)
+    input_fn = training_utils.create_input_fn(data_provider, self.batch_size)
     features, labels = input_fn()
     fetches = model(features, labels, None, mode)
     fetches = [_ for _ in fetches if _ is not None]

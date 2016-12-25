@@ -96,7 +96,6 @@ def create_experiment(output_dir):
       source_vocab_info=source_vocab_info,
       target_vocab_info=target_vocab_info,
       params=hparams)
-  featurizer = model.create_featurizer()
 
   bucket_boundaries = None
   if FLAGS.buckets:
@@ -110,7 +109,6 @@ def create_experiment(output_dir):
           data_sources_target=FLAGS.train_target,
           shuffle=True,
           num_epochs=None),
-      featurizer_fn=featurizer,
       batch_size=FLAGS.batch_size,
       bucket_boundaries=bucket_boundaries)
 
@@ -122,7 +120,6 @@ def create_experiment(output_dir):
           data_sources_target=FLAGS.dev_target,
           shuffle=False,
           num_epochs=1),
-      featurizer_fn=featurizer,
       batch_size=FLAGS.batch_size)
 
   def model_fn(features, labels, params, mode):

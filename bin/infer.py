@@ -52,7 +52,6 @@ def main(_argv):
 
   input_fn = training_utils.create_input_fn(
       data_provider_fn=data_provider,
-      featurizer_fn=model.create_featurizer(),
       batch_size=FLAGS.batch_size,
       allow_smaller_final_batch=True)
 
