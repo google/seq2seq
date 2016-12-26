@@ -1,12 +1,39 @@
 """Base class for models"""
 
+import collections
 import tensorflow as tf
 
 from seq2seq import decoders
 from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
+from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
+from seq2seq.inference import beam_search
 from seq2seq.training import featurizers
 from seq2seq.training import utils as training_utils
+
+def _flatten_dict(dict_, parent_key="", sep="."):
+  """Flattens a nested dictionary. Namedtuples within
+  the dictionary are converted to dicts.
+
+  Args:
+    dict_: The dictionary to flatten.
+    parent_key: A prefix to prepend to each key.
+    sep: Separator between parent and child keys, a string. For example
+      { "a": { "b": 3 } } will become { "a.b": 3 } if the separator is ".".
+
+  Returns:
+    A new flattened dictionary.
+  """
+  items = []
+  for key, value in dict_.items():
+    new_key = parent_key + sep + key if parent_key else key
+    if isinstance(value, collections.MutableMapping):
+      items.extend(_flatten_dict(value, new_key, sep=sep).items())
+    elif isinstance(value, tuple) and hasattr(value, "_asdict"):
+      items.extend(_flatten_dict(value._asdict(), new_key, sep=sep).items())
+    else:
+      items.append((new_key, value))
+  return dict(items)
 
 
 class ModelBase(object):
@@ -76,6 +103,9 @@ class Seq2SeqBase(ModelBase):
         "source.max_seq_len": 40,
         "target.max_seq_len": 40,
         "embedding.dim": 100,
+        "inference.beam_search.beam_width": 0,
+        "inference.beam_search.score_fn": "logprob_score",
+        "inference.beam_search.choose_successors_fn": "choose_top_k",
         "optimizer.name": "Adam",
         "optimizer.learning_rate": 1e-4,
         "optimizer.lr_decay_type": "",
@@ -97,16 +127,40 @@ class Seq2SeqBase(ModelBase):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
-  def _create_predictions(self, features, labels, decoder_output, losses=None):
+  def _create_predictions(self, decoder_output, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
     """
-    predictions = {
-        "logits": decoder_output.logits,
-        "predictions": decoder_output.predictions,
-    }
+    predictions = _flatten_dict(decoder_output._asdict())
+
     if losses is not None:
       predictions["losses"] = losses
     return predictions
+
+  def _get_beam_search_decoder(self, decoder):
+    """Wraps a decoder into a Beam Search decoder.
+
+    Args:
+      decoder: The original decoder
+
+    Returns:
+      A BeamSearchDecoder with the same interfaces as the original decoder.
+    """
+    config = beam_search.BeamSearchConfig(
+        beam_width=self.params["inference.beam_search.beam_width"],
+        vocab_size=self.target_vocab_info.total_size,
+        eos_token=self.target_vocab_info.special_vocab.SEQUENCE_END,
+        score_fn=getattr(beam_search,
+                         self.params["inference.beam_search.score_fn"]),
+        choose_successors_fn=getattr(
+            beam_search,
+            self.params["inference.beam_search.choose_successors_fn"]))
+    return BeamSearchDecoder(decoder=decoder, config=config)
+
+  @property
+  def use_beam_search(self):
+    """Returns true iff the model should perform beam search.
+    """
+    return self.params["inference.beam_search.beam_width"] > 1
 
   def _build(self, features, labels, params, mode):
     # Create embedddings
@@ -129,11 +183,10 @@ class Seq2SeqBase(ModelBase):
           target_embedding,
           tf.ones_like(features["source_len"]) * target_start_id)
 
-      def make_input_fn(decoder_output):
+      def make_input_fn(predictions):
         """Use the embedded prediction as the input to the next time step
         """
-        return tf.nn.embedding_lookup(target_embedding,
-                                      decoder_output.predictions)
+        return tf.nn.embedding_lookup(target_embedding, predictions)
 
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
           initial_inputs=initial_input, make_input_fn=make_input_fn)
@@ -146,7 +199,7 @@ class Seq2SeqBase(ModelBase):
           target_len=self.params["target.max_seq_len"],
           mode=mode)
       predictions = self._create_predictions(
-          features=features, labels=labels, decoder_output=decoder_output)
+          decoder_output=decoder_output)
       return predictions, None, None
 
     # Embed target
@@ -198,8 +251,6 @@ class Seq2SeqBase(ModelBase):
       train_op = None
 
     predictions = self._create_predictions(
-        features=features,
-        labels=labels,
         decoder_output=decoder_output,
         losses=losses)
 

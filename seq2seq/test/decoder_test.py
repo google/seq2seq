@@ -6,7 +6,9 @@ import tensorflow as tf
 import numpy as np
 
 from seq2seq.decoders import BasicDecoder, AttentionDecoder, AttentionLayer
+from seq2seq.decoders import beam_search_decoder
 from seq2seq.decoders import FixedDecoderInputs, DynamicDecoderInputs
+from seq2seq.inference import beam_search
 
 
 class DecoderTests(object):
@@ -19,11 +21,11 @@ class DecoderTests(object):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
-    self.cell = tf.nn.rnn_cell.LSTMCell(32)
+    self.cell = tf.contrib.rnn.rnn_cell.LSTMCell(32)
     self.vocab_size = 100
     self.max_decode_length = 16
 
-  def create_decoder(self):
+  def create_decoder(self, input_fn):
     """Creates the decoder module.
 
     This must be implemented by child classes and instantiate the appropriate
@@ -38,9 +40,8 @@ class DecoderTests(object):
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
 
     decoder_input_fn = FixedDecoderInputs(inputs, seq_length)
-    decoder_fn = self.create_decoder()
-    decoder_output, _, _ = decoder_fn(decoder_input_fn, initial_state,
-                                      seq_length)
+    decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
+    decoder_output, _, _ = decoder_fn(initial_state, seq_length)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -64,9 +65,8 @@ class DecoderTests(object):
                                [self.batch_size, self.sequence_length])
 
     decoder_input_fn = FixedDecoderInputs(inputs, seq_length)
-    decoder_fn = self.create_decoder()
-    decoder_output, _, _ = decoder_fn(decoder_input_fn, initial_state,
-                                      seq_length)
+    decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
+    decoder_output, _, _ = decoder_fn(initial_state, seq_length)
 
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
         decoder_output.logits, labels)
@@ -89,15 +89,14 @@ class DecoderTests(object):
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
-    def make_input_fn(step_output):
+    def make_input_fn(predictions):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, step_output.predictions)
+      return tf.nn.embedding_lookup(embeddings, predictions)
 
     decoder_input_fn = DynamicDecoderInputs(initial_input, make_input_fn)
-    decoder_fn = self.create_decoder()
-    decoder_output, _, _ = decoder_fn(decoder_input_fn, initial_state,
-                                      seq_length)
+    decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
+    decoder_output, _, _ = decoder_fn(initial_state, seq_length)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -109,6 +108,56 @@ class DecoderTests(object):
         [self.batch_size, self.sequence_length, self.vocab_size])
     np.testing.assert_array_equal(decoder_output_.predictions.shape,
                                   [self.batch_size, self.sequence_length])
+
+  def test_with_beam_search(self):
+    # Batch size for beam search must be 1.
+    self.batch_size = 1
+    config = beam_search.BeamSearchConfig(
+        beam_width=10,
+        vocab_size=self.vocab_size,
+        eos_token=self.vocab_size - 2,
+        score_fn=beam_search.logprob_score,
+        choose_successors_fn=beam_search.choose_top_k)
+
+    initial_input = tf.random_normal([self.batch_size, self.input_depth])
+    initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
+    embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
+
+    def make_input_fn(predictions):
+      """Looks up the predictions in the embeddings.
+      """
+      return tf.nn.embedding_lookup(embeddings, predictions)
+
+    decoder_input_fn = DynamicDecoderInputs(initial_input, make_input_fn)
+    decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
+    decoder_fn = beam_search_decoder.BeamSearchDecoder(
+        decoder=decoder_fn, config=config)
+
+    decoder_output, _, _ = decoder_fn(initial_state, sequence_length=None)
+
+    #pylint: disable=E1101
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      decoder_output_ = sess.run(decoder_output)
+
+    np.testing.assert_array_equal(
+        decoder_output_.logits.shape,
+        [1, config.beam_width, self.sequence_length, self.vocab_size])
+    np.testing.assert_array_equal(
+        decoder_output_.predictions.shape,
+        [1, config.beam_width, self.sequence_length])
+    np.testing.assert_array_equal(
+        decoder_output_.beam_parent_ids.shape,
+        [1, config.beam_width, self.sequence_length])
+    np.testing.assert_array_equal(
+        decoder_output_.scores.shape,
+        [1, config.beam_width, self.sequence_length])
+    np.testing.assert_array_equal(
+        decoder_output_.original_outputs.predictions.shape,
+        [1, config.beam_width, self.sequence_length])
+    np.testing.assert_array_equal(
+        decoder_output_.original_outputs.logits.shape,
+        [1, config.beam_width, self.sequence_length, self.vocab_size])
 
     return decoder_output
 
@@ -122,9 +171,10 @@ class BasicDecoderTest(tf.test.TestCase, DecoderTests):
     tf.logging.set_verbosity(tf.logging.INFO)
     DecoderTests.__init__(self)
 
-  def create_decoder(self):
+  def create_decoder(self, input_fn):
     return BasicDecoder(
         cell=self.cell,
+        input_fn=input_fn,
         vocab_size=self.vocab_size,
         max_decode_length=self.max_decode_length)
 
@@ -139,16 +189,17 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
     DecoderTests.__init__(self)
     self.attention_dim = 64
     self.input_seq_len = 10
-    self.attention_inputs = tf.convert_to_tensor(
+
+  def create_decoder(self, input_fn):
+    attention_fn = AttentionLayer(self.attention_dim)
+    attention_inputs = tf.convert_to_tensor(
         np.random.randn(self.batch_size, self.input_seq_len, 32),
         dtype=tf.float32)
-
-  def create_decoder(self):
-    attention_fn = AttentionLayer(self.attention_dim)
     return AttentionDecoder(
         cell=self.cell,
+        input_fn=input_fn,
         vocab_size=self.vocab_size,
-        attention_inputs=self.attention_inputs,
+        attention_inputs=attention_inputs,
         attention_fn=attention_fn,
         max_decode_length=self.max_decode_length)
 

@@ -1,7 +1,8 @@
 ## Important Links
 
+
 - [Requirements Doc](https://docs.google.com/document/d/1av4wpAnKinbtG_0fcNC94XKyh-_rXxxJEhRXy9xn6js/edit)
-- [Wiki](https://github.com/dennybritz/seq2seq/wiki)
+- [Documentation](https://dennybritz.github.io/seq2seq)
 - [TODOs](https://github.com/dennybritz/seq2seq/projects/2)
 
 ## Running Tests

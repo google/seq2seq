@@ -2,25 +2,6 @@
 """
 
 import tempfile
-from seq2seq.scripts import generate_examples
-
-
-def create_temp_tfrecords(source, target):
-  """
-  Creates a temporary TFRecords file.
-
-  Args:
-    source: List of source words
-    target: List of target words
-
-  Returns:
-    A temporary file object
-  """
-  file = tempfile.NamedTemporaryFile()
-  ex = generate_examples.build_example(pair_id=0, source=source, target=target)
-  generate_examples.write_tfrecords([ex], file.name)
-  return file
-
 
 def create_temp_parallel_data(sources, targets):
   """
@@ -33,11 +14,11 @@ def create_temp_parallel_data(sources, targets):
   Returns:
     A tuple (sources_file, targets_file).
   """
-  file_source = tempfile.NamedTemporaryFile("w")
-  file_target = tempfile.NamedTemporaryFile("w")
-  file_source.write("\n".join(sources))
+  file_source = tempfile.NamedTemporaryFile()
+  file_target = tempfile.NamedTemporaryFile()
+  file_source.write("\n".join(sources).encode("utf-8"))
   file_source.flush()
-  file_target.write("\n".join(targets))
+  file_target.write("\n".join(targets).encode("utf-8"))
   file_target.flush()
   return file_source, file_target
 

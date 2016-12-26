@@ -108,10 +108,13 @@ class ReadFromDataProviderTest(tf.test.TestCase):
     tf.logging.set_verbosity(tf.logging.INFO)
 
   def test_read_from_data_provider(self):
-    file = test_utils.create_temp_tfrecords(
-        source="Hello World .", target="Bye")
-    data_provider = data_utils.make_tfrecord_data_provider(
-        [file.name], num_epochs=5)
+    file_source, file_target = test_utils.create_temp_parallel_data(
+        sources=["Hello World ."], targets=["Bye"])
+    data_provider = data_utils.make_parallel_data_provider(
+        data_sources_source=[file_source.name],
+        data_sources_target=[file_target.name],
+        num_epochs=5,
+        shuffle=False)
     features = data_utils.read_from_data_provider(data_provider)
 
     with self.test_session() as sess:

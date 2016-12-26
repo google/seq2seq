@@ -4,7 +4,7 @@ Collection of RNN encoders.
 
 import collections
 import tensorflow as tf
-from seq2seq import GraphModule
+from seq2seq.graph_module import GraphModule
 
 RNNEncoderOutput = collections.namedtuple("RNNEncoderOutput",
                                           ["outputs", "final_state"])
@@ -16,7 +16,7 @@ class UnidirectionalRNNEncoder(GraphModule):
   part of the cell.
 
   Args:
-    cell: An instance of tf.nn.rnn_cell.RNNCell
+    cell: An instance of tf.contrib.rnn.rnn_cell.RNNCell
     name: A name for the encoder
   """
 
@@ -41,7 +41,7 @@ class BidirectionalRNNEncoder(GraphModule):
   the cell.
 
   Args:
-    cell: An instance of tf.nn.rnn_cell.RNNCell
+    cell: An instance of tf.contrib.rnn.rnn_cell.RNNCell
     name: A name for the encoder
   """
 

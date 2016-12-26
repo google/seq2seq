@@ -59,6 +59,7 @@ class TestTrainSampleHook(tf.test.TestCase):
     graph_utils.add_dict_to_collection({
         "target_id_to_vocab": target_id_to_vocab,
     }, "vocab_tables")
+
   def tearDown(self):
     super(TestTrainSampleHook, self).tearDown()
     self.vocab_file.close()
@@ -134,6 +135,7 @@ class TestMetadataCaptureHook(tf.test.TestCase):
 
 class TestTokenCounter(tf.test.TestCase):
   """Tests the TokensPerSecondCounter hook"""
+
   def setUp(self):
     super(TestTokenCounter, self).setUp()
     self.summary_dir = tempfile.mkdtemp()
@@ -154,8 +156,8 @@ class TestTokenCounter(tf.test.TestCase):
     train_op = tf.assign_add(global_step, 1)
 
     # Create the hook we want to test
-    summary_writer = tf.contrib.testing.FakeSummaryWriter(
-        self.summary_dir, graph)
+    summary_writer = tf.contrib.testing.FakeSummaryWriter(self.summary_dir,
+                                                          graph)
     hook = hooks.TokensPerSecondCounter(
         summary_writer=summary_writer, every_n_steps=10)
     hook.begin()
@@ -163,7 +165,9 @@ class TestTokenCounter(tf.test.TestCase):
     # Run a few perations
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
-      mon_sess = monitored_session._HookedSession(sess, [hook]) #pylint: disable=W0212
+      #pylint: disable=W0212
+      mon_sess = monitored_session._HookedSession(
+          sess, [hook])
       for _ in range(30):
         time.sleep(0.01)
         mon_sess.run(train_op)
@@ -180,6 +184,7 @@ class TestTokenCounter(tf.test.TestCase):
       summary_value = summary_writer.summaries[step][0].value[0]
       self.assertEqual('tokens/sec', summary_value.tag)
       self.assertGreater(summary_value.simple_value, 0)
+
 
 if __name__ == "__main__":
   tf.test.main()

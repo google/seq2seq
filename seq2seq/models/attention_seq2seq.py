@@ -68,13 +68,17 @@ class AttentionSeq2Seq(Seq2SeqBase):
         score_type=self.params["attention.score_type"])
     decoder_fn = decoders.AttentionDecoder(
         cell=decoder_cell,
+        input_fn=decoder_input_fn,
         vocab_size=self.target_vocab_info.total_size,
         attention_inputs=encoder_output.outputs,
         attention_fn=attention_layer,
         max_decode_length=self.params["target.max_seq_len"])
 
+    if self.use_beam_search:
+      decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
+          decoder_fn)
+
     decoder_output, _, _ = decoder_fn(
-        input_fn=decoder_input_fn,
         initial_state=decoder_cell.zero_state(
             tf.shape(source_len)[0], dtype=tf.float32),
         sequence_length=target_len)
