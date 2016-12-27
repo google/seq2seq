@@ -8,7 +8,7 @@ from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
 from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
 from seq2seq.inference import beam_search
-from seq2seq.training import featurizers
+from seq2seq.models import featurizers
 from seq2seq.training import utils as training_utils
 
 def _flatten_dict(dict_, parent_key="", sep="."):
@@ -163,6 +163,9 @@ class Seq2SeqBase(ModelBase):
     return self.params["inference.beam_search.beam_width"] > 1
 
   def _build(self, features, labels, params, mode):
+    # Pre-process features and labels
+    features, labels = self.create_featurizer()(features, labels)
+
     # Create embedddings
     source_embedding = tf.get_variable(
         "source_embedding",
