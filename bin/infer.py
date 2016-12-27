@@ -41,12 +41,9 @@ def main(_argv):
       model_dir=FLAGS.model_dir,
       params=params_overrides)
 
-  # TODO: We use the input_file as both source and target here, but
-  # the target is ignored during inference. We need to pass the target anyway
-  # because the featurizer expects it as an argument. Should fix that.
   data_provider = lambda: data_utils.make_parallel_data_provider(
       data_sources_source=[FLAGS.source],
-      data_sources_target=[FLAGS.source],
+      data_sources_target=None,
       shuffle=False,
       num_epochs=1)
 
