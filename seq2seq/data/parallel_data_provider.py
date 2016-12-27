@@ -5,6 +5,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import numpy as np
+
 import tensorflow as tf
 from tensorflow.contrib.slim.python.slim.data import data_provider
 from tensorflow.contrib.slim.python.slim.data import parallel_reader
@@ -38,7 +40,10 @@ class ParallelDataProvider(data_provider.DataProvider):
                num_epochs=None,
                common_queue_capacity=256,
                common_queue_min=128,
-               seed=1234):
+               seed=None):
+
+    if seed is None:
+      seed = np.random.randint(10e8)
 
     _, data_source = parallel_reader.parallel_read(
         dataset1.data_sources,
