@@ -165,11 +165,11 @@ class ReadFromDataProviderTest(tf.test.TestCase):
     self.assertEqual(res["source_len"], 4)
     self.assertEqual(res["target_len"], 3)
     np.testing.assert_array_equal(
-      res["source_tokens"].astype("U"),
-      ["Hello", "World", ".", "SEQUENCE_END"])
+        res["source_tokens"].astype("U"),
+        ["Hello", "World", ".", "SEQUENCE_END"])
     np.testing.assert_array_equal(
-      res["target_tokens"].astype("U"),
-      ["SEQUENCE_START", "Bye", "SEQUENCE_END"])
+        res["target_tokens"].astype("U"),
+        ["SEQUENCE_START", "Bye", "SEQUENCE_END"])
 
 
 if __name__ == "__main__":
