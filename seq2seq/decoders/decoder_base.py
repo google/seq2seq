@@ -282,7 +282,10 @@ class DecoderBase(GraphModule):
         initial_state=initial_state,
         sequence_length=tf.minimum(sequence_length, self.max_decode_length))
 
-    outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(self.cell,
-                                                              rnn_loop_fn)
+    outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(
+        cell=self.cell,
+        loop_fn=rnn_loop_fn,
+        swap_memory=True)
+
     return self.pack_outputs(
         outputs_ta, final_loop_state), final_state, final_loop_state
