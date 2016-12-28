@@ -38,6 +38,9 @@ tf.flags.DEFINE_string("schedule", None,
                        """Estimator function to call, defaults to
                        train_and_evaluate for local run""")
 tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
+tf.flags.DEFINE_integer("train_epochs", None,
+                        """Maximum number of training epochs. Defaults to None,
+                        which means train forever.""")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
                         "evaluate after this many training steps")
 tf.flags.DEFINE_integer("sample_every_n_steps", 500,
@@ -108,7 +111,7 @@ def create_experiment(output_dir):
           data_sources_source=FLAGS.train_source,
           data_sources_target=FLAGS.train_target,
           shuffle=True,
-          num_epochs=None),
+          num_epochs=FLAGS.train_epochs),
       batch_size=FLAGS.batch_size,
       bucket_boundaries=bucket_boundaries)
 
