@@ -38,8 +38,8 @@ class ParallelDataProvider(data_provider.DataProvider):
                dataset2,
                shuffle=True,
                num_epochs=None,
-               common_queue_capacity=256,
-               common_queue_min=128,
+               common_queue_capacity=4096,
+               common_queue_min=1024,
                seed=None):
 
     if seed is None:
