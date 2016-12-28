@@ -11,6 +11,22 @@ from seq2seq.inference import beam_search
 from seq2seq.models import featurizers
 from seq2seq.training import utils as training_utils
 
+def time_to_batch(tensor, name=None):
+  """Transposes the first two dimensions of a tensor. Leaves the remaining
+  dimensions unchanged.
+
+  Args:
+    tensor: Input tensor to be transposed.
+
+  Returns:
+    A tensor of the same type as `tensor` with the first two dimensions
+    swapped.
+  """
+  ndims = tensor.get_shape().ndims
+  perm = [1, 0] + list(range(ndims))[2:]
+  return tf.transpose(tensor, perm, name=name)
+
+
 def _flatten_dict(dict_, parent_key="", sep="."):
   """Flattens a nested dictionary. Namedtuples within
   the dictionary are converted to dicts.
@@ -134,6 +150,11 @@ class Seq2SeqBase(ModelBase):
 
     if losses is not None:
       predictions["losses"] = losses
+
+    # Decoders returns output in time-major form [T, B, ...]
+    # Here we transpose everything back to batch-major for the user
+    predictions = {k: time_to_batch(v) for k, v in  predictions.items()}
+
     return predictions
 
   def _get_beam_search_decoder(self, decoder):
@@ -224,8 +245,8 @@ class Seq2SeqBase(ModelBase):
 
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(
-        logits=decoder_output.logits[:, :-1, :],
-        targets=labels["target_ids"][:, 1:],
+        logits=decoder_output.logits[:-1, :, :],
+        targets=tf.transpose(labels["target_ids"][:, 1:], [1, 0]),
         sequence_length=labels["target_len"] - 1)
 
     # Calculate the average log perplexity

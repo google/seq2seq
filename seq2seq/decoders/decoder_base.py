@@ -215,21 +215,6 @@ class DecoderBase(GraphModule):
     """
     return self.input_fn(time_, initial_call, output.predictions)
 
-  @staticmethod
-  def time_to_batch(tensor, name=None):
-    """Transposes the first two dimensions of a tensor. Leaves the remaining
-    dimensions unchanged.
-
-    Args:
-      tensor: Input tensor to be transposed.
-
-    Returns:
-      A tensor of the same type as `tensor` with the first two dimensions
-      swapped.
-    """
-    ndims = tensor.get_shape().ndims
-    perm = [1, 0] + list(range(ndims))[2:]
-    return tf.transpose(tensor, perm, name=name)
 
   def step(self, time_, cell_output, cell_state, loop_state):
     """
@@ -267,9 +252,8 @@ class DecoderBase(GraphModule):
   def pack_outputs(self, outputs_ta, _final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
-    logits = self.time_to_batch(outputs_ta.logits.pack(), name="logits")
-    predictions = self.time_to_batch(outputs_ta.predictions.pack(),
-                                     name="predictions")
+    logits = outputs_ta.logits.pack()
+    predictions = outputs_ta.predictions.pack()
     return DecoderOutput(logits=logits, predictions=predictions)
 
   def _build(self, initial_state, sequence_length):

@@ -77,11 +77,11 @@ class BeamSearchDecoder(DecoderBase):
   def pack_outputs(self, outputs_ta, final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
-    logits = self.time_to_batch(outputs_ta.logits.pack())
-    predictions = self.time_to_batch(outputs_ta.predictions.pack())
-    log_probs = self.time_to_batch(outputs_ta.log_probs.pack())
-    scores = self.time_to_batch(outputs_ta.scores.pack())
-    beam_parent_ids = self.time_to_batch(outputs_ta.beam_parent_ids.pack())
+    logits = outputs_ta.logits.pack()
+    predictions = outputs_ta.predictions.pack()
+    log_probs = outputs_ta.log_probs.pack()
+    scores = outputs_ta.scores.pack()
+    beam_parent_ids = outputs_ta.beam_parent_ids.pack()
 
     _, original_final_loop_state = self._unwrap_loop_state(final_loop_state)
     orignal_output = self.decoder.pack_outputs(
@@ -91,15 +91,15 @@ class BeamSearchDecoder(DecoderBase):
     # convert tensors to [1, beam_width, ...] shape. This way Tensorflow
     # doesn't confuse batch_size with beam_width
     orignal_output = orignal_output.__class__(
-        *[tf.expand_dims(_, 0) for _ in orignal_output]
+        *[tf.expand_dims(_, 1) for _ in orignal_output]
     )
 
     return BeamDecoderOutput(
-        logits=tf.expand_dims(logits, 0),
-        predictions=tf.expand_dims(predictions, 0),
-        log_probs=tf.expand_dims(log_probs, 0),
-        scores=tf.expand_dims(scores, 0),
-        beam_parent_ids=tf.expand_dims(beam_parent_ids, 0),
+        logits=tf.expand_dims(logits, 1),
+        predictions=tf.expand_dims(predictions, 1),
+        log_probs=tf.expand_dims(log_probs, 1),
+        scores=tf.expand_dims(scores, 1),
+        beam_parent_ids=tf.expand_dims(beam_parent_ids, 1),
         original_outputs=orignal_output)
 
   def compute_output(self, cell_output):
