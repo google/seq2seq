@@ -117,6 +117,7 @@ class Seq2SeqBase(ModelBase):
   def default_params():
     return {
         "source.max_seq_len": 40,
+        "source.reverse": False,
         "target.max_seq_len": 40,
         "embedding.dim": 100,
         "inference.beam_search.beam_width": 0,
@@ -186,6 +187,14 @@ class Seq2SeqBase(ModelBase):
   def _build(self, features, labels, params, mode):
     # Pre-process features and labels
     features, labels = self.create_featurizer()(features, labels)
+
+    if self.params["source.reverse"] is True:
+      features["source_ids"] = tf.reverse_sequence(
+          input=features["source_ids"],
+          seq_lengths=features["source_len"],
+          seq_dim=1,
+          batch_dim=0,
+          name=None)
 
     # Create embedddings
     source_embedding = tf.get_variable(
