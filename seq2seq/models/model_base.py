@@ -224,8 +224,8 @@ class Seq2SeqBase(ModelBase):
 
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(
-        logits=decoder_output.logits[:, :-1, :],
-        targets=labels["target_ids"][:, 1:],
+        logits=decoder_output.logits[:-1, :, :],
+        targets=tf.transpose(labels["target_ids"][:, 1:], [1, 0]),
         sequence_length=labels["target_len"] - 1)
 
     # Calculate the average log perplexity

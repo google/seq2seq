@@ -77,11 +77,11 @@ class BeamSearchDecoder(DecoderBase):
   def pack_outputs(self, outputs_ta, final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
-    logits = self.time_to_batch(outputs_ta.logits.pack())
-    predictions = self.time_to_batch(outputs_ta.predictions.pack())
-    log_probs = self.time_to_batch(outputs_ta.log_probs.pack())
-    scores = self.time_to_batch(outputs_ta.scores.pack())
-    beam_parent_ids = self.time_to_batch(outputs_ta.beam_parent_ids.pack())
+    logits = outputs_ta.logits.pack()
+    predictions = outputs_ta.predictions.pack()
+    log_probs = outputs_ta.log_probs.pack()
+    scores = outputs_ta.scores.pack()
+    beam_parent_ids = outputs_ta.beam_parent_ids.pack()
 
     _, original_final_loop_state = self._unwrap_loop_state(final_loop_state)
     orignal_output = self.decoder.pack_outputs(

@@ -56,12 +56,12 @@ class AttentionDecoder(DecoderBase):
     logits, predictions = DecoderBase.pack_outputs(self, outputs_ta,
                                                    final_loop_state)
 
-    attention_scores = self.time_to_batch(outputs_ta.attention_scores.pack())
+    attention_scores = outputs_ta.attention_scores.pack()
     # Slice attention scores to actual length of the inputs
     attention_input_len = tf.shape(self.attention_inputs)[1]
     attention_scores = attention_scores[:, :, :attention_input_len]
 
-    attention_context = self.time_to_batch(outputs_ta.attention_context.pack())
+    attention_context = outputs_ta.attention_context.pack()
     return AttentionDecoderOutput(logits, predictions, attention_scores,
                                   attention_context)
 
