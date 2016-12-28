@@ -54,7 +54,7 @@ def print_translations(predictions_iter, vocab_path, use_beams=False):
     token_ids = prediction_dict["predictions"]
     # If we're using beam search we take the first beam
     if use_beams:
-      token_ids = token_ids[0]
+      token_ids = token_ids[:, 0]
     tokens = [vocab_table[i] for i in token_ids]
     # Take sentence until SEQUENCE_END
     tokens = list(itertools.takewhile(lambda x: x != "SEQUENCE_END", tokens))

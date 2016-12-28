@@ -91,15 +91,15 @@ class BeamSearchDecoder(DecoderBase):
     # convert tensors to [1, beam_width, ...] shape. This way Tensorflow
     # doesn't confuse batch_size with beam_width
     orignal_output = orignal_output.__class__(
-        *[tf.expand_dims(_, 0) for _ in orignal_output]
+        *[tf.expand_dims(_, 1) for _ in orignal_output]
     )
 
     return BeamDecoderOutput(
-        logits=tf.expand_dims(logits, 0),
-        predictions=tf.expand_dims(predictions, 0),
-        log_probs=tf.expand_dims(log_probs, 0),
-        scores=tf.expand_dims(scores, 0),
-        beam_parent_ids=tf.expand_dims(beam_parent_ids, 0),
+        logits=tf.expand_dims(logits, 1),
+        predictions=tf.expand_dims(predictions, 1),
+        log_probs=tf.expand_dims(log_probs, 1),
+        scores=tf.expand_dims(scores, 1),
+        beam_parent_ids=tf.expand_dims(beam_parent_ids, 1),
         original_outputs=orignal_output)
 
   def compute_output(self, cell_output):

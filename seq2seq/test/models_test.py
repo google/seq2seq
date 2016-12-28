@@ -169,23 +169,23 @@ class EncoderDecoderTests(tf.test.TestCase):
     # Assert shapes are correct
     np.testing.assert_array_equal(
         decoder_output_.logits.shape,
-        [1, self.max_decode_length, beam_width,
+        [self.max_decode_length, 1, beam_width,
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
         decoder_output_.predictions.shape,
-        [1, self.max_decode_length, beam_width])
+        [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.beam_parent_ids.shape,
-        [1, self.max_decode_length, beam_width])
+        [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.scores.shape,
-        [1, self.max_decode_length, beam_width])
+        [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.original_outputs.predictions.shape,
-        [1, self.max_decode_length, beam_width])
+        [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.original_outputs.logits.shape,
-        [1, self.max_decode_length, beam_width,
+        [self.max_decode_length, 1, beam_width,
          model.target_vocab_info.total_size])
 
   def test_gradients(self):
@@ -271,11 +271,11 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     np.testing.assert_array_equal(
         predictions_["logits"].shape,
-        [expected_decode_len, self.batch_size,
+        [self.batch_size, expected_decode_len,
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
         predictions_["predictions"].shape,
-        [expected_decode_len, self.batch_size])
+        [self.batch_size, expected_decode_len])
     self.assertFalse(np.isnan(loss_))
 
 
@@ -284,11 +284,11 @@ class EncoderDecoderTests(tf.test.TestCase):
     predictions_, = fetches_
     np.testing.assert_array_equal(
         predictions_["logits"].shape,
-        [model.params["target.max_seq_len"], self.batch_size,
+        [self.batch_size, model.params["target.max_seq_len"],
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
         predictions_["predictions"].shape,
-        [model.params["target.max_seq_len"], self.batch_size])
+        [self.batch_size, model.params["target.max_seq_len"]])
 
   def test_pipeline_beam_search_infer(self):
     self.batch_size = 1
