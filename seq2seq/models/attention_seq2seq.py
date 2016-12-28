@@ -29,12 +29,17 @@ class AttentionSeq2Seq(Seq2SeqBase):
     super(AttentionSeq2Seq, self).__init__(source_vocab_info, target_vocab_info,
                                            params, name)
 
+    assert hasattr(encoders, params["encoder.type"]), (
+        "Invalid encoder type: {}".format(params["encoder.type"]))
+    self.encoder_class = getattr(encoders, params["encoder.type"])
+
   @staticmethod
   def default_params():
     params = Seq2SeqBase.default_params().copy()
     params.update({
         "attention.dim": 128,
         "attention.score_type": "bahdanau",
+        "encoder.type": "BidirectionalRNNEncoder",
         "rnn_cell.type": "LSTMCell",
         "rnn_cell.num_units": 128,
         "rnn_cell.dropout_input_keep_prob": 1.0,
@@ -59,7 +64,7 @@ class AttentionSeq2Seq(Seq2SeqBase):
         dropout_output_keep_prob=(
             self.params["rnn_cell.dropout_output_keep_prob"]
             if enable_dropout else 1.0))
-    encoder_fn = encoders.BidirectionalRNNEncoder(encoder_cell)
+    encoder_fn = self.encoder_class(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 
     decoder_cell = encoder_cell
