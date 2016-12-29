@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-""" Generates model predictions.
+""" Generates attention score visualizations.
 """
 
 import os
