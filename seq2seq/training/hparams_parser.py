@@ -37,6 +37,8 @@ class HParamsParser(object):
       # need to cast to float first.
       if value_type == int:
         value = int(float(value))
+      elif value_type == bool:
+        value = (value == "True")
       else:
         value = value_type(value)
       final_params.update({key: value})

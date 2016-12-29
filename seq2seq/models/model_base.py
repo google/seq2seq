@@ -188,6 +188,11 @@ class Seq2SeqBase(ModelBase):
     # Pre-process features and labels
     features, labels = self.create_featurizer()(features, labels)
 
+    # Add to graph collection for later use
+    graph_utils.add_dict_to_collection(features, "features")
+    if labels:
+      graph_utils.add_dict_to_collection(labels, "labels")
+
     if self.params["source.reverse"] is True:
       features["source_ids"] = tf.reverse_sequence(
           input=features["source_ids"],
@@ -290,8 +295,6 @@ class Seq2SeqBase(ModelBase):
     # We add "useful" tensors to the graph collection so that we
     # can easly find them in our hooks/monitors.
     graph_utils.add_dict_to_collection(predictions, "model_output")
-    graph_utils.add_dict_to_collection(features, "features")
-    graph_utils.add_dict_to_collection(labels, "labels")
 
     # Summaries
     tf.summary.scalar("loss", loss)
