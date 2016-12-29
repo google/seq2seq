@@ -130,7 +130,8 @@ def create_experiment(output_dir):
     result = model(features, labels, params, mode)
 
     # Create a custom saver
-    # This is necessary to support "keep_checkpoint_max"
+    # This is necessary to support "keep_checkpoint_every_n_hours"
+    # which is currently ignored by Tensorflow
     saver = tf.train.Saver(
         sharded=True,
         max_to_keep=FLAGS.keep_checkpoint_max,
