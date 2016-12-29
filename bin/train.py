@@ -131,7 +131,8 @@ def create_experiment(output_dir):
 
     # Create a custom saver
     # This is necessary to support "keep_checkpoint_every_n_hours"
-    # which is currently ignored by Tensorflow
+    # which is currently ignored by Tensorflow, see
+    # https://github.com/tensorflow/tensorflow/issues/6549
     saver = tf.train.Saver(
         sharded=True,
         max_to_keep=FLAGS.keep_checkpoint_max,
