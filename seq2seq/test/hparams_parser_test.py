@@ -15,14 +15,17 @@ class HParamsParserTest(unittest.TestCase):
         "rnn_dim": 128,
         "num_layers": 2,
         "rnn_cell_type": "LSTM",
-        "dropout": 0.8
+        "dropout": 0.8,
+        "bool": True
     }
     parser = HParamsParser(default_params)
-    final_params = parser.parse("rnn_dim=256,rnn_cell_type=GRU,dropout=0.77")
+    final_params = parser.parse(
+        "rnn_dim=256,rnn_cell_type=GRU,dropout=0.77,bool=False")
     self.assertEqual(final_params["rnn_dim"], 256)
     self.assertEqual(final_params["rnn_cell_type"], "GRU")
     self.assertEqual(final_params["dropout"], 0.77)
     self.assertEqual(final_params["num_layers"], 2)
+    self.assertEqual(final_params["bool"], False)
 
   def test_parse_with_newlines(self):
     default_params = {

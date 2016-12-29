@@ -8,6 +8,7 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 from seq2seq import models
+from seq2seq.data import data_utils
 from seq2seq.data import vocab
 from seq2seq.training import utils as training_utils
 from seq2seq.training import HParamsParser
@@ -31,6 +32,8 @@ def load_model(vocab_source, vocab_target, model_class, model_dir, params=None):
 
   if params is not None:
     hparams.update(params)
+
+  training_utils.print_hparams(hparams)
 
   # Create model instance
   model = model_class(
@@ -86,3 +89,45 @@ def create_predictions_iter(predictions_dict, sess):
           yield {key: value[i] for key, value in predictions_.items()}
       except tf.errors.OutOfRangeError:
         break
+
+
+def create_inference_graph(
+    model_class,
+    model_dir,
+    input_file,
+    vocab_source,
+    vocab_target,
+    batch_size=32,
+    beam_width=None):
+
+  params_overrides = {}
+  if beam_width is not None:
+    tf.logging.info("Setting batch size to 1 for beam search.")
+    batch_size = 1
+    params_overrides["inference.beam_search.beam_width"] = beam_width
+
+  model = load_model(
+      vocab_source=vocab_source,
+      vocab_target=vocab_target,
+      model_class=model_class,
+      model_dir=model_dir,
+      params=params_overrides)
+
+  data_provider = lambda: data_utils.make_parallel_data_provider(
+      data_sources_source=[input_file],
+      data_sources_target=None,
+      shuffle=False,
+      num_epochs=1)
+
+  input_fn = training_utils.create_input_fn(
+      data_provider_fn=data_provider,
+      batch_size=batch_size,
+      allow_smaller_final_batch=True)
+
+  # Build the graph
+  features, labels = input_fn()
+  return model(
+      features=features,
+      labels=labels,
+      params=None,
+      mode=tf.contrib.learn.ModeKeys.INFER)

@@ -4,10 +4,8 @@
 
 import tensorflow as tf
 
-from seq2seq.inference import load_model, create_predictions_iter
+from seq2seq.inference import create_inference_graph, create_predictions_iter
 from seq2seq.inference import print_translations
-from seq2seq.data import data_utils
-from seq2seq.training import utils as training_utils
 
 tf.flags.DEFINE_string("source", None, "path to source training data")
 tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
@@ -28,37 +26,16 @@ tf.logging.set_verbosity(tf.logging.INFO)
 def main(_argv):
   """Program entrypoint.
   """
-  params_overrides = {}
-  if FLAGS.beam_width is not None:
-    tf.logging.info("Setting batch size to 1 for beam search.")
-    FLAGS.batch_size = 1
-    params_overrides["inference.beam_search.beam_width"] = FLAGS.beam_width
 
-  model = load_model(
-      vocab_source=FLAGS.vocab_source,
-      vocab_target=FLAGS.vocab_target,
+  predictions, _, _ = create_inference_graph(
       model_class=FLAGS.model,
       model_dir=FLAGS.model_dir,
-      params=params_overrides)
-
-  data_provider = lambda: data_utils.make_parallel_data_provider(
-      data_sources_source=[FLAGS.source],
-      data_sources_target=None,
-      shuffle=False,
-      num_epochs=1)
-
-  input_fn = training_utils.create_input_fn(
-      data_provider_fn=data_provider,
+      vocab_source=FLAGS.vocab_source,
+      vocab_target=FLAGS.vocab_target,
+      input_file=FLAGS.source,
       batch_size=FLAGS.batch_size,
-      allow_smaller_final_batch=True)
-
-  # Build the graph
-  features, labels = input_fn()
-  predictions, _, _ = model(
-      features=features,
-      labels=labels,
-      params=None,
-      mode=tf.contrib.learn.ModeKeys.INFER)
+      beam_width=FLAGS.beam_width
+  )
 
   saver = tf.train.Saver()
 
