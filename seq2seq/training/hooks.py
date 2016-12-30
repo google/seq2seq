@@ -1,7 +1,6 @@
 """ Collection of SessionRunHooks
 """
 
-import itertools
 import os
 import tensorflow as tf
 
@@ -12,7 +11,6 @@ from tensorflow.python.client import timeline
 from tensorflow.python.platform import gfile
 
 from seq2seq import graph_utils
-from seq2seq.inference import inference
 
 class SecondOrStepTimer(basic_session_run_hooks._SecondOrStepTimer): # pylint: disable=protected-access
   """Helper class to count both seconds and steps.
