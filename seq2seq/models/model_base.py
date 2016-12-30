@@ -144,17 +144,34 @@ class Seq2SeqBase(ModelBase):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
-  def _create_predictions(self, decoder_output, losses=None):
+  def _create_predictions(self, decoder_output, features, labels, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
     """
-    predictions = _flatten_dict(decoder_output._asdict())
+    predictions = {}
+
+    # Add features and, if available, labels to predictions
+    predictions.update(_flatten_dict({"features": features}))
+    if labels is not None:
+      predictions.update(_flatten_dict({"labels": labels}))
 
     if losses is not None:
       predictions["losses"] = losses
 
     # Decoders returns output in time-major form [T, B, ...]
     # Here we transpose everything back to batch-major for the user
-    predictions = {k: time_to_batch(v) for k, v in  predictions.items()}
+    # print(predictions)
+    decoder_output_flat = _flatten_dict(decoder_output._asdict())
+    decoder_output_flat = {
+        k: time_to_batch(v) for k, v in  decoder_output_flat.items()
+    }
+    predictions.update(decoder_output_flat)
+
+    # If we predict the ids also map them back into the vocab
+    if "predicted_ids" in predictions.keys():
+      vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
+      target_id_to_vocab = vocab_tables["target_id_to_vocab"]
+      predicted_tokens = target_id_to_vocab.lookup(predictions["predicted_ids"])
+      predictions["predicted_tokens"] = predicted_tokens
 
     return predictions
 
@@ -193,8 +210,9 @@ class Seq2SeqBase(ModelBase):
     if labels:
       graph_utils.add_dict_to_collection(labels, "labels")
 
+    source_ids = features["source_ids"]
     if self.params["source.reverse"] is True:
-      features["source_ids"] = tf.reverse_sequence(
+      source_ids = tf.reverse_sequence(
           input=features["source_ids"],
           seq_lengths=features["source_len"],
           seq_dim=1,
@@ -210,8 +228,7 @@ class Seq2SeqBase(ModelBase):
         [self.target_vocab_info.total_size, self.params["embedding.dim"]])
 
     # Embed source
-    source_embedded = tf.nn.embedding_lookup(source_embedding,
-                                             features["source_ids"])
+    source_embedded = tf.nn.embedding_lookup(source_embedding, source_ids)
 
     # Graph used for inference
     if mode == tf.contrib.learn.ModeKeys.INFER:
@@ -237,7 +254,9 @@ class Seq2SeqBase(ModelBase):
           target_len=self.params["target.max_seq_len"],
           mode=mode)
       predictions = self._create_predictions(
-          decoder_output=decoder_output)
+          decoder_output=decoder_output,
+          features=features,
+          labels=labels)
       return predictions, None, None
 
     # Embed target
@@ -290,13 +309,12 @@ class Seq2SeqBase(ModelBase):
 
     predictions = self._create_predictions(
         decoder_output=decoder_output,
+        features=features,
+        labels=labels,
         losses=losses)
 
     # We add "useful" tensors to the graph collection so that we
     # can easly find them in our hooks/monitors.
-    graph_utils.add_dict_to_collection(predictions, "model_output")
-
-    # Summaries
-    tf.summary.scalar("loss", loss)
+    graph_utils.add_dict_to_collection(predictions, "predictions")
 
     return predictions, loss, train_op

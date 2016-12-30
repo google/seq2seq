@@ -41,28 +41,14 @@ class TestTrainSampleHook(tf.test.TestCase):
     super(TestTrainSampleHook, self).setUp()
 
     # The hook expects these collections to be in the graph
-    pred_dict = {"predictions": tf.constant([[2, 3]], dtype=tf.int64)}
-    graph_utils.add_dict_to_collection(pred_dict, "model_output")
-    graph_utils.add_dict_to_collection({
-        "source_ids": tf.constant([[1, 2]])
-    }, "features")
-    graph_utils.add_dict_to_collection({
-        "target_tokens": tf.constant([["Hello", "World"]]),
-        "target_len": tf.constant([2])
-    }, "labels")
-
-    # Create vocabulary
-    self.vocab_file = test_utils.create_temporary_vocab_file(
-        ["Hello", "World", "!"])
-    _, target_id_to_vocab, _ = vocab.create_vocabulary_lookup_table(
-        self.vocab_file.name)
-    graph_utils.add_dict_to_collection({
-        "target_id_to_vocab": target_id_to_vocab,
-    }, "vocab_tables")
+    pred_dict = {}
+    pred_dict["predicted_tokens"] = tf.constant([["Hello", "World"]])
+    pred_dict["labels.target_tokens"] = tf.constant([["Hello", "World"]])
+    pred_dict["labels.target_len"] = tf.constant([2]),
+    graph_utils.add_dict_to_collection(pred_dict, "predictions")
 
   def tearDown(self):
     super(TestTrainSampleHook, self).tearDown()
-    self.vocab_file.close()
 
   def test_sampling(self):
     outfile = tempfile.NamedTemporaryFile()

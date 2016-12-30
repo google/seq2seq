@@ -37,6 +37,12 @@ def main(_argv):
       beam_width=FLAGS.beam_width
   )
 
+  # Filter fetched predictions to save memory
+  prediction_keys = set(
+      ["predicted_tokens", "features.source_len", "features.source_tokens",
+       "attention_scores"])
+  predictions = {k: v for k, v in predictions.items() if k in prediction_keys}
+
   saver = tf.train.Saver()
 
   checkpoint_path = FLAGS.checkpoint_path
@@ -57,7 +63,6 @@ def main(_argv):
     predictions_iter = create_predictions_iter(predictions, sess)
     print_translations(
         predictions_iter=predictions_iter,
-        vocab_path=FLAGS.vocab_target,
         use_beams=(FLAGS.beam_width is not None))
 
 if __name__ == "__main__":

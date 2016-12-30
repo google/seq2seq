@@ -12,7 +12,6 @@ from tensorflow.python.platform import gfile
 
 from seq2seq import graph_utils
 
-
 class SecondOrStepTimer(basic_session_run_hooks._SecondOrStepTimer): # pylint: disable=protected-access
   """Helper class to count both seconds and steps.
   """
@@ -162,35 +161,26 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
 
   def __init__(self, every_n_secs=None, every_n_steps=None, file=None):
     super(TrainSampleHook, self).__init__()
+    self.file = file
     self._timer = SecondOrStepTimer(
         every_secs=every_n_secs, every_steps=every_n_steps)
-    self.predictions_dict = {}
-    self.features_dict = {}
-    self.labels_dict = {}
-    self.vocab_tables = {}
-    self.predicted_words = None
+    self._pred_dict = {}
     self._should_trigger = False
     self._iter_count = 0
     self._global_step = None
-    self.file = file
 
   def begin(self):
     self._iter_count = 0
     self._global_step = training_util.get_global_step()
-    self.predictions_dict = graph_utils.get_dict_from_collection("model_output")
-    self.features_dict = graph_utils.get_dict_from_collection("features")
-    self.labels_dict = graph_utils.get_dict_from_collection("labels")
-    self.vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
-    self.predicted_words = self.vocab_tables["target_id_to_vocab"].lookup(
-        self.predictions_dict["predictions"])
+    self._pred_dict = graph_utils.get_dict_from_collection("predictions")
 
   def before_run(self, _run_context):
     self._should_trigger = self._timer.should_trigger_for_step(self._iter_count)
     if self._should_trigger:
       fetches = {
-          "predicted_words": self.predicted_words,
-          "target_words": self.labels_dict["target_tokens"],
-          "target_len": self.labels_dict["target_len"]
+          "predicted_tokens": self._pred_dict["predicted_tokens"],
+          "target_words": self._pred_dict["labels.target_tokens"],
+          "target_len": self._pred_dict["labels.target_len"]
       }
       return session_run_hook.SessionRunArgs([fetches, self._global_step])
     return session_run_hook.SessionRunArgs([{}, self._global_step])
@@ -213,7 +203,7 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     result_str += ("=" * 100) + "\n"
     for result in result_dicts:
       target_len = result["target_len"]
-      predicted_slice = result["predicted_words"][:target_len - 1]
+      predicted_slice = result["predicted_tokens"][:target_len - 1]
       target_slice = result["target_words"][1:target_len]
       result_str += b" ".join(predicted_slice).decode("utf-8") + "\n"
       result_str += b" ".join(target_slice).decode("utf-8") + "\n\n"

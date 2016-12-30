@@ -44,21 +44,14 @@ def load_model(vocab_source, vocab_target, model_class, model_dir, params=None):
   return model
 
 
-def print_translations(predictions_iter, vocab_path, use_beams=False):
+def print_translations(predictions_iter, use_beams=False):
   """Prints translations, one per line.
   """
-  # Load the vocabulary in memory
-  with gfile.GFile(vocab_path) as file:
-    vocab_table = [l.strip() for l in file.readlines()]
-  vocab_table += ["UNK", "SEQUENCE_START", "SEQUENCE_END"]
-
-  # Print each predictions
   for prediction_dict in predictions_iter:
-    token_ids = prediction_dict["predictions"]
+    tokens = prediction_dict["predicted_tokens"].astype("U")
     # If we're using beam search we take the first beam
     if use_beams:
-      token_ids = token_ids[:, 0]
-    tokens = [vocab_table[i] for i in token_ids]
+      tokens = tokens[:, 0]
     # Take sentence until SEQUENCE_END
     tokens = list(itertools.takewhile(lambda x: x != "SEQUENCE_END", tokens))
     sent = " ".join(tokens)

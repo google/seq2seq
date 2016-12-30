@@ -156,7 +156,7 @@ def create_experiment(output_dir):
       config=config)
 
   train_hooks = training_utils.create_default_training_hooks(
-      output_dir=output_dir,
+      estimator=estimator,
       sample_frequency=FLAGS.sample_every_n_steps)
 
   eval_metrics = {

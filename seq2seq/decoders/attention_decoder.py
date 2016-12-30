@@ -10,7 +10,7 @@ from seq2seq.decoders import DecoderBase, DecoderStepOutput
 class AttentionDecoderOutput(
     namedtuple(
         "DecoderOutput",
-        ["logits", "predictions", "attention_scores", "attention_context"])):
+        ["logits", "predicted_ids", "attention_scores", "attention_context"])):
   """Augmented decoder output that also includes the attention scores.
   """
   pass
@@ -53,7 +53,7 @@ class AttentionDecoder(DecoderBase):
     self.attention_inputs_max_len = attention_inputs_max_len
 
   def pack_outputs(self, outputs_ta, final_loop_state):
-    logits, predictions = DecoderBase.pack_outputs(self, outputs_ta,
+    logits, predicted_ids = DecoderBase.pack_outputs(self, outputs_ta,
                                                    final_loop_state)
 
     attention_scores = outputs_ta.attention_scores.pack()
@@ -62,7 +62,7 @@ class AttentionDecoder(DecoderBase):
     attention_scores = attention_scores[:, :, :attention_input_len]
 
     attention_context = outputs_ta.attention_context.pack()
-    return AttentionDecoderOutput(logits, predictions, attention_scores,
+    return AttentionDecoderOutput(logits, predicted_ids, attention_scores,
                                   attention_context)
 
   def compute_output(self, cell_output):
@@ -93,12 +93,12 @@ class AttentionDecoder(DecoderBase):
   def output_shapes(self):
     return AttentionDecoderOutput(
         logits=tf.zeros([self.vocab_size]),
-        predictions=tf.zeros([], dtype=tf.int64),
+        predicted_ids=tf.zeros([], dtype=tf.int64),
         attention_scores=tf.zeros([self.attention_inputs_max_len]),
         attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
 
   def create_next_input(self, time_, initial_call, output):
-    next_input = self.input_fn(time_, initial_call, output.predictions)
+    next_input = self.input_fn(time_, initial_call, output.predicted_ids)
     if initial_call:
       attention_context = tf.zeros([
           tf.shape(next_input)[0],
@@ -125,14 +125,14 @@ class AttentionDecoder(DecoderBase):
       cell_output = tf.zeros(
           [tf.shape(self.attention_inputs)[0], self.cell.output_size])
       _, _, attention_context = self.compute_output(cell_output)
-      predictions = None
+      predicted_ids = None
     else:
       logits, att_scores, attention_context = self.compute_output(cell_output)
       attention_scores = self._pad_att_scores(att_scores)
-      predictions = self.prediction_fn(logits)
+      predicted_ids = self.prediction_fn(logits)
       outputs = AttentionDecoderOutput(
           logits=logits,
-          predictions=predictions,
+          predicted_ids=predicted_ids,
           attention_scores=attention_scores,
           attention_context=attention_context)
 
