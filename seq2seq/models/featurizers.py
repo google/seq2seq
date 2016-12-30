@@ -66,11 +66,6 @@ class Seq2SeqFeaturizer(GraphModule):
         "source_tokens"])
 
     features["source_len"] = tf.to_int32(features["source_len"])
-    features["target_start_id"] = tf.to_int32(
-        self.target_vocab_info.special_vocab.SEQUENCE_START)
-    features["target_end_id"] = tf.to_int32(
-        self.target_vocab_info.special_vocab.SEQUENCE_END)
-
     tf.summary.histogram("source_len", features["source_len"])
 
     if labels is None:

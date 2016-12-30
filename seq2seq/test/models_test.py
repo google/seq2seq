@@ -89,7 +89,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         model.target_vocab_info.total_size
     ])
     np.testing.assert_array_equal(
-        decoder_output_.predictions.shape,
+        decoder_output_.predicted_ids.shape,
         [np.max(expected_decode_len), self.batch_size])
 
   def test_inference(self):
@@ -101,10 +101,10 @@ class EncoderDecoderTests(tf.test.TestCase):
     embeddings = tf.get_variable(
         "W_embed", [model.target_vocab_info.total_size, self.input_depth])
 
-    def make_input_fn(predictions):
+    def make_input_fn(predicted_ids):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predictions)
+      return tf.nn.embedding_lookup(embeddings, predicted_ids)
 
     decoder_input_fn = DynamicDecoderInputs(
         initial_inputs=tf.zeros(
@@ -128,7 +128,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         self.max_decode_length, self.batch_size,
         model.target_vocab_info.total_size
     ])
-    np.testing.assert_array_equal(decoder_output_.predictions.shape,
+    np.testing.assert_array_equal(decoder_output_.predicted_ids.shape,
                                   [self.max_decode_length, self.batch_size])
 
   def test_inference_with_beam_search(self):
@@ -144,10 +144,10 @@ class EncoderDecoderTests(tf.test.TestCase):
     embeddings = tf.get_variable(
         "W_embed", [model.target_vocab_info.total_size, self.input_depth])
 
-    def make_input_fn(predictions):
+    def make_input_fn(predicted_ids):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predictions)
+      return tf.nn.embedding_lookup(embeddings, predicted_ids)
 
     decoder_input_fn = DynamicDecoderInputs(
         initial_inputs=tf.zeros(
@@ -172,7 +172,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         [self.max_decode_length, 1, beam_width,
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
-        decoder_output_.predictions.shape,
+        decoder_output_.predicted_ids.shape,
         [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.beam_parent_ids.shape,
@@ -181,7 +181,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         decoder_output_.scores.shape,
         [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
-        decoder_output_.original_outputs.predictions.shape,
+        decoder_output_.original_outputs.predicted_ids.shape,
         [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.original_outputs.logits.shape,
@@ -211,7 +211,7 @@ class EncoderDecoderTests(tf.test.TestCase):
     # Get a loss to optimize
     losses = seq2seq_losses.cross_entropy_sequence_loss(
         logits=decoder_output.logits,
-        targets=tf.ones_like(decoder_output.predictions),
+        targets=tf.ones_like(decoder_output.predicted_ids),
         sequence_length=tf.convert_to_tensor(
             ex.target_len, dtype=tf.int32))
     mean_loss = tf.reduce_mean(losses)
@@ -274,7 +274,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         [self.batch_size, expected_decode_len,
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
-        predictions_["predictions"].shape,
+        predictions_["predicted_ids"].shape,
         [self.batch_size, expected_decode_len])
     self.assertFalse(np.isnan(loss_))
 
@@ -287,7 +287,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         [self.batch_size, model.params["target.max_seq_len"],
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
-        predictions_["predictions"].shape,
+        predictions_["predicted_ids"].shape,
         [self.batch_size, model.params["target.max_seq_len"]])
 
   def test_pipeline_beam_search_infer(self):
@@ -304,7 +304,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         predictions_["logits"].shape,
         [1, seq_length, beam_width, vocab_size])
     np.testing.assert_array_equal(
-        predictions_["predictions"].shape,
+        predictions_["predicted_ids"].shape,
         [1, seq_length, beam_width])
     np.testing.assert_array_equal(
         predictions_["beam_parent_ids"].shape,
@@ -313,7 +313,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         predictions_["scores"].shape,
         [1, seq_length, beam_width])
     np.testing.assert_array_equal(
-        predictions_["original_outputs.predictions"].shape,
+        predictions_["original_outputs.predicted_ids"].shape,
         [1, seq_length, beam_width])
     np.testing.assert_array_equal(
         predictions_["original_outputs.logits"].shape,

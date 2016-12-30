@@ -38,16 +38,13 @@ def create_figure(predictions_dict):
   """
 
   # Find out how long the predicted sequence is
-  target_words = [_.decode() for _ in predictions_dict["target_words"]]
-  if "SEQUENCE_END" in target_words:
-    prediction_len = target_words.index("SEQUENCE_END") + 1
-  else:
-    prediction_len = None
-  target_words = target_words[:prediction_len]
-
+  target_words = list(predictions_dict["predicted_tokens"].astype("U"))
+  prediction_len = next(
+      ((i + 1) for i, _ in enumerate(target_words) if _ == "SEQUENCE_END"),
+      None)
   # Get source words
-  source_len = predictions_dict["source_len"]
-  source_words = predictions_dict["source_tokens"][:source_len]
+  source_len = predictions_dict["features.source_len"]
+  source_words = predictions_dict["features.source_tokens"][:source_len]
   source_words = [_.decode() for _ in source_words]
 
   # Plot
@@ -79,13 +76,9 @@ def main(_argv):
       beam_width=FLAGS.beam_width
   )
 
-  vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
-  features = graph_utils.get_dict_from_collection("features")
-
-  predictions["source_tokens"] = features["source_tokens"]
-  predictions["source_len"] = features["source_len"]
-  predictions["target_words"] = vocab_tables["target_id_to_vocab"].lookup(
-      predictions["predictions"])
+  # Filter fetched predictions to save memory
+  prediction_keys = set(["predicted_tokens"])
+  predictions = {k: v for k, v in predictions.items() if k in prediction_keys}
 
   saver = tf.train.Saver()
 

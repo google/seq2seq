@@ -28,7 +28,7 @@ class TestBeamStep(tf.test.TestCase):
         time=tf.constant(2),
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
         scores=tf.zeros(self.config.beam_width),
-        predictions=tf.convert_to_tensor(
+        predicted_ids=tf.convert_to_tensor(
             [[1, 2, -1, -1, -1], [3, 4, -1, -1, -1], [5, 6, -1, -1, -1]]),
         beam_parent_ids=tf.zeros(self.config.beam_width))
     logits = tf.sparse_to_dense(
@@ -44,7 +44,7 @@ class TestBeamStep(tf.test.TestCase):
 
     expected_predictions = np.array(
         [[3, 4, 3, -1, -1], [1, 2, 3, -1, -1], [1, 2, 2, -1, -1]])
-    np.testing.assert_array_equal(res.predictions, expected_predictions)
+    np.testing.assert_array_equal(res.predicted_ids, expected_predictions)
     np.testing.assert_array_equal(res.beam_parent_ids, [1, 0, 0])
 
   def test_step_with_eos(self):
@@ -52,7 +52,7 @@ class TestBeamStep(tf.test.TestCase):
         time=tf.constant(2),
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
         scores=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
-        predictions=tf.convert_to_tensor(
+        predicted_ids=tf.convert_to_tensor(
             [[1, 2, -1, -1, -1], [3, 0, -1, -1, -1], [5, 6, -1, -1, -1]]),
         beam_parent_ids=tf.zeros(self.config.beam_width))
     logits = tf.sparse_to_dense(
@@ -67,7 +67,7 @@ class TestBeamStep(tf.test.TestCase):
       res = sess.run(next_beam_state)
       expected_predictions = np.array(
           [[3, 0, 0, -1, -1], [1, 2, 2, -1, -1], [5, 6, 2, -1, -1]])
-      np.testing.assert_array_equal(res.predictions, expected_predictions)
+      np.testing.assert_array_equal(res.predicted_ids, expected_predictions)
       previous_log_probs = sess.run(beam_state.log_probs)
       np.testing.assert_array_equal(res.log_probs[0], previous_log_probs[0])
 

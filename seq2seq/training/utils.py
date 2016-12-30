@@ -186,16 +186,17 @@ def read_hparams(path):
   return ",".join(lines)
 
 
-def create_default_training_hooks(output_dir, sample_frequency=500):
+def create_default_training_hooks(estimator, sample_frequency=500):
   """Creates common SessionRunHooks used for training.
 
   Args:
-    output_dir: model output directory passed to the estimator
+    estimator: The estimator instance
     sample_frequency: frequency of samples passed to the TrainSampleHook
 
   Returns:
     An array of `SessionRunHook` items.
   """
+  output_dir = estimator.model_dir
   training_hooks = []
 
   model_analysis_hook = hooks.PrintModelAnalysisHook(

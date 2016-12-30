@@ -8,7 +8,7 @@ import tensorflow as tf
 
 class BeamState(
     namedtuple("BeamState", [
-        "time", "log_probs", "scores", "predictions", "beam_parent_ids"
+        "time", "log_probs", "scores", "predicted_ids", "beam_parent_ids"
     ])):
   """Dscribes the state at each step of a beam search.
 
@@ -21,7 +21,7 @@ class BeamState(
       different from the log probabilities in that the score may include
       extra computation, e.g. length normalization.
       A float32 tensor of shape `[beam_width]`.
-    predictions: The chosen word ids at the current time step. An int32 tensor
+    predicted_ids: The chosen word ids at the current time step. An int32 tensor
       of shape `[beam_width]`.
     beam_parent_ids: The indices of the continued parent beams.
       An int32 tensor of shape `[beam_width]`.
@@ -63,7 +63,7 @@ def create_initial_beam_state(config, max_time):
       time=tf.constant(0, dtype=tf.int32),
       log_probs=tf.zeros([config.beam_width]),
       scores=tf.zeros([config.beam_width]),
-      predictions=tf.ones([config.beam_width, max_time], dtype=tf.int32) * -1,
+      predicted_ids=tf.ones([config.beam_width, max_time], dtype=tf.int32) * -1,
       beam_parent_ids=tf.zeros([config.beam_width], dtype=tf.int32))
 
 def logprob_score(log_probs, _sequence_lengths):
@@ -171,7 +171,7 @@ def beam_search_step(logits, beam_state, config):
   time_ = beam_state.time + 1
 
   # Calculate the current lengths of the predictions
-  prediction_lengths = sequence_length(beam_state.predictions, config.eos_token,
+  prediction_lengths = sequence_length(beam_state.predicted_ids, config.eos_token,
                                        False)
   prediction_lengths = tf.to_int32(prediction_lengths)
 
@@ -218,7 +218,7 @@ def beam_search_step(logits, beam_state, config):
   next_beam_ids = tf.div(word_indices, config.vocab_size)
 
   # Append new ids to current predictions
-  next_predictions = tf.gather(beam_state.predictions, next_beam_ids)
+  next_predictions = tf.gather(beam_state.predicted_ids, next_beam_ids)
   next_predictions = tf.concat_v2([
       next_predictions[:, 0:time_ - 1],
       tf.to_int32(tf.expand_dims(next_word_ids, 1)), next_predictions[:, time_:]
@@ -228,7 +228,7 @@ def beam_search_step(logits, beam_state, config):
       time=time_,
       log_probs=next_beam_probs,
       scores=next_beam_scores,
-      predictions=next_predictions,
+      predicted_ids=next_predictions,
       beam_parent_ids=next_beam_ids)
 
   return next_beam_state
