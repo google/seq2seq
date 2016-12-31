@@ -90,13 +90,52 @@ class ParallelDataProviderTest(tf.test.TestCase):
         item_dicts_ = [sess.run(items_dict) for _ in range(num_epochs * 3)]
 
     for item_dict in item_dicts_:
-      self.assertEqual(item_dict["source_len"], 1)
-      self.assertEqual(item_dict["target_len"], 1)
       item_dict["target_tokens"] = item_dict["target_tokens"].astype("U")
       item_dict["source_tokens"] = item_dict["source_tokens"].astype("U")
-      self.assertEqual(item_dict["target_tokens"][0],
-                       self.source_to_target[item_dict["source_tokens"][0]])
 
+      # Source is Data + SEQUENCE_END
+      self.assertEqual(item_dict["source_len"], 2)
+      self.assertEqual(item_dict["source_tokens"][-1], "SEQUENCE_END")
+      # Target is SEQUENCE_START + Data + SEQUENCE_END
+      self.assertEqual(item_dict["target_len"], 3)
+      self.assertEqual(item_dict["target_tokens"][0], "SEQUENCE_START")
+      self.assertEqual(item_dict["target_tokens"][-1], "SEQUENCE_END")
+
+      # Make sure data is aligned
+      source_joined = " ".join(item_dict["source_tokens"][:-1])
+      expected_target = self.source_to_target[source_joined]
+      np.testing.assert_array_equal(
+          item_dict["target_tokens"],
+          ["SEQUENCE_START"] +
+          expected_target.split(" ") +
+          ["SEQUENCE_END"])
+
+  def test_reading_without_targets(self):
+    num_epochs = 50
+    data_provider = data_utils.make_parallel_data_provider(
+        data_sources_source=[self.source_file.name],
+        data_sources_target=None,
+        num_epochs=num_epochs,
+        shuffle=True)
+
+    item_keys = list(data_provider.list_items())
+    item_values = data_provider.get(item_keys)
+    items_dict = dict(zip(item_keys, item_values))
+
+    self.assertEqual(
+        set(item_keys),
+        set(["source_tokens", "source_len"]))
+
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      sess.run(tf.local_variables_initializer())
+      with tf.contrib.slim.queues.QueueRunners(sess):
+        item_dicts_ = [sess.run(items_dict) for _ in range(num_epochs * 3)]
+
+    for item_dict in item_dicts_:
+      self.assertEqual(item_dict["source_len"], 2)
+      item_dict["source_tokens"] = item_dict["source_tokens"].astype("U")
+      self.assertEqual(item_dict["source_tokens"][-1], "SEQUENCE_END")
 
 class ReadFromDataProviderTest(tf.test.TestCase):
   """
@@ -123,11 +162,14 @@ class ReadFromDataProviderTest(tf.test.TestCase):
       with tf.contrib.slim.queues.QueueRunners(sess):
         res = sess.run(features)
 
-    self.assertEqual(res["source_len"], 3)
-    self.assertEqual(res["target_len"], 1)
-    np.testing.assert_array_equal(res["source_tokens"].astype("U"),
-                                  ["Hello", "World", "."])
-    np.testing.assert_array_equal(res["target_tokens"].astype("U"), ["Bye"])
+    self.assertEqual(res["source_len"], 4)
+    self.assertEqual(res["target_len"], 3)
+    np.testing.assert_array_equal(
+        res["source_tokens"].astype("U"),
+        ["Hello", "World", ".", "SEQUENCE_END"])
+    np.testing.assert_array_equal(
+        res["target_tokens"].astype("U"),
+        ["SEQUENCE_START", "Bye", "SEQUENCE_END"])
 
 
 if __name__ == "__main__":

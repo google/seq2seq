@@ -50,9 +50,9 @@ class DecoderTests(object):
 
     np.testing.assert_array_equal(
         decoder_output_.logits.shape,
-        [self.batch_size, self.sequence_length, self.vocab_size])
-    np.testing.assert_array_equal(decoder_output_.predictions.shape,
-                                  [self.batch_size, self.sequence_length])
+        [self.sequence_length, self.batch_size, self.vocab_size])
+    np.testing.assert_array_equal(decoder_output_.predicted_ids.shape,
+                                  [self.sequence_length, self.batch_size])
 
     return decoder_output_
 
@@ -89,10 +89,10 @@ class DecoderTests(object):
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
-    def make_input_fn(predictions):
+    def make_input_fn(predicted_ids):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predictions)
+      return tf.nn.embedding_lookup(embeddings, predicted_ids)
 
     decoder_input_fn = DynamicDecoderInputs(initial_input, make_input_fn)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
@@ -105,9 +105,9 @@ class DecoderTests(object):
 
     np.testing.assert_array_equal(
         decoder_output_.logits.shape,
-        [self.batch_size, self.sequence_length, self.vocab_size])
-    np.testing.assert_array_equal(decoder_output_.predictions.shape,
-                                  [self.batch_size, self.sequence_length])
+        [self.sequence_length, self.batch_size, self.vocab_size])
+    np.testing.assert_array_equal(decoder_output_.predicted_ids.shape,
+                                  [self.sequence_length, self.batch_size])
 
   def test_with_beam_search(self):
     # Batch size for beam search must be 1.
@@ -123,10 +123,10 @@ class DecoderTests(object):
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
-    def make_input_fn(predictions):
+    def make_input_fn(predicted_ids):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predictions)
+      return tf.nn.embedding_lookup(embeddings, predicted_ids)
 
     decoder_input_fn = DynamicDecoderInputs(initial_input, make_input_fn)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
@@ -142,22 +142,22 @@ class DecoderTests(object):
 
     np.testing.assert_array_equal(
         decoder_output_.logits.shape,
-        [1, config.beam_width, self.sequence_length, self.vocab_size])
+        [self.sequence_length, 1, config.beam_width, self.vocab_size])
     np.testing.assert_array_equal(
-        decoder_output_.predictions.shape,
-        [1, config.beam_width, self.sequence_length])
+        decoder_output_.predicted_ids.shape,
+        [self.sequence_length, 1, config.beam_width])
     np.testing.assert_array_equal(
         decoder_output_.beam_parent_ids.shape,
-        [1, config.beam_width, self.sequence_length])
+        [self.sequence_length, 1, config.beam_width])
     np.testing.assert_array_equal(
         decoder_output_.scores.shape,
-        [1, config.beam_width, self.sequence_length])
+        [self.sequence_length, 1, config.beam_width])
     np.testing.assert_array_equal(
-        decoder_output_.original_outputs.predictions.shape,
-        [1, config.beam_width, self.sequence_length])
+        decoder_output_.original_outputs.predicted_ids.shape,
+        [self.sequence_length, 1, config.beam_width])
     np.testing.assert_array_equal(
         decoder_output_.original_outputs.logits.shape,
-        [1, config.beam_width, self.sequence_length, self.vocab_size])
+        [self.sequence_length, 1, config.beam_width, self.vocab_size])
 
     return decoder_output
 
@@ -207,12 +207,12 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
     decoder_output_ = self.test_with_fixed_inputs()
     np.testing.assert_array_equal(
         decoder_output_.attention_scores.shape,
-        [self.batch_size, self.sequence_length, self.input_seq_len])
+        [self.sequence_length, self.batch_size, self.input_seq_len])
 
     # Make sure the attention scores sum to 1 for each step
     scores_sum = np.sum(decoder_output_.attention_scores, axis=2)
     np.testing.assert_array_almost_equal(
-        scores_sum, np.ones([self.batch_size, self.sequence_length]))
+        scores_sum, np.ones([self.sequence_length, self.batch_size]))
 
 
 if __name__ == "__main__":

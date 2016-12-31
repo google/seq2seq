@@ -8,7 +8,7 @@ import tensorflow as tf
 from seq2seq.graph_module import GraphModule
 
 
-class DecoderOutput(namedtuple("DecoderOutput", ["logits", "predictions"])):
+class DecoderOutput(namedtuple("DecoderOutput", ["logits", "predicted_ids"])):
   """Output of a decoder.
 
   Note that we output both the logits and predictions because during
@@ -75,13 +75,13 @@ class DecoderInputs(GraphModule):
   def __init__(self, name):
     super(DecoderInputs, self).__init__(name)
 
-  def _build(self, time_, initial_call, predictions):
+  def _build(self, time_, initial_call, predicted_ids):
     """Returns the input for the given time step.
 
     Args:
       time_: An int32 scalar
       initial_call: True iff this is the first time step.
-      predictions: The predictions of the decoder. An int32 1-d tensor.
+      predicted_ids: The predictions of the decoder. An int32 1-d tensor.
 
     Returns:
       A tensor of shape `[B, ...]`. When `time_` is past the maximum
@@ -118,7 +118,7 @@ class FixedDecoderInputs(DecoderInputs):
       self.batch_size = tf.identity(tf.shape(inputs)[0], name="batch_size")
       self.input_dim = tf.identity(tf.shape(inputs)[-1], name="input_dim")
 
-  def _build(self, time_, initial_call, predictions):
+  def _build(self, time_, initial_call, predicted_ids):
     all_finished = (time_ >= self.max_seq_len)
     next_input = tf.cond(
         all_finished,
@@ -213,23 +213,8 @@ class DecoderBase(GraphModule):
     Returns:
       The input for the next time step. A tensor of shape `[batch_size, ...]`.
     """
-    return self.input_fn(time_, initial_call, output.predictions)
+    return self.input_fn(time_, initial_call, output.predicted_ids)
 
-  @staticmethod
-  def time_to_batch(tensor, name=None):
-    """Transposes the first two dimensions of a tensor. Leaves the remaining
-    dimensions unchanged.
-
-    Args:
-      tensor: Input tensor to be transposed.
-
-    Returns:
-      A tensor of the same type as `tensor` with the first two dimensions
-      swapped.
-    """
-    ndims = tensor.get_shape().ndims
-    perm = [1, 0] + list(range(ndims))[2:]
-    return tf.transpose(tensor, perm, name=name)
 
   def step(self, time_, cell_output, cell_state, loop_state):
     """
@@ -267,10 +252,9 @@ class DecoderBase(GraphModule):
   def pack_outputs(self, outputs_ta, _final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
-    logits = self.time_to_batch(outputs_ta.logits.pack(), name="logits")
-    predictions = self.time_to_batch(outputs_ta.predictions.pack(),
-                                     name="predictions")
-    return DecoderOutput(logits=logits, predictions=predictions)
+    logits = outputs_ta.logits.pack()
+    predicted_ids = outputs_ta.predicted_ids.pack()
+    return DecoderOutput(logits=logits, predicted_ids=predicted_ids)
 
   def _build(self, initial_state, sequence_length):
     if sequence_length is None:
@@ -282,7 +266,10 @@ class DecoderBase(GraphModule):
         initial_state=initial_state,
         sequence_length=tf.minimum(sequence_length, self.max_decode_length))
 
-    outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(self.cell,
-                                                              rnn_loop_fn)
+    outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(
+        cell=self.cell,
+        loop_fn=rnn_loop_fn,
+        swap_memory=True)
+
     return self.pack_outputs(
         outputs_ta, final_loop_state), final_state, final_loop_state

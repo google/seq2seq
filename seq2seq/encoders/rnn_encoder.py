@@ -59,6 +59,6 @@ class BidirectionalRNNEncoder(GraphModule):
         **kwargs)
 
     # Concatenate outputs and states of the forward and backward RNNs
-    outputs_concat = tf.concat(2, outputs)
+    outputs_concat = tf.concat_v2(outputs, 2)
 
     return RNNEncoderOutput(outputs=outputs_concat, final_state=states)

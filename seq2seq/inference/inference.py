@@ -8,6 +8,7 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 from seq2seq import models
+from seq2seq.data import data_utils
 from seq2seq.data import vocab
 from seq2seq.training import utils as training_utils
 from seq2seq.training import HParamsParser
@@ -32,6 +33,8 @@ def load_model(vocab_source, vocab_target, model_class, model_dir, params=None):
   if params is not None:
     hparams.update(params)
 
+  training_utils.print_hparams(hparams)
+
   # Create model instance
   model = model_class(
       source_vocab_info=source_vocab_info,
@@ -41,21 +44,14 @@ def load_model(vocab_source, vocab_target, model_class, model_dir, params=None):
   return model
 
 
-def print_translations(predictions_iter, vocab_path, use_beams=False):
+def print_translations(predictions_iter, use_beams=False):
   """Prints translations, one per line.
   """
-  # Load the vocabulary in memory
-  with gfile.GFile(vocab_path) as file:
-    vocab_table = [l.strip() for l in file.readlines()]
-  vocab_table += ["UNK", "SEQUENCE_START", "SEQUENCE_END"]
-
-  # Print each predictions
   for prediction_dict in predictions_iter:
-    token_ids = prediction_dict["predictions"]
+    tokens = prediction_dict["predicted_tokens"].astype("U")
     # If we're using beam search we take the first beam
     if use_beams:
-      token_ids = token_ids[0]
-    tokens = [vocab_table[i] for i in token_ids]
+      tokens = tokens[:, 0]
     # Take sentence until SEQUENCE_END
     tokens = list(itertools.takewhile(lambda x: x != "SEQUENCE_END", tokens))
     sent = " ".join(tokens)
@@ -86,3 +82,45 @@ def create_predictions_iter(predictions_dict, sess):
           yield {key: value[i] for key, value in predictions_.items()}
       except tf.errors.OutOfRangeError:
         break
+
+
+def create_inference_graph(
+    model_class,
+    model_dir,
+    input_file,
+    vocab_source,
+    vocab_target,
+    batch_size=32,
+    beam_width=None):
+
+  params_overrides = {}
+  if beam_width is not None:
+    tf.logging.info("Setting batch size to 1 for beam search.")
+    batch_size = 1
+    params_overrides["inference.beam_search.beam_width"] = beam_width
+
+  model = load_model(
+      vocab_source=vocab_source,
+      vocab_target=vocab_target,
+      model_class=model_class,
+      model_dir=model_dir,
+      params=params_overrides)
+
+  data_provider = lambda: data_utils.make_parallel_data_provider(
+      data_sources_source=[input_file],
+      data_sources_target=None,
+      shuffle=False,
+      num_epochs=1)
+
+  input_fn = training_utils.create_input_fn(
+      data_provider_fn=data_provider,
+      batch_size=batch_size,
+      allow_smaller_final_batch=True)
+
+  # Build the graph
+  features, labels = input_fn()
+  return model(
+      features=features,
+      labels=labels,
+      params=None,
+      mode=tf.contrib.learn.ModeKeys.INFER)

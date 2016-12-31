@@ -99,7 +99,6 @@ def create_learning_rate_decay_fn(decay_type,
 
 
 def create_input_fn(data_provider_fn,
-                    featurizer_fn,
                     batch_size,
                     bucket_boundaries=None,
                     allow_smaller_final_batch=False):
@@ -110,9 +109,6 @@ def create_input_fn(data_provider_fn,
   Args:
     data_provider_fn: Function that creates a data provider to read from.
       An instance of `tf.contrib.slim.data_provider.DataProvider`.
-    featurizer_fn: A function that creates a featurizer function
-      which takes tensors returned by the data provider and transfroms them
-      into a (features, labels) tuple.
     batch_size: Create batches of this size. A queue to hold a
       reasonable number of batches in memory is created.
     bucket_boundaries: int list, increasing non-negative numbers.
@@ -126,14 +122,7 @@ def create_input_fn(data_provider_fn,
   def input_fn():
     """Creates features and labels.
     """
-    features = read_from_data_provider(data_provider_fn())
-    features, labels = featurizer_fn(features)
-
-    # We need to merge features and labels so we can batch them together.
-    feature_keys = features.keys()
-    label_keys = labels.keys()
-    features_and_labels = features.copy()
-    features_and_labels.update(labels)
+    features_and_labels = read_from_data_provider(data_provider_fn())
 
     if bucket_boundaries:
       bucket_num, batch = tf.contrib.training.bucket_by_sequence_length(
@@ -141,32 +130,28 @@ def create_input_fn(data_provider_fn,
           bucket_boundaries=bucket_boundaries,
           tensors=features_and_labels,
           batch_size=batch_size,
-          keep_input=features_and_labels["target_len"] >= 1,
+          keep_input=features_and_labels["source_len"] >= 1,
           dynamic_pad=True,
           capacity=5000 + 16 * batch_size,
           allow_smaller_final_batch=allow_smaller_final_batch,
           name="bucket_queue")
       tf.summary.histogram("buckets", bucket_num)
     else:
-      # Filter out examples with target_len < 1
-      slice_end = tf.cond(features_and_labels["target_len"] >= 1,
-                          lambda: tf.constant(1), lambda: tf.constant(0))
-      features_and_labels = {
-          k: tf.expand_dims(v, 0)[0:slice_end]
-          for k, v in features_and_labels.items()
-      }
       batch = tf.train.batch(
           tensors=features_and_labels,
-          enqueue_many=True,
+          enqueue_many=False,
           batch_size=batch_size,
           dynamic_pad=True,
           capacity=5000 + 16 * batch_size,
           allow_smaller_final_batch=allow_smaller_final_batch,
           name="batch_queue")
 
-    # Separate features and labels again
-    features_batch = {k: batch[k] for k in feature_keys}
-    labels_batch = {k: batch[k] for k in label_keys}
+    # Separate features and labels
+    features_batch = {k: batch[k] for k in ("source_tokens", "source_len")}
+    if "target_tokens" in batch:
+      labels_batch = {k: batch[k] for k in ("target_tokens", "target_len")}
+    else:
+      labels_batch = None
 
     return features_batch, labels_batch
 
@@ -201,7 +186,17 @@ def read_hparams(path):
   return ",".join(lines)
 
 
-def create_default_training_hooks(output_dir, sample_frequency=500):
+def create_default_training_hooks(estimator, sample_frequency=500):
+  """Creates common SessionRunHooks used for training.
+
+  Args:
+    estimator: The estimator instance
+    sample_frequency: frequency of samples passed to the TrainSampleHook
+
+  Returns:
+    An array of `SessionRunHook` items.
+  """
+  output_dir = estimator.model_dir
   training_hooks = []
 
   model_analysis_hook = hooks.PrintModelAnalysisHook(
@@ -226,6 +221,11 @@ def create_default_training_hooks(output_dir, sample_frequency=500):
   return training_hooks
 
 def print_hparams(hparams):
+  """Prints hyperparameter values in sorted order.
+
+  Args:
+    hparams: A dictionary of hyperparameters.
+  """
   tf.logging.info("=" * 50)
   for param, value in sorted(hparams.items()):
     tf.logging.info("%s=%s", param, value)

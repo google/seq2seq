@@ -11,7 +11,7 @@ from seq2seq.decoders.decoder_base import DecoderBase, DecoderStepOutput
 
 class BeamDecoderOutput(
     namedtuple("DecoderOutput", [
-        "logits", "predictions", "log_probs", "scores", "beam_parent_ids",
+        "logits", "predicted_ids", "log_probs", "scores", "beam_parent_ids",
         "original_outputs"
     ])):
   """Structure for the output of a beam search decoder. This class is used
@@ -21,7 +21,7 @@ class BeamDecoderOutput(
 
   Args:
     logits: Logits at the current time step of shape `[beam_size, vocab_size]`
-    predictions: Chosen softmax predictions at the current time step.
+    predicted_ids: Chosen softmax predictions at the current time step.
       An int32 tensor of shape `[beam_size]`.
     log_probs: Total log probabilities of all beams at the current time step.
       A float32 tensor of shaep `[beam_size]`.
@@ -77,11 +77,11 @@ class BeamSearchDecoder(DecoderBase):
   def pack_outputs(self, outputs_ta, final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
-    logits = self.time_to_batch(outputs_ta.logits.pack())
-    predictions = self.time_to_batch(outputs_ta.predictions.pack())
-    log_probs = self.time_to_batch(outputs_ta.log_probs.pack())
-    scores = self.time_to_batch(outputs_ta.scores.pack())
-    beam_parent_ids = self.time_to_batch(outputs_ta.beam_parent_ids.pack())
+    logits = outputs_ta.logits.pack()
+    predicted_ids = outputs_ta.predicted_ids.pack()
+    log_probs = outputs_ta.log_probs.pack()
+    scores = outputs_ta.scores.pack()
+    beam_parent_ids = outputs_ta.beam_parent_ids.pack()
 
     _, original_final_loop_state = self._unwrap_loop_state(final_loop_state)
     orignal_output = self.decoder.pack_outputs(
@@ -91,15 +91,15 @@ class BeamSearchDecoder(DecoderBase):
     # convert tensors to [1, beam_width, ...] shape. This way Tensorflow
     # doesn't confuse batch_size with beam_width
     orignal_output = orignal_output.__class__(
-        *[tf.expand_dims(_, 0) for _ in orignal_output]
+        *[tf.expand_dims(_, 1) for _ in orignal_output]
     )
 
     return BeamDecoderOutput(
-        logits=tf.expand_dims(logits, 0),
-        predictions=tf.expand_dims(predictions, 0),
-        log_probs=tf.expand_dims(log_probs, 0),
-        scores=tf.expand_dims(scores, 0),
-        beam_parent_ids=tf.expand_dims(beam_parent_ids, 0),
+        logits=tf.expand_dims(logits, 1),
+        predicted_ids=tf.expand_dims(predicted_ids, 1),
+        log_probs=tf.expand_dims(log_probs, 1),
+        scores=tf.expand_dims(scores, 1),
+        beam_parent_ids=tf.expand_dims(beam_parent_ids, 1),
         original_outputs=orignal_output)
 
   def compute_output(self, cell_output):
@@ -108,7 +108,7 @@ class BeamSearchDecoder(DecoderBase):
   def output_shapes(self):
     return BeamDecoderOutput(
         logits=tf.zeros([self.decoder.vocab_size]),
-        predictions=tf.zeros([], dtype=tf.int64),
+        predicted_ids=tf.zeros([], dtype=tf.int64),
         log_probs=tf.zeros([], dtype=tf.float32),
         scores=tf.zeros([], dtype=tf.float32),
         beam_parent_ids=tf.zeros([], dtype=tf.int32),
@@ -131,7 +131,7 @@ class BeamSearchDecoder(DecoderBase):
     original_outputs_shuffled = output.original_outputs.__class__(
         *original_values_shuffled)
     original_outputs_shuffled = original_outputs_shuffled._replace(
-        predictions=output.predictions)
+        predicted_ids=output.predicted_ids)
 
     next_input = self.decoder.create_next_input(
         time_, initial_call, original_outputs_shuffled)
@@ -174,13 +174,13 @@ class BeamSearchDecoder(DecoderBase):
           logits=original_outputs.outputs.logits,
           beam_state=prev_beam_state,
           config=self.config)
-      beam_state.predictions.set_shape([None, self.decoder.max_decode_length])
+      beam_state.predicted_ids.set_shape([None, self.decoder.max_decode_length])
       next_loop_state = self._wrap_loop_state(
           beam_state, original_outputs.next_loop_state)
 
       outputs = BeamDecoderOutput(
           logits=tf.zeros([self.config.beam_width, self.config.vocab_size]),
-          predictions=tf.to_int64(beam_state.predictions[:, time_ - 1]),
+          predicted_ids=tf.to_int64(beam_state.predicted_ids[:, time_ - 1]),
           log_probs=beam_state.log_probs,
           scores=beam_state.scores,
           beam_parent_ids=beam_state.beam_parent_ids,

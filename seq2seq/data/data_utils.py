@@ -16,6 +16,7 @@ def make_parallel_data_provider(data_sources_source,
   Args:
     data_sources_source: A list of data sources for the source text files.
     data_sources_target: A list of data sources for the target text files.
+      Can be None for inference mode.
     num_samples: Optional, number of records in the dataset
     kwargs: Additional arguments (shuffle, num_epochs, etc) that are passed
       to the data provider
@@ -24,25 +25,31 @@ def make_parallel_data_provider(data_sources_source,
     A DataProvider instance
   """
 
-  # Decoders for both data sources
   decoder_source = split_tokens_decoder.SplitTokensDecoder(
-      tokens_feature_name="source_tokens", length_feature_name="source_len")
-  decoder_target = split_tokens_decoder.SplitTokensDecoder(
-      tokens_feature_name="target_tokens", length_feature_name="target_len")
+      tokens_feature_name="source_tokens",
+      length_feature_name="source_len",
+      append_token="SEQUENCE_END")
 
-  # Datasets for both data sources
   dataset_source = tf.contrib.slim.dataset.Dataset(
       data_sources=data_sources_source,
       reader=reader,
       decoder=decoder_source,
       num_samples=num_samples,
       items_to_descriptions={})
-  dataset_target = tf.contrib.slim.dataset.Dataset(
-      data_sources=data_sources_target,
-      reader=reader,
-      decoder=decoder_target,
-      num_samples=num_samples,
-      items_to_descriptions={})
+
+  dataset_target = None
+  if data_sources_target is not None:
+    decoder_target = split_tokens_decoder.SplitTokensDecoder(
+        tokens_feature_name="target_tokens",
+        length_feature_name="target_len",
+        prepend_token="SEQUENCE_START",
+        append_token="SEQUENCE_END")
+    dataset_target = tf.contrib.slim.dataset.Dataset(
+        data_sources=data_sources_target,
+        reader=reader,
+        decoder=decoder_target,
+        num_samples=num_samples,
+        items_to_descriptions={})
 
   return parallel_data_provider.ParallelDataProvider(
       dataset1=dataset_source, dataset2=dataset_target, **kwargs)
