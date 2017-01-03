@@ -127,20 +127,7 @@ def create_experiment(output_dir):
 
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
-    result = model(features, labels, params, mode)
-
-    # Create a custom saver
-    # This is necessary to support "keep_checkpoint_every_n_hours"
-    # which is currently ignored by Tensorflow, see
-    # https://github.com/tensorflow/tensorflow/issues/6549
-    saver = tf.train.Saver(
-        sharded=True,
-        max_to_keep=FLAGS.keep_checkpoint_max,
-        keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours,
-        defer_build=(mode == tf.contrib.learn.ModeKeys.TRAIN))
-    tf.add_to_collection(tf.GraphKeys.SAVERS, saver)
-
-    return result
+    return model(features, labels, params, mode)
 
   config = run_config.RunConfig(
       tf_random_seed=FLAGS.tf_random_seed,
