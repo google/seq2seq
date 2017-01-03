@@ -155,7 +155,7 @@ class Seq2SeqBase(ModelBase):
       predictions.update(_flatten_dict({"labels": labels}))
 
     if losses is not None:
-      predictions["losses"] = losses
+      predictions["losses"] = time_to_batch(losses)
 
     # Decoders returns output in time-major form [T, B, ...]
     # Here we transpose everything back to batch-major for the user
