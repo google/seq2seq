@@ -274,6 +274,9 @@ class EncoderDecoderTests(tf.test.TestCase):
         [self.batch_size, expected_decode_len,
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
+        predictions_["losses"].shape,
+        [self.batch_size, expected_decode_len - 1])
+    np.testing.assert_array_equal(
         predictions_["predicted_ids"].shape,
         [self.batch_size, expected_decode_len])
     self.assertFalse(np.isnan(loss_))
