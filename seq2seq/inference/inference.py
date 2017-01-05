@@ -48,13 +48,13 @@ def print_translations(predictions_iter, use_beams=False):
   """Prints translations, one per line.
   """
   for prediction_dict in predictions_iter:
-    tokens = prediction_dict["predicted_tokens"].astype("U")
+    tokens = prediction_dict["predicted_tokens"]
     # If we're using beam search we take the first beam
     if use_beams:
       tokens = tokens[:, 0]
     # Take sentence until SEQUENCE_END
-    tokens = list(itertools.takewhile(lambda x: x != "SEQUENCE_END", tokens))
-    sent = " ".join(tokens)
+    tokens = list(itertools.takewhile(lambda x: x != b"SEQUENCE_END", tokens))
+    sent = b" ".join(tokens)
     print(sent)
 
 

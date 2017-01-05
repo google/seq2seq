@@ -38,14 +38,16 @@ def create_figure(predictions_dict):
   """
 
   # Find out how long the predicted sequence is
-  target_words = list(predictions_dict["predicted_tokens"].astype("U"))
+  target_words = list(predictions_dict["predicted_tokens"])
+  target_words = [_.decode("utf-8") for _ in target_words]
+
   prediction_len = next(
       ((i + 1) for i, _ in enumerate(target_words) if _ == "SEQUENCE_END"),
       None)
   # Get source words
   source_len = predictions_dict["features.source_len"]
   source_words = predictions_dict["features.source_tokens"][:source_len]
-  source_words = [_.decode() for _ in source_words]
+  source_words = [_.decode("utf-8") for _ in source_words]
 
   # Plot
   fig = plt.figure(figsize=(8, 8))
@@ -77,7 +79,8 @@ def main(_argv):
   )
 
   # Filter fetched predictions to save memory
-  prediction_keys = set(["predicted_tokens"])
+  prediction_keys = set(["predicted_tokens", "attention_scores",
+                         "features.source_len", "features.source_tokens"])
   predictions = {k: v for k, v in predictions.items() if k in prediction_keys}
 
   saver = tf.train.Saver()
