@@ -38,14 +38,14 @@ def create_figure(predictions_dict):
   """
 
   # Find out how long the predicted sequence is
-  target_words = list(predictions_dict["predicted_tokens"].astype("U"))
+  target_words = list(predictions_dict["predicted_tokens"])
+
   prediction_len = next(
-      ((i + 1) for i, _ in enumerate(target_words) if _ == "SEQUENCE_END"),
+      ((i + 1) for i, _ in enumerate(target_words) if _ == b"SEQUENCE_END"),
       None)
   # Get source words
   source_len = predictions_dict["features.source_len"]
   source_words = predictions_dict["features.source_tokens"][:source_len]
-  source_words = [_.decode() for _ in source_words]
 
   # Plot
   fig = plt.figure(figsize=(8, 8))
