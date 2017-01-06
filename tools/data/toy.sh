@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+set -e
+
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
 OUTPUT_DIR=${OUTPUT_DIR:-$HOME/nmt_data/toy_copy}
