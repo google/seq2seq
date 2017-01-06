@@ -17,31 +17,31 @@ def get_rnn_cell(cell_type,
   """Creates a new RNN Cell.
 
   Args:
-    cell_type: A cell lass name defined in `tf.contrib.rnn.rnn_cell`,
+    cell_type: A cell lass name defined in `tf.contrib.rnn`,
       e.g. `LSTMCell` or `GRUCell`
     num_units: Number of cell units
     num_layers: Number of layers. The cell will be wrapped with
-      `tf.contrib.rnn.rnn_cell.MultiRNNCell`
+      `tf.contrib.rnn.MultiRNNCell`
     dropout_input_keep_prob: Dropout keep probability applied
       to the input of cell *at each layer*
     dropout_output_keep_prob: Dropout keep probability applied
       to the output of cell *at each layer*
 
   Returns:
-    An instance of `tf.contrib.rnn.rnn_cell.RNNCell`.
+    An instance of `tf.contrib.rnn.RNNCell`.
   """
   #pylint: disable=redefined-variable-type
-  cell_class = getattr(tf.contrib.rnn.rnn_cell, cell_type)
+  cell_class = getattr(tf.contrib.rnn, cell_type)
   cell = cell_class(num_units)
 
   if dropout_input_keep_prob < 1.0 or dropout_output_keep_prob < 1.0:
-    cell = tf.contrib.rnn.rnn_cell.DropoutWrapper(
+    cell = tf.contrib.rnn.DropoutWrapper(
         cell=cell,
         input_keep_prob=dropout_input_keep_prob,
         output_keep_prob=dropout_output_keep_prob)
 
   if num_layers > 1:
-    cell = tf.contrib.rnn.rnn_cell.MultiRNNCell([cell] * num_layers)
+    cell = tf.contrib.rnn.MultiRNNCell([cell] * num_layers)
 
   return cell
 

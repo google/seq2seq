@@ -10,7 +10,7 @@ class BasicDecoder(DecoderBase):
   """Simple RNN decoder that performed a softmax operations on the cell output.
 
   Args:
-    cell: An instance of ` tf.contrib.rnn.rnn_cell.RNNCell`
+    cell: An instance of ` tf.contrib.rnn.RNNCell`
     vocab_size: Output vocabulary size, i.e. number of units
       in the softmax layer
     max_decode_length: Maximum length for decoding steps for each example
