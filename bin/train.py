@@ -77,6 +77,14 @@ def create_experiment(output_dir):
     output_dir: Output directory for model checkpoints and summaries.
   """
 
+  config = run_config.RunConfig(
+      tf_random_seed=FLAGS.tf_random_seed,
+      save_checkpoints_secs=FLAGS.save_checkpoints_secs,
+      save_checkpoints_steps=FLAGS.save_checkpoints_steps,
+      keep_checkpoint_max=FLAGS.keep_checkpoint_max,
+      keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
+  )
+
   # Load vocabulary info
   source_vocab_info = vocab.get_vocab_info(FLAGS.vocab_source)
   target_vocab_info = vocab.get_vocab_info(FLAGS.vocab_target)
@@ -91,8 +99,9 @@ def create_experiment(output_dir):
 
   # Print and save hparams
   training_utils.print_hparams(hparams)
-  training_utils.write_hparams(
-      hparams, os.path.join(output_dir, "hparams.txt"))
+  if config.is_chief:
+    training_utils.write_hparams(
+        hparams, os.path.join(output_dir, "hparams.txt"))
 
   # Create model
   model = model_class(
@@ -128,14 +137,6 @@ def create_experiment(output_dir):
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
     return model(features, labels, params, mode)
-
-  config = run_config.RunConfig(
-      tf_random_seed=FLAGS.tf_random_seed,
-      save_checkpoints_secs=FLAGS.save_checkpoints_secs,
-      save_checkpoints_steps=FLAGS.save_checkpoints_steps,
-      keep_checkpoint_max=FLAGS.keep_checkpoint_max,
-      keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
-  )
 
   estimator = tf.contrib.learn.estimator.Estimator(
       model_fn=model_fn,
