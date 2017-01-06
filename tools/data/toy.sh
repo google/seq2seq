@@ -18,21 +18,21 @@ mkdir -p $OUTPUT_DIR
 
 # Write train, dev and test data
 ${BASE_DIR}/bin/generate_toy_data.py  \
-  --type copy \
+  --type ${DATA_TYPE} \
   --num_examples 10000 \
   --vocab_size 20 \
   --max_len 20 \
   --output_dir ${OUTPUT_DIR_TRAIN}
 
 ${BASE_DIR}/bin/generate_toy_data.py  \
-  --type copy \
+  --type ${DATA_TYPE} \
   --num_examples 1000 \
   --vocab_size 20 \
   --max_len 20 \
   --output_dir ${OUTPUT_DIR_DEV}
 
 ${BASE_DIR}/bin/generate_toy_data.py  \
-  --type copy \
+  --type ${DATA_TYPE} \
   --num_examples 1000 \
   --vocab_size 20 \
   --max_len 20 \
