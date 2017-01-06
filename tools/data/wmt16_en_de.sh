@@ -138,8 +138,8 @@ for f in ${OUTPUT_DIR}/*.en.tok; do
 done
 
 # Create vocabulary for BPE
-${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/train.de.tok.bpe.50k" > "vocab.de.bpe.50k"
-${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/train.en.tok.bpe.50k" > "vocab.en.bpe.50k"
+${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/train.de.tok.bpe.50k" > "${OUTPUT_DIR}/vocab.de.bpe.50k"
+${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/train.en.tok.bpe.50k" > "${OUTPUT_DIR}/vocab.en.bpe.50k"
 
 echo "All done."
 
