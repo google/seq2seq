@@ -69,7 +69,6 @@ class AttentionLayer(GraphModule):
       the weighted inputs.
       A tensor fo shape `[B, input_dim]`.
     """
-    # batch_size, inputs_timesteps, _ = tf.unpack(tf.shape(inputs))
     inputs_dim = inputs.get_shape().as_list()[-1]
 
     # Fully connected layers to transform both inputs and state

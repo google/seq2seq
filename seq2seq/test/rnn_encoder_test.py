@@ -19,7 +19,7 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
-    self.cell = tf.contrib.rnn.rnn_cell.LSTMCell(32)
+    self.cell = tf.contrib.rnn.LSTMCell(32)
 
   def test_encode(self):
     inputs = tf.random_normal(
@@ -38,7 +38,7 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
         encoder_output_.outputs.shape,
         [self.batch_size, self.sequence_length, self.cell.output_size])
     self.assertIsInstance(encoder_output_.final_state,
-                          tf.contrib.rnn.rnn_cell.LSTMStateTuple)
+                          tf.contrib.rnn.LSTMStateTuple)
     np.testing.assert_array_equal(encoder_output_.final_state.h.shape,
                                   [self.batch_size, self.cell.output_size])
     np.testing.assert_array_equal(encoder_output_.final_state.c.shape,
@@ -56,7 +56,7 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
-    self.cell = tf.contrib.rnn.rnn_cell.LSTMCell(32)
+    self.cell = tf.contrib.rnn.LSTMCell(32)
 
   def test_encode(self):
     inputs = tf.random_normal(
@@ -76,9 +76,9 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
         [self.batch_size, self.sequence_length, self.cell.output_size * 2])
 
     self.assertIsInstance(encoder_output_.final_state[0],
-                          tf.contrib.rnn.rnn_cell.LSTMStateTuple)
+                          tf.contrib.rnn.LSTMStateTuple)
     self.assertIsInstance(encoder_output_.final_state[1],
-                          tf.contrib.rnn.rnn_cell.LSTMStateTuple)
+                          tf.contrib.rnn.LSTMStateTuple)
     np.testing.assert_array_equal(encoder_output_.final_state[0].h.shape,
                                   [self.batch_size, self.cell.output_size])
     np.testing.assert_array_equal(encoder_output_.final_state[0].c.shape,
