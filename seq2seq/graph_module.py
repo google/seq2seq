@@ -42,4 +42,4 @@ class GraphModule(object):
   def variable_scope(self):
     """Returns the proper variable scope for this module.
     """
-    return tf.variable_scope(self._template.var_scope)
+    return tf.variable_scope(self._template.variable_scope)

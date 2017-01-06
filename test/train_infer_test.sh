@@ -33,7 +33,7 @@ c c c c" | tee $TEST_DIR/dev.sources $TEST_DIR/dev.targets > /dev/null
   --output_dir ${TEST_DIR}/out
 
 # Make sure that the model checkpoint exists
-if [ ! -f "${TEST_DIR}/out/model.ckpt-100-00000-of-00001" ]; then
+if [ ! -f "${TEST_DIR}/out/model.ckpt-100.data-00000-of-00001" ]; then
   echo "Expected model checkpoint not found. Failing test."
   exit 1;
 fi;
@@ -45,7 +45,7 @@ fi;
   --vocab_target $TEST_DIR/vocab \
   --model AttentionSeq2Seq \
   --model_dir ${TEST_DIR}/out \
-  --checkpoint_path "${TEST_DIR}/out/model.ckpt-100-00000-of-00001" \
+  --checkpoint_path "${TEST_DIR}/out/model.ckpt-100" \
   --batch_size 2 > ${TEST_DIR}/predictions.txt
 
 # Make sure that the predictions are non-empty
