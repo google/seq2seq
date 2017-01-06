@@ -112,7 +112,7 @@ class FixedDecoderInputs(DecoderInputs):
           dtype=self.inputs.dtype,
           size=tf.shape(self.inputs)[1],
           name="inputs_ta")
-      self.inputs_ta = self.inputs_ta.unpack(
+      self.inputs_ta = self.inputs_ta.unstack(
           tf.transpose(self.inputs, [1, 0, 2]))
       self.max_seq_len = tf.reduce_max(sequence_length, name="max_seq_len")
       self.batch_size = tf.identity(tf.shape(inputs)[0], name="batch_size")
@@ -158,7 +158,7 @@ class DecoderBase(GraphModule):
   """Base class for RNN decoders.
 
   Args:
-    cell: An instance of ` tf.contrib.rnn.rnn_cell.RNNCell`
+    cell: An instance of ` tf.contrib.rnn.RNNCell`
     name: A name for this module
     input_fn: A function that generates the next input, e.g. an
       instance of `FixedDecoderInputs` or `DynamicDecoderInputs`.
@@ -252,8 +252,8 @@ class DecoderBase(GraphModule):
   def pack_outputs(self, outputs_ta, _final_loop_state):
     """Transposes outputs from time-major to batch-major.
     """
-    logits = outputs_ta.logits.pack()
-    predicted_ids = outputs_ta.predicted_ids.pack()
+    logits = outputs_ta.logits.stack()
+    predicted_ids = outputs_ta.predicted_ids.stack()
     return DecoderOutput(logits=logits, predicted_ids=predicted_ids)
 
   def _build(self, initial_state, sequence_length):

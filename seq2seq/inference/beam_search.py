@@ -4,6 +4,7 @@
 from collections import namedtuple
 
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 
 class BeamState(
@@ -82,10 +83,10 @@ def choose_top_k(scores_flat, config):
 def nest_map(inputs, map_fn, name=None):
   """Applies a function to (possibly nested) tuple of tensors.
   """
-  if tf.nn.nest.is_sequence(inputs):
-    inputs_flat = tf.nn.nest.flatten(inputs)
+  if nest.is_sequence(inputs):
+    inputs_flat = nest.flatten(inputs)
     y_flat = [map_fn(_) for _ in inputs_flat]
-    outputs = tf.nn.nest.pack_sequence_as(inputs, y_flat)
+    outputs = nest.pack_sequence_as(inputs, y_flat)
   else:
     outputs = map_fn(inputs)
   if name:

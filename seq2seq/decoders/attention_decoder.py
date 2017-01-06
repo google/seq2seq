@@ -20,7 +20,7 @@ class AttentionDecoder(DecoderBase):
   """An RNN Decoder that uses attention over an input sequence.
 
   Args:
-    cell: An instance of ` tf.contrib.rnn.rnn_cell.RNNCell`
+    cell: An instance of ` tf.contrib.rnn.RNNCell`
     vocab_size: Output vocabulary size, i.e. number of units
       in the softmax layer
     attention_inputs: The sequence to take attentio over.
@@ -56,12 +56,12 @@ class AttentionDecoder(DecoderBase):
     logits, predicted_ids = DecoderBase.pack_outputs(self, outputs_ta,
                                                    final_loop_state)
 
-    attention_scores = outputs_ta.attention_scores.pack()
+    attention_scores = outputs_ta.attention_scores.stack()
     # Slice attention scores to actual length of the inputs
     attention_input_len = tf.shape(self.attention_inputs)[1]
     attention_scores = attention_scores[:, :, :attention_input_len]
 
-    attention_context = outputs_ta.attention_context.pack()
+    attention_context = outputs_ta.attention_context.stack()
     return AttentionDecoderOutput(logits, predicted_ids, attention_scores,
                                   attention_context)
 
