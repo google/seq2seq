@@ -6,11 +6,11 @@ import tensorflow as tf
 
 from tensorflow.python.training import basic_session_run_hooks, session_run_hook
 from tensorflow.python.training import training_util
+from tensorflow.python.training.summary_io import SummaryWriterCache
 from tensorflow.python.client import timeline
 from tensorflow.python.platform import gfile
 
 from seq2seq import graph_utils
-
 
 class SecondOrStepTimer(basic_session_run_hooks._SecondOrStepTimer): # pylint: disable=protected-access
   """Helper class to count both seconds and steps.
@@ -80,7 +80,7 @@ class MetadataCaptureHook(session_run_hook.SessionRunHook):
     self._active = (step_done == self._step)
 
 
-class TokensPerSecondCounter(basic_session_run_hooks.StepCounterHook):
+class TokensPerSecondCounter(session_run_hook.SessionRunHook):
   """A hooks that counts tokens/sec, where the number of tokens is
     defines as `len(source) + len(target)`.
   """
@@ -90,33 +90,52 @@ class TokensPerSecondCounter(basic_session_run_hooks.StepCounterHook):
                every_n_secs=None,
                output_dir=None,
                summary_writer=None):
-    super(TokensPerSecondCounter, self).__init__(every_n_steps, every_n_secs,
-                                                 output_dir, summary_writer)
     self._summary_tag = "tokens/sec"
-    self._total_tokens = 0
-    self._num_tokens = None
+    self._timer = SecondOrStepTimer(
+        every_steps=every_n_steps,
+        every_secs=every_n_secs)
+
+    self._summary_writer = summary_writer
+    if summary_writer is None and output_dir:
+      self._summary_writer = SummaryWriterCache.get(output_dir)
+
+    self._tokens_last_step = 0
+
 
   def begin(self):
-    super(TokensPerSecondCounter, self).begin()
-    self._summary_tag = "tokens/sec"
+    #pylint: disable=W0201
     features = graph_utils.get_dict_from_collection("features")
     labels = graph_utils.get_dict_from_collection("labels")
-    self._num_tokens = tf.reduce_sum(features["source_len"]) \
-      + tf.reduce_sum(labels["target_len"])
-    self._total_tokens = 0
+    num_source_tokens = tf.reduce_sum(features["source_len"])
+    num_target_tokens = tf.reduce_sum(labels["target_len"])
+
+    self._tokens_last_step = 0
+    self._global_step_tensor = training_util.get_global_step()
+    self._num_tokens_tensor = num_source_tokens + num_target_tokens
+
+    # Create a variable that stores how many tokens have been processed
+    # Should be global for distributed training
+    with tf.variable_scope("tokens_counter"):
+      self._tokens_processed_var = tf.get_variable(
+          name="count",
+          shape=[],
+          dtype=tf.int32,
+          initializer=tf.constant_initializer(0, dtype=tf.int32))
+      self._tokens_processed_add = tf.assign_add(
+          self._tokens_processed_var, self._num_tokens_tensor)
 
   def before_run(self, run_context):
     return session_run_hook.SessionRunArgs(
-        [self._global_step_tensor, self._num_tokens])
+        [self._global_step_tensor, self._tokens_processed_add])
 
   def after_run(self, _run_context, run_values):
     global_step, num_tokens = run_values.results
-    self._total_tokens += num_tokens
+    tokens_processed = num_tokens - self._tokens_last_step
 
     if self._timer.should_trigger_for_step(global_step):
       elapsed_time, _ = self._timer.update_last_triggered_step(global_step)
       if elapsed_time is not None:
-        tokens_per_sec = self._total_tokens / elapsed_time
+        tokens_per_sec = tokens_processed / elapsed_time
         if self._summary_writer is not None:
           summary = tf.Summary(value=[
               tf.Summary.Value(
@@ -124,7 +143,7 @@ class TokensPerSecondCounter(basic_session_run_hooks.StepCounterHook):
           ])
           self._summary_writer.add_summary(summary, global_step)
         tf.logging.info("%s: %g", self._summary_tag, tokens_per_sec)
-      self._total_tokens = 0
+      self._tokens_last_step = num_tokens
 
 
 class TrainSampleHook(session_run_hook.SessionRunHook):
@@ -142,35 +161,26 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
 
   def __init__(self, every_n_secs=None, every_n_steps=None, file=None):
     super(TrainSampleHook, self).__init__()
+    self.file = file
     self._timer = SecondOrStepTimer(
         every_secs=every_n_secs, every_steps=every_n_steps)
-    self.predictions_dict = {}
-    self.features_dict = {}
-    self.labels_dict = {}
-    self.vocab_tables = {}
-    self.predicted_words = None
+    self._pred_dict = {}
     self._should_trigger = False
     self._iter_count = 0
     self._global_step = None
-    self.file = file
 
   def begin(self):
     self._iter_count = 0
     self._global_step = training_util.get_global_step()
-    self.predictions_dict = graph_utils.get_dict_from_collection("model_output")
-    self.features_dict = graph_utils.get_dict_from_collection("features")
-    self.labels_dict = graph_utils.get_dict_from_collection("labels")
-    self.vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
-    self.predicted_words = self.vocab_tables["target_id_to_vocab"].lookup(
-        self.predictions_dict["predictions"])
+    self._pred_dict = graph_utils.get_dict_from_collection("predictions")
 
   def before_run(self, _run_context):
     self._should_trigger = self._timer.should_trigger_for_step(self._iter_count)
     if self._should_trigger:
       fetches = {
-          "predicted_words": self.predicted_words,
-          "target_words": self.labels_dict["target_tokens"],
-          "target_len": self.labels_dict["target_len"]
+          "predicted_tokens": self._pred_dict["predicted_tokens"],
+          "target_words": self._pred_dict["labels.target_tokens"],
+          "target_len": self._pred_dict["labels.target_len"]
       }
       return session_run_hook.SessionRunArgs([fetches, self._global_step])
     return session_run_hook.SessionRunArgs([{}, self._global_step])
@@ -193,7 +203,7 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     result_str += ("=" * 100) + "\n"
     for result in result_dicts:
       target_len = result["target_len"]
-      predicted_slice = result["predicted_words"][:target_len - 1]
+      predicted_slice = result["predicted_tokens"][:target_len - 1]
       target_slice = result["target_words"][1:target_len]
       result_str += b" ".join(predicted_slice).decode("utf-8") + "\n"
       result_str += b" ".join(target_slice).decode("utf-8") + "\n\n"

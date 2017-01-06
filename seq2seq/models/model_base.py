@@ -8,8 +8,24 @@ from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
 from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
 from seq2seq.inference import beam_search
-from seq2seq.training import featurizers
+from seq2seq.models import featurizers
 from seq2seq.training import utils as training_utils
+
+def time_to_batch(tensor, name=None):
+  """Transposes the first two dimensions of a tensor. Leaves the remaining
+  dimensions unchanged.
+
+  Args:
+    tensor: Input tensor to be transposed.
+
+  Returns:
+    A tensor of the same type as `tensor` with the first two dimensions
+    swapped.
+  """
+  ndims = tensor.get_shape().ndims
+  perm = [1, 0] + list(range(ndims))[2:]
+  return tf.transpose(tensor, perm, name=name)
+
 
 def _flatten_dict(dict_, parent_key="", sep="."):
   """Flattens a nested dictionary. Namedtuples within
@@ -101,6 +117,7 @@ class Seq2SeqBase(ModelBase):
   def default_params():
     return {
         "source.max_seq_len": 40,
+        "source.reverse": False,
         "target.max_seq_len": 40,
         "embedding.dim": 100,
         "inference.beam_search.beam_width": 0,
@@ -127,13 +144,35 @@ class Seq2SeqBase(ModelBase):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
-  def _create_predictions(self, decoder_output, losses=None):
+  def _create_predictions(self, decoder_output, features, labels, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
     """
-    predictions = _flatten_dict(decoder_output._asdict())
+    predictions = {}
+
+    # Add features and, if available, labels to predictions
+    predictions.update(_flatten_dict({"features": features}))
+    if labels is not None:
+      predictions.update(_flatten_dict({"labels": labels}))
 
     if losses is not None:
-      predictions["losses"] = losses
+      predictions["losses"] = time_to_batch(losses)
+
+    # Decoders returns output in time-major form [T, B, ...]
+    # Here we transpose everything back to batch-major for the user
+    # print(predictions)
+    decoder_output_flat = _flatten_dict(decoder_output._asdict())
+    decoder_output_flat = {
+        k: time_to_batch(v) for k, v in  decoder_output_flat.items()
+    }
+    predictions.update(decoder_output_flat)
+
+    # If we predict the ids also map them back into the vocab
+    if "predicted_ids" in predictions.keys():
+      vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
+      target_id_to_vocab = vocab_tables["target_id_to_vocab"]
+      predicted_tokens = target_id_to_vocab.lookup(predictions["predicted_ids"])
+      predictions["predicted_tokens"] = predicted_tokens
+
     return predictions
 
   def _get_beam_search_decoder(self, decoder):
@@ -163,6 +202,23 @@ class Seq2SeqBase(ModelBase):
     return self.params["inference.beam_search.beam_width"] > 1
 
   def _build(self, features, labels, params, mode):
+    # Pre-process features and labels
+    features, labels = self.create_featurizer()(features, labels)
+
+    # Add to graph collection for later use
+    graph_utils.add_dict_to_collection(features, "features")
+    if labels:
+      graph_utils.add_dict_to_collection(labels, "labels")
+
+    source_ids = features["source_ids"]
+    if self.params["source.reverse"] is True:
+      source_ids = tf.reverse_sequence(
+          input=features["source_ids"],
+          seq_lengths=features["source_len"],
+          seq_dim=1,
+          batch_dim=0,
+          name=None)
+
     # Create embedddings
     source_embedding = tf.get_variable(
         "source_embedding",
@@ -172,8 +228,7 @@ class Seq2SeqBase(ModelBase):
         [self.target_vocab_info.total_size, self.params["embedding.dim"]])
 
     # Embed source
-    source_embedded = tf.nn.embedding_lookup(source_embedding,
-                                             features["source_ids"])
+    source_embedded = tf.nn.embedding_lookup(source_embedding, source_ids)
 
     # Graph used for inference
     if mode == tf.contrib.learn.ModeKeys.INFER:
@@ -199,7 +254,9 @@ class Seq2SeqBase(ModelBase):
           target_len=self.params["target.max_seq_len"],
           mode=mode)
       predictions = self._create_predictions(
-          decoder_output=decoder_output)
+          decoder_output=decoder_output,
+          features=features,
+          labels=labels)
       return predictions, None, None
 
     # Embed target
@@ -221,8 +278,8 @@ class Seq2SeqBase(ModelBase):
 
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(
-        logits=decoder_output.logits[:, :-1, :],
-        targets=labels["target_ids"][:, 1:],
+        logits=decoder_output.logits[:-1, :, :],
+        targets=tf.transpose(labels["target_ids"][:, 1:], [1, 0]),
         sequence_length=labels["target_len"] - 1)
 
     # Calculate the average log perplexity
@@ -252,15 +309,12 @@ class Seq2SeqBase(ModelBase):
 
     predictions = self._create_predictions(
         decoder_output=decoder_output,
+        features=features,
+        labels=labels,
         losses=losses)
 
     # We add "useful" tensors to the graph collection so that we
     # can easly find them in our hooks/monitors.
-    graph_utils.add_dict_to_collection(predictions, "model_output")
-    graph_utils.add_dict_to_collection(features, "features")
-    graph_utils.add_dict_to_collection(labels, "labels")
-
-    # Summaries
-    tf.summary.scalar("loss", loss)
+    graph_utils.add_dict_to_collection(predictions, "predictions")
 
     return predictions, loss, train_op

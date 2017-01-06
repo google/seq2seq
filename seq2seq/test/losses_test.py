@@ -20,12 +20,12 @@ class CrossEntropySequenceLossTest(tf.test.TestCase):
     self.vocab_size = 50
 
   def test_op(self):
-    logits = np.random.randn(self.batch_size, self.sequence_length,
+    logits = np.random.randn(self.sequence_length, self.batch_size,
                              self.vocab_size)
     logits = logits.astype(np.float32)
     sequence_length = np.array([1, 2, 3, 4])
     targets = np.random.randint(0, self.vocab_size,
-                                [self.batch_size, self.sequence_length])
+                                [self.sequence_length, self.batch_size])
     losses = seq2seq_losses.cross_entropy_sequence_loss(logits, targets,
                                                         sequence_length)
 
@@ -33,14 +33,14 @@ class CrossEntropySequenceLossTest(tf.test.TestCase):
       losses_ = sess.run(losses)
 
     # Make sure all losses not past the sequence length are > 0
-    np.testing.assert_array_less(np.zeros_like(losses_[0, :1]), losses_[0, :1])
-    np.testing.assert_array_less(np.zeros_like(losses_[1, :2]), losses_[1, :2])
-    np.testing.assert_array_less(np.zeros_like(losses_[2, :3]), losses_[2, :3])
+    np.testing.assert_array_less(np.zeros_like(losses_[:1, 0]), losses_[:1, 0])
+    np.testing.assert_array_less(np.zeros_like(losses_[:2, 1]), losses_[:2, 1])
+    np.testing.assert_array_less(np.zeros_like(losses_[:3, 2]), losses_[:3, 2])
 
     # Make sure all losses past the sequence length are 0
-    np.testing.assert_array_equal(losses_[0, 1:], np.zeros_like(losses_[0, 1:]))
-    np.testing.assert_array_equal(losses_[1, 2:], np.zeros_like(losses_[1, 2:]))
-    np.testing.assert_array_equal(losses_[2, 3:], np.zeros_like(losses_[2, 3:]))
+    np.testing.assert_array_equal(losses_[1:, 0], np.zeros_like(losses_[1:, 0]))
+    np.testing.assert_array_equal(losses_[2:, 1], np.zeros_like(losses_[2:, 1]))
+    np.testing.assert_array_equal(losses_[3:, 2], np.zeros_like(losses_[3:, 2]))
 
 
 if __name__ == "__main__":

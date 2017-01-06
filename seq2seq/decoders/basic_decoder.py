@@ -40,23 +40,23 @@ class BasicDecoder(DecoderBase):
   def output_shapes(self):
     return DecoderOutput(
         logits=tf.zeros([self.vocab_size]),
-        predictions=tf.zeros([], dtype=tf.int64))
+        predicted_ids=tf.zeros([], dtype=tf.int64))
 
   def step(self, time_, cell_output, cell_state, loop_state):
     initial_call = (cell_output is None)
 
     if initial_call:
       outputs = self.output_shapes()
-      predictions = None
+      predicted_ids = None
       # We need to call this here to create variables
       cell_output = tf.zeros([1, self.cell.output_size])
       self.compute_output(cell_output)
     else:
       logits = self.compute_output(cell_output)
-      predictions = self.prediction_fn(logits)
+      predicted_ids = self.prediction_fn(logits)
       outputs = DecoderOutput(
           logits=logits,
-          predictions=predictions)
+          predicted_ids=predicted_ids)
 
     return DecoderStepOutput(
         outputs=outputs,

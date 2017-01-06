@@ -54,4 +54,6 @@ if [ ! -s "${TEST_DIR}/predictions.txt" ]; then
   exit 1;
 fi;
 
+echo "Success."
+
 exit 0

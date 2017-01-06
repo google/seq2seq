@@ -38,6 +38,9 @@ tf.flags.DEFINE_string("schedule", None,
                        """Estimator function to call, defaults to
                        train_and_evaluate for local run""")
 tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
+tf.flags.DEFINE_integer("train_epochs", None,
+                        """Maximum number of training epochs. Defaults to None,
+                        which means train forever.""")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
                         "evaluate after this many training steps")
 tf.flags.DEFINE_integer("sample_every_n_steps", 500,
@@ -74,6 +77,14 @@ def create_experiment(output_dir):
     output_dir: Output directory for model checkpoints and summaries.
   """
 
+  config = run_config.RunConfig(
+      tf_random_seed=FLAGS.tf_random_seed,
+      save_checkpoints_secs=FLAGS.save_checkpoints_secs,
+      save_checkpoints_steps=FLAGS.save_checkpoints_steps,
+      keep_checkpoint_max=FLAGS.keep_checkpoint_max,
+      keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
+  )
+
   # Load vocabulary info
   source_vocab_info = vocab.get_vocab_info(FLAGS.vocab_source)
   target_vocab_info = vocab.get_vocab_info(FLAGS.vocab_target)
@@ -88,15 +99,15 @@ def create_experiment(output_dir):
 
   # Print and save hparams
   training_utils.print_hparams(hparams)
-  training_utils.write_hparams(
-      hparams, os.path.join(output_dir, "hparams.txt"))
+  if config.is_chief:
+    training_utils.write_hparams(
+        hparams, os.path.join(output_dir, "hparams.txt"))
 
   # Create model
   model = model_class(
       source_vocab_info=source_vocab_info,
       target_vocab_info=target_vocab_info,
       params=hparams)
-  featurizer = model.create_featurizer()
 
   bucket_boundaries = None
   if FLAGS.buckets:
@@ -109,8 +120,7 @@ def create_experiment(output_dir):
           data_sources_source=FLAGS.train_source,
           data_sources_target=FLAGS.train_target,
           shuffle=True,
-          num_epochs=None),
-      featurizer_fn=featurizer,
+          num_epochs=FLAGS.train_epochs),
       batch_size=FLAGS.batch_size,
       bucket_boundaries=bucket_boundaries)
 
@@ -122,20 +132,11 @@ def create_experiment(output_dir):
           data_sources_target=FLAGS.dev_target,
           shuffle=False,
           num_epochs=1),
-      featurizer_fn=featurizer,
       batch_size=FLAGS.batch_size)
 
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
     return model(features, labels, params, mode)
-
-  config = run_config.RunConfig(
-      tf_random_seed=FLAGS.tf_random_seed,
-      save_checkpoints_secs=FLAGS.save_checkpoints_secs,
-      save_checkpoints_steps=FLAGS.save_checkpoints_steps,
-      keep_checkpoint_max=FLAGS.keep_checkpoint_max,
-      keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
-  )
 
   estimator = tf.contrib.learn.estimator.Estimator(
       model_fn=model_fn,
@@ -143,7 +144,7 @@ def create_experiment(output_dir):
       config=config)
 
   train_hooks = training_utils.create_default_training_hooks(
-      output_dir=output_dir,
+      estimator=estimator,
       sample_frequency=FLAGS.sample_every_n_steps)
 
   eval_metrics = {
