@@ -117,8 +117,8 @@ def create_inference_graph(
 
 def unk_replace(source_tokens, predicted_tokens, attention_scores,
                 mapping=None):
-  """Replaces UNK tokens with the source token that has the highest
-  attention score.
+  """Replaces UNK tokens with tokens from the source or a
+  provided mapping based on the attention scores.
 
   Args:
     source_tokens: A numpy array of strings.
@@ -126,6 +126,9 @@ def unk_replace(source_tokens, predicted_tokens, attention_scores,
     attention_scores: A numeric numpy array
       of shape `[prediction_length, source_length]` that contains
       the attention scores.
+    mapping: If not provided, an UNK token is replaced with the the
+      source token that has the highest attention score. If provided
+      the token is insead replaces with `mapping[chosen_source_token]`.
 
   Returns:
     A new `predicted_tokens` array.
