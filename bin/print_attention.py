@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 from seq2seq import graph_utils
 from seq2seq.inference import create_inference_graph, create_predictions_iter
 
-tf.flags.DEFINE_string("source", None, "path to source training data")
+tf.flags.DEFINE_string("source", None, "path to source input data")
 tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
 tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
 tf.flags.DEFINE_string("model", "AttentionSeq2Seq", "model class")
@@ -27,9 +27,27 @@ tf.flags.DEFINE_integer("beam_width", None,
 
 tf.flags.DEFINE_string("output_dir", None,
                        "Write all attention plots to this directory")
+tf.flags.DEFINE_boolean("no_plot", False,
+                        "If set, does not generate attention plots.")
 
 FLAGS = tf.flags.FLAGS
 tf.logging.set_verbosity(tf.logging.INFO)
+
+def get_prediction_length(predictions_dict):
+  """Returns the length of the prediction based on the index
+  of the first SEQUENCE_END token.
+  """
+  tokens_iter = enumerate(predictions_dict["predicted_tokens"])
+  return next(
+      ((i + 1) for i, _ in tokens_iter if _ == b"SEQUENCE_END"),
+      None)
+
+def get_scores(predictions_dict):
+  """Returns the attention scores, sliced by source and target length.
+  """
+  prediction_len = get_prediction_length(predictions_dict)
+  source_len = predictions_dict["features.source_len"]
+  return predictions_dict["attention_scores"][:prediction_len, :source_len]
 
 
 def create_figure(predictions_dict):
@@ -41,9 +59,8 @@ def create_figure(predictions_dict):
   target_words = list(predictions_dict["predicted_tokens"])
   target_words = [_.decode("utf-8") for _ in target_words]
 
-  prediction_len = next(
-      ((i + 1) for i, _ in enumerate(target_words) if _ == "SEQUENCE_END"),
-      None)
+  prediction_len = get_prediction_length(predictions_dict)
+
   # Get source words
   source_len = predictions_dict["features.source_len"]
   source_words = predictions_dict["features.source_tokens"][:source_len]
@@ -52,7 +69,7 @@ def create_figure(predictions_dict):
   # Plot
   fig = plt.figure(figsize=(8, 8))
   plt.imshow(
-      X=predictions_dict["attention_scores"][:prediction_len, :],
+      X=predictions_dict["attention_scores"][:prediction_len, :source_len],
       interpolation="nearest",
       cmap=plt.cm.Blues)
   plt.xticks(np.arange(source_len), source_words, rotation=45)
@@ -102,11 +119,21 @@ def main(_argv):
     # Output predictions
     predictions_iter = create_predictions_iter(predictions, sess)
 
+    # Accumulate attention scores in this array.
+    # Shape: [num_examples, target_length, input_length]
+    attention_scores = []
+
     for idx, predictions_dict in enumerate(predictions_iter):
-      output_path = os.path.join(FLAGS.output_dir, "{:05d}.png".format(idx))
-      create_figure(predictions_dict)
-      plt.savefig(output_path)
-      tf.logging.info("Wrote %s", output_path)
+      if not FLAGS.no_plot:
+        output_path = os.path.join(FLAGS.output_dir, "{:05d}.png".format(idx))
+        create_figure(predictions_dict)
+        plt.savefig(output_path)
+        tf.logging.info("Wrote %s", output_path)
+      attention_scores.append(get_scores(predictions_dict))
+
+    scores_path = os.path.join(FLAGS.output_dir, "attention_scores.npy")
+    np.save(scores_path, np.array(attention_scores))
+
 
 if __name__ == "__main__":
   tf.app.run()
