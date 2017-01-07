@@ -262,7 +262,7 @@ def moses_multi_bleu(hypotheses,
   if np.size(hypotheses) == 0:
     return np.float32(0.0)
 
-  # Get MOSES  multi-bleu script
+  # Get MOSES multi-bleu script
   multi_bleu_path, _ = urllib.request.urlretrieve(
       "https://raw.githubusercontent.com/moses-smt/mosesdecoder/"
       "master/scripts/generic/multi-bleu.perl")
