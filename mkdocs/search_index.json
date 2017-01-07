@@ -116,6 +116,41 @@
             "title": "Inference"
         }, 
         {
+            "location": "/tools/", 
+            "text": "Tokenization\n\n\nTODO\n\n\nVocabulary Generation\n\n\nTODO\n\n\nDebugging Attention\n\n\nIf you trained an \nAttentionSeq2Seq\n model you can use the \nbin/print_attention.py\n script to dump the raw attention scores and generate alignment visualizations. The usage is similar to the inference script and uses the same input data. For example:\n\n\n./bin/print_attention.py \\\n  --source $HOME/nmt_data/toy_reverse/test/sources.txt \\\n  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.txt \\\n  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.txt \\\n  --model AttentionSeq2Seq \\\n  --model_dir ${TMPDIR}/nmt_toy_reverse \\\n  --output_dir ${TMPDIR}/attention\n\n\n\n\nBy default, the script generates an \nattention_score.npy\n array file and an attention plot per example. The array file can be \nloaded used numpy\n. It will be of shape \n[num_examples, target_length, source_length]\n. If you want only the raw attention score data without the plots you can pass the \n--no_plot\n flag. For more details and additional options see the \nprint_attention.py\n file.\n\n\nUsing Subword Units (BPE)\n\n\nTODO\n\n\nUsing an Alignment Dictionary\n\n\nTODO\n\n\nVisualizing Beam Search\n\n\nTODO", 
+            "title": "Tools"
+        }, 
+        {
+            "location": "/tools/#tokenization", 
+            "text": "TODO", 
+            "title": "Tokenization"
+        }, 
+        {
+            "location": "/tools/#vocabulary-generation", 
+            "text": "TODO", 
+            "title": "Vocabulary Generation"
+        }, 
+        {
+            "location": "/tools/#debugging-attention", 
+            "text": "If you trained an  AttentionSeq2Seq  model you can use the  bin/print_attention.py  script to dump the raw attention scores and generate alignment visualizations. The usage is similar to the inference script and uses the same input data. For example:  ./bin/print_attention.py \\\n  --source $HOME/nmt_data/toy_reverse/test/sources.txt \\\n  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.txt \\\n  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.txt \\\n  --model AttentionSeq2Seq \\\n  --model_dir ${TMPDIR}/nmt_toy_reverse \\\n  --output_dir ${TMPDIR}/attention  By default, the script generates an  attention_score.npy  array file and an attention plot per example. The array file can be  loaded used numpy . It will be of shape  [num_examples, target_length, source_length] . If you want only the raw attention score data without the plots you can pass the  --no_plot  flag. For more details and additional options see the  print_attention.py  file.", 
+            "title": "Debugging Attention"
+        }, 
+        {
+            "location": "/tools/#using-subword-units-bpe", 
+            "text": "TODO", 
+            "title": "Using Subword Units (BPE)"
+        }, 
+        {
+            "location": "/tools/#using-an-alignment-dictionary", 
+            "text": "TODO", 
+            "title": "Using an Alignment Dictionary"
+        }, 
+        {
+            "location": "/tools/#visualizing-beam-search", 
+            "text": "TODO", 
+            "title": "Visualizing Beam Search"
+        }, 
+        {
             "location": "/benchmarks/", 
             "text": "Machine Translation\n\n\n\n\n\n\n\n\nCorpus\n\n\nSetttings\n\n\nTraining Time\n\n\nEvaluation\n\n\nDownloads\n\n\n\n\n\n\n\n\n\n\nWMT'16 English-German\u00a0(4.5M Sentence Pairs)\n\n\nHyperparameters\n\n\nN/A\n\n\n0.00 PPL \n 0.00 BLEU\n\n\nModel\n \n \nData\n\n\n\n\n\n\nWMT'16 English-French (?? Sentence Pairs)\n\n\n---\n\n\n---\n\n\n---\n\n\n---\n\n\n\n\n\n\nIWSLT 2015 English-Vietnamese (200k Sentence Pairs)\n\n\n---\n\n\n---\n\n\n---\n\n\n---", 
             "title": "Results and Pre-Trained Models"

@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Results and Pre-Trained Models - seq2seq</title>
+  <title>Tools - seq2seq</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -18,9 +18,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Results and Pre-Trained Models";
-    var mkdocs_page_input_path = "benchmarks.md";
-    var mkdocs_page_url = "/benchmarks/";
+    var mkdocs_page_name = "Tools";
+    var mkdocs_page_input_path = "tools.md";
+    var mkdocs_page_url = "/tools/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
@@ -90,22 +90,37 @@
 <li>
           
             <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../tools/">Tools</a>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Tools</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#tokenization">Tokenization</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#vocabulary-generation">Vocabulary Generation</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#debugging-attention">Debugging Attention</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#using-subword-units-bpe">Using Subword Units (BPE)</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#using-an-alignment-dictionary">Using an Alignment Dictionary</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#visualizing-beam-search">Visualizing Beam Search</a></li>
+                
+            
+            </ul>
         
     </li>
 <li>
           
             <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Results and Pre-Trained Models</a>
-        
-            <ul>
-            
-                <li class="toctree-l3"><a href="#machine-translation">Machine Translation</a></li>
-                
-            
-            </ul>
+    <li class="toctree-l1 ">
+        <a class="" href="../benchmarks/">Results and Pre-Trained Models</a>
         
     </li>
 <li>
@@ -146,7 +161,7 @@
     
       
     
-    <li>Results and Pre-Trained Models</li>
+    <li>Tools</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -156,41 +171,28 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="machine-translation">Machine Translation</h2>
-<table>
-<thead>
-<tr>
-<th>Corpus</th>
-<th>Setttings</th>
-<th>Training Time</th>
-<th>Evaluation</th>
-<th>Downloads</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>WMT'16 English-German (4.5M Sentence Pairs)</td>
-<td><a href="">Hyperparameters</a></td>
-<td>N/A</td>
-<td>0.00 PPL <br/> 0.00 BLEU</td>
-<td><a href="">Model</a> <br/> <a href="">Data</a></td>
-</tr>
-<tr>
-<td>WMT'16 English-French (?? Sentence Pairs)</td>
-<td>---</td>
-<td>---</td>
-<td>---</td>
-<td>---</td>
-</tr>
-<tr>
-<td>IWSLT 2015 English-Vietnamese (200k Sentence Pairs)</td>
-<td>---</td>
-<td>---</td>
-<td>---</td>
-<td>---</td>
-</tr>
-</tbody>
-</table>
+                <h2 id="tokenization">Tokenization</h2>
+<p>TODO</p>
+<h2 id="vocabulary-generation">Vocabulary Generation</h2>
+<p>TODO</p>
+<h2 id="debugging-attention">Debugging Attention</h2>
+<p>If you trained an <code>AttentionSeq2Seq</code> model you can use the <code>bin/print_attention.py</code> script to dump the raw attention scores and generate alignment visualizations. The usage is similar to the inference script and uses the same input data. For example:</p>
+<pre><code>./bin/print_attention.py \
+  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
+  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.txt \
+  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.txt \
+  --model AttentionSeq2Seq \
+  --model_dir ${TMPDIR}/nmt_toy_reverse \
+  --output_dir ${TMPDIR}/attention
+</code></pre>
+
+<p>By default, the script generates an <code>attention_score.npy</code> array file and an attention plot per example. The array file can be <a href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html">loaded used numpy</a>. It will be of shape <code>[num_examples, target_length, source_length]</code>. If you want only the raw attention score data without the plots you can pass the <code>--no_plot</code> flag. For more details and additional options see the <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/print_attention.py"><code>print_attention.py</code></a> file.</p>
+<h2 id="using-subword-units-bpe">Using Subword Units (BPE)</h2>
+<p>TODO</p>
+<h2 id="using-an-alignment-dictionary">Using an Alignment Dictionary</h2>
+<p>TODO</p>
+<h2 id="visualizing-beam-search">Visualizing Beam Search</h2>
+<p>TODO</p>
               
             </div>
           </div>
@@ -198,10 +200,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../profiling/" class="btn btn-neutral float-right" title="Profiling">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../benchmarks/" class="btn btn-neutral float-right" title="Results and Pre-Trained Models">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../tools/" class="btn btn-neutral" title="Tools"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../inference/" class="btn btn-neutral" title="Inference"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -227,10 +229,10 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../tools/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../inference/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../profiling/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../benchmarks/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

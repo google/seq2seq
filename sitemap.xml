@@ -51,6 +51,14 @@
 
     
     <url>
+     <loc>/tools/</loc>
+     <lastmod>2017-01-07</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
      <loc>/benchmarks/</loc>
      <lastmod>2017-01-07</lastmod>
      <changefreq>daily</changefreq>
