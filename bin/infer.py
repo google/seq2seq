@@ -98,14 +98,21 @@ def main(_argv):
 
       source_tokens = predictions_dict["features.source_tokens"]
       source_tokens = np.char.decode(source_tokens.astype("S"), "utf-8")
+      source_len = predictions_dict["features.source_len"]
+
+      # We slice the attention scores so that they do not go past
+      # the end of sequence token
+      attention_scores = predictions_dict["attention_scores"]
+      attention_scores = attention_scores[:, :source_len - 1]
 
       if unk_replace_fn is not None:
         predicted_tokens = unk_replace_fn(
             source_tokens=source_tokens,
             predicted_tokens=predicted_tokens,
-            attention_scores=predictions_dict["attention_scores"])
+            attention_scores=attention_scores)
 
-      print(" ".join(predicted_tokens).split("SEQUENCE_END")[0])
+      sent = " ".join(predicted_tokens).split("SEQUENCE_END")[0].strip()
+      print(sent)
 
 if __name__ == "__main__":
   tf.app.run()
