@@ -74,7 +74,13 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#todo">TODO</a></li>
+                <li class="toctree-l3"><a href="#common-hyperparameters">Common Hyperparameters</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#basicseq2seq">BasicSeq2Seq</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#attentionseq2seq">AttentionSeq2seq</a></li>
                 
             
             </ul>
@@ -98,7 +104,7 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../benchmarks/">Benchmarks</a>
+        <a class="" href="../benchmarks/">Results and Pre-Trained Models</a>
         
     </li>
 <li>
@@ -149,8 +155,182 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="todo">TODO</h1>
-<p>Model Library and Hyperparameter documentation</p>
+                <p>When calling the training script you can specify a model class using the <code>--model</code> flags and model-specific hyperparameters using the <code>--hparams</code> flag. This page list all support models and hyperparameters.</p>
+<h2 id="common-hyperparameters">Common Hyperparameters</h2>
+<p>The following hyperparameters are sahred by all models, unless explicitly stated in the model section.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source.max_seq_len</code></td>
+<td><code>40</code></td>
+<td>Maximum length of source sequences. An example is sliced to this length before being fed to the encoder.</td>
+</tr>
+<tr>
+<td><code>source.reverse</code></td>
+<td><code>False</code></td>
+<td>If set to true, reverse the source sequence before feeding it into the encoder.</td>
+</tr>
+<tr>
+<td><code>target.max_seq_len</code></td>
+<td><code>40</code></td>
+<td>Maximum length of target sequences. An example is sliced to this length before being fed to the decoder.</td>
+</tr>
+<tr>
+<td><code>embedding.dim</code></td>
+<td><code>100</code></td>
+<td>Dimensionality of the embedding layer.</td>
+</tr>
+<tr>
+<td><code>optimizer.name</code></td>
+<td><code>Adam</code></td>
+<td>Type of Optimizer to use, e.g. <code>Adam</code>, <code>SGD</code> or <code>Momentum</code>. The name is fed to Tensorflow's <a href="https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss">optimize_loss</a> function. See Tensorflow documentation for more details and all available options.</td>
+</tr>
+<tr>
+<td><code>optimizer.learning_rate</code></td>
+<td><code>1e-4</code></td>
+<td>Initial learning rate for the optimizer. This is fed to Tensorflow's <a href="https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss">optimize_loss</a> function.</td>
+</tr>
+<tr>
+<td><code>optimizer.lr_decay_type</code></td>
+<td></td>
+<td>The name of one of Tensorflow's <a href="https://www.tensorflow.org/api_docs/python/#training--decaying-the-learning-rate">learning rate decay function</a> defined in <code>tf.train</code>, e.g. <code>exponential_decay</code>. If this is an empty string (default) then no learning rate decay is used.</td>
+</tr>
+<tr>
+<td><code>optimizer.lr_decay_steps</code></td>
+<td><code>100</code></td>
+<td>How often to apply decay. This is fed as the <code>decay_steps</code> argument to the decay function defined above. See Tensoflow documentation for more details.</td>
+</tr>
+<tr>
+<td><code>optimizer.lr_decay_rate</code></td>
+<td><code>0.99</code></td>
+<td>The decay rate. This is fed as the <code>decay_rate</code> argument to the decay function defined above. See Tensorfow documentation for more details.</td>
+</tr>
+<tr>
+<td><code>optimizer.lr_start_decay_at</code></td>
+<td><code>0</code></td>
+<td>Start learning rate decay at this step.</td>
+</tr>
+<tr>
+<td><code>optimizer.lr_stop_decay_at</code></td>
+<td><code>1e9</code></td>
+<td>Stop learning rate decay at this step.</td>
+</tr>
+<tr>
+<td><code>optimizer.lr_min_learning_rate</code></td>
+<td><code>1e-12</code></td>
+<td>Never decay below this learning rate.</td>
+</tr>
+<tr>
+<td><code>optimizer.lr_staircase</code></td>
+<td><code>False</code></td>
+<td>If <code>True</code> decay the learning rate at discrete intervals. This is fed as the <code>staircase</code> argument to the decay function defined above. See Tensorfow documentation for more details.</td>
+</tr>
+<tr>
+<td><code>optimizer.clip_gradients</code></td>
+<td><code>5.0</code></td>
+<td>Clip gradients by their global norm.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="basicseq2seq"><code>BasicSeq2Seq</code></h2>
+<p>A sequence to sequence model that uses a unidirectional encoder and decoder without attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.</p>
+<p>This model suports the following additional hyperparameters.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rnn_cell.type</code></td>
+<td><code>BasicLSTMCell</code></td>
+<td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>. Applies to both encoder and decoder.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.num_units</code></td>
+<td>128</td>
+<td>The number of units to use for the RNN Cell. Applies to both encoder and decoder.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.dropout_input_keep_prob</code></td>
+<td><code>1.0</code></td>
+<td>Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout. Applies to both encoder and decoder.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.dropout_output_keep_prob</code></td>
+<td><code>1.0</code></td>
+<td>Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout. Applies to both encoder and decoder.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.num_layers</code></td>
+<td><code>1</code></td>
+<td>Number of RNN layers. Applies to both encoder and decoder.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="attentionseq2seq"><code>AttentionSeq2seq</code></h2>
+<p>A sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>attention.dim</code></td>
+<td><code>128</code></td>
+<td>Number of units in the attention layer.</td>
+</tr>
+<tr>
+<td><code>attention.score_type</code></td>
+<td><code>bahdanau</code></td>
+<td>The formula used to calculate attention scores. Available values are <code>bahdanau</code> and <code>dot</code>. <code>bahdanau</code> is described in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>. <code>dot</code> is described in <a href="https://arxiv.org/abs/1508.04025">Effective Approaches to Attention-based Neural Machine Translation</a>.</td>
+</tr>
+<tr>
+<td><code>encoder.type</code></td>
+<td><code>BidirectionalRNNEncoder</code></td>
+<td>Type of encoder to use. This is the class name of an encoder defined in <code>seq2seq.encoder</code>. Currently the supported value are <code>BidirectionalRNNEncoder</code> and <code>UnidirectionalRNNEncoder</code>.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.type</code></td>
+<td><code>BasicLSTMCell</code></td>
+<td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>. Applies to both encoder and decoder.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.num_units</code></td>
+<td>128</td>
+<td>The number of units to use for the RNN Cell. Applies to both encoder and decoder.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.dropout_input_keep_prob</code></td>
+<td><code>1.0</code></td>
+<td>Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout. Applies to both encoder and decoder.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.dropout_output_keep_prob</code></td>
+<td><code>1.0</code></td>
+<td>Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout. Applies to both encoder and decoder.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.num_layers</code></td>
+<td><code>1</code></td>
+<td>Number of RNN layers. Applies to both encoder and decoder.</td>
+</tr>
+</tbody>
+</table>
               
             </div>
           </div>

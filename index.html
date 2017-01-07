@@ -53,7 +53,13 @@
         
             <ul>
             
+                <li class="toctree-l3"><a href="#introduction">Introduction</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#design-goals">Design Goals</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#related-frameworks">Related Frameworks</a></li>
                 
             
             </ul>
@@ -98,7 +104,7 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="benchmarks/">Benchmarks</a>
+        <a class="" href="benchmarks/">Results and Pre-Trained Models</a>
         
     </li>
 <li>
@@ -149,25 +155,37 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="design-goals">Design Goals</h2>
-<p>We build this framework with the following goals in mind.</p>
+                <h2 id="introduction">Introduction</h2>
+<p>[seq2seq] is an open source framework for sequence learning in Tensorflow.
+The main use case is Neural Machine Translation (NMT), but [seq2seq] can be
+used for a variety of other applications such as Conversational Modeling,
+Text Summarization or Image Captioning.</p>
+<h2 id="design-goals">Design Goals</h2>
+<p>We built [seq2seq] with the following goals in mind.</p>
 <ol>
 <li>
-<p><strong>Ease of use.</strong> You should be able train a model with single command. The input data are raw text files instead of esoteric file formats. Similarly, using a pre-trained model to make predictions should be straightforward.</p>
+<p><strong>Ease of use.</strong> You can train a model with single command. The input data are raw text files and not esoteric file formats. Using pre-trained models to make predictions is straightforward.</p>
 </li>
 <li>
-<p><strong>Ease to extend</strong>. Code is structured in such a way that it is easy to build upon. For example, adding a new type of attention mechanism or a new encoder architecture requires only minimal code changes.</p>
+<p><strong>Easy to extend</strong>. Code is structured so that it is easy to build upon. For example, adding a new type of attention mechanism or encoder architecture requires only minimal code changes.</p>
 </li>
 <li>
-<p><strong>Well-documented</strong>. In addition to <a href="">generated API documentation</a> we have written up multiple guides to help users familiarize themselves with the framework.</p>
+<p><strong>Well-documented</strong>. In addition to the <a href="">API documentation</a> we have written up guides to help you get started with [seq2seq].</p>
 </li>
 <li>
-<p><strong>Good performance</strong>. For the sake of code simplicity we have not tried to squeeze out every last bit of performance, but our implementation is fast enough to cover almost all production use cases. It also supports distributed training to trade off computational power and training time.</p>
+<p><strong>Good performance</strong>. For the sake of code simplicity we do not try to squeeze out every last bit of performance, but the implementation is fast enough to cover almost all production and research use cases. [seq2seq] also supports distributed training to trade off computational power and training time.</p>
 </li>
 <li>
-<p><strong>Standard Benchmarks</strong>. We provide <a href="benchmarks/">pre-trained models and benchmark results</a> for several standard datasets. We hope these can serve as a baseline for further research.</p>
+<p><strong>Standard Benchmarks</strong>. We provide <a href="benchmarks/">pre-trained models and benchmark results</a> for several standard datasets. We hope these can serve as a baseline for future research.</p>
 </li>
 </ol>
+<h2 id="related-frameworks">Related Frameworks</h2>
+<p>The following frameworks offer functionality that similar to those of [seq2seq]. We hope to collaborate with the authors of these framework so that we can learn from each other.</p>
+<ul>
+<li><a href="http://opennmt.net/">OpenNMT (Torch)</a></li>
+<li><a href="https://github.com/ufal/neuralmonkey">Neural Monkey (Tensorflow)</a></li>
+<li><a href="https://github.com/rsennrich/nematus">NEMATUS (Theano)</a></li>
+</ul>
               
             </div>
           </div>
@@ -214,5 +232,5 @@
 
 <!--
 MkDocs version : 0.16.1
-Build Date UTC : 2017-01-07 00:00:14
+Build Date UTC : 2017-01-07 00:52:08
 -->
