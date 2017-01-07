@@ -39,7 +39,7 @@ def get_prediction_length(predictions_dict):
   """
   tokens_iter = enumerate(predictions_dict["predicted_tokens"])
   return next(
-      ((i + 1) for i, _ in tokens_iter if _ == b"SEQUENCE_END"),
+      ((i + 1) for i, _ in tokens_iter if _ == "SEQUENCE_END"),
       None)
 
 def get_scores(predictions_dict):
@@ -57,14 +57,12 @@ def create_figure(predictions_dict):
 
   # Find out how long the predicted sequence is
   target_words = list(predictions_dict["predicted_tokens"])
-  target_words = [_.decode("utf-8") for _ in target_words]
 
   prediction_len = get_prediction_length(predictions_dict)
 
   # Get source words
   source_len = predictions_dict["features.source_len"]
   source_words = predictions_dict["features.source_tokens"][:source_len]
-  source_words = [_.decode("utf-8") for _ in source_words]
 
   # Plot
   fig = plt.figure(figsize=(8, 8))
@@ -124,6 +122,11 @@ def main(_argv):
     attention_scores = []
 
     for idx, predictions_dict in enumerate(predictions_iter):
+      # Deocde...
+      predictions_dict["predicted_tokens"] = np.char.decode(
+          predictions_dict["predicted_tokens"].astype("S"), "utf-8")
+      predictions_dict["features.source_tokens"] = np.char.decode(
+          predictions_dict["features.source_tokens"].astype("S"), "utf-8")
       if not FLAGS.no_plot:
         output_path = os.path.join(FLAGS.output_dir, "{:05d}.png".format(idx))
         create_figure(predictions_dict)

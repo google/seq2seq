@@ -4,8 +4,8 @@
 import os
 import itertools
 
+import numpy as np
 import tensorflow as tf
-from tensorflow.python.platform import gfile
 
 from seq2seq import models
 from seq2seq.data import data_utils
@@ -49,13 +49,14 @@ def print_translations(predictions_iter, use_beams=False):
   """
   for prediction_dict in predictions_iter:
     tokens = prediction_dict["predicted_tokens"]
+    tokens = np.char.decode(tokens.astype("S"), "utf-8")
     # If we're using beam search we take the first beam
     if use_beams:
       tokens = tokens[:, 0]
     # Take sentence until SEQUENCE_END
-    tokens = list(itertools.takewhile(lambda x: x != b"SEQUENCE_END", tokens))
-    sent = b" ".join(tokens)
-    print(sent.decode("utf-8"))
+    tokens = list(itertools.takewhile(lambda x: x != "SEQUENCE_END", tokens))
+    sent = " ".join(tokens)
+    print(sent)
 
 
 def create_predictions_iter(predictions_dict, sess):

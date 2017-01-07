@@ -40,7 +40,7 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
   def setUp(self):
     super(CreateVocabularyLookupTableTest, self).setUp()
     tf.logging.set_verbosity(tf.logging.INFO)
-    self.vocab_list = ["Hello", ".", "Bye"]
+    self.vocab_list = ["Hello", ".", "笑"]
     self.vocab_file = test_utils.create_temporary_vocab_file(self.vocab_list)
 
   def tearDown(self):
@@ -60,7 +60,7 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
       sess.run(tf.initialize_all_tables())
 
       ids = vocab_to_id_table.lookup(
-          tf.convert_to_tensor(["Hello", ".", "Bye", "??", "xxx"]))
+          tf.convert_to_tensor(["Hello", ".", "笑", "??", "xxx"]))
       ids = sess.run(ids)
       np.testing.assert_array_equal(ids, [0, 1, 2, 3, 3])
 
@@ -69,7 +69,8 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
               [0, 1, 2, 3], dtype=tf.int64))
       words = sess.run(words)
       np.testing.assert_array_equal(
-          words.astype("U"), ["Hello", ".", "Bye", "UNK"])
+          np.char.decode(words.astype("S"), "utf-8"),
+          ["Hello", ".", "笑", "UNK"])
 
 
 if __name__ == "__main__":

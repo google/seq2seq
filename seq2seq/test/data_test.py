@@ -23,7 +23,7 @@ class SplitTokensDecoderTest(tf.test.TestCase):
 
     self.assertEqual(decoder.list_items(), ["source_tokens", "source_len"])
 
-    data = tf.constant("Hello world !")
+    data = tf.constant("Hello world ! 笑ｗ")
 
     decoded_tokens = decoder.decode(data, ["source_tokens"])
     decoded_length = decoder.decode(data, ["source_len"])
@@ -34,13 +34,15 @@ class SplitTokensDecoderTest(tf.test.TestCase):
       decoded_length_ = sess.run(decoded_length)[0]
       decoded_both_ = sess.run(decoded_both)
 
-    self.assertEqual(decoded_length_, 3)
+    self.assertEqual(decoded_length_, 4)
     np.testing.assert_array_equal(
-        decoded_tokens_.astype("U"), ["Hello", "world", "!"])
+        np.char.decode(decoded_tokens_.astype("S"), "utf-8"),
+        ["Hello", "world", "!", "笑ｗ"])
 
-    self.assertEqual(decoded_both_[1], 3)
-    np.testing.assert_array_equal(decoded_both_[0].astype("U"),
-                                  ["Hello", "world", "!"])
+    self.assertEqual(decoded_both_[1], 4)
+    np.testing.assert_array_equal(
+        np.char.decode(decoded_both_[0].astype("S"), "utf-8"),
+        ["Hello", "world", "!", "笑ｗ"])
 
 
 class ParallelDataProviderTest(tf.test.TestCase):
@@ -50,16 +52,16 @@ class ParallelDataProviderTest(tf.test.TestCase):
   def setUp(self):
     super(ParallelDataProviderTest, self).setUp()
     # Our data
-    self.source_lines = ["Hello", "World", "!"]
-    self.target_lines = ["1", "2", "3"]
+    self.source_lines = ["Hello", "World", "!", "笑"]
+    self.target_lines = ["1", "2", "3", "笑"]
     self.source_to_target = dict(zip(self.source_lines, self.target_lines))
 
     # Create two parallel text files
-    self.source_file = tempfile.NamedTemporaryFile("w")
-    self.target_file = tempfile.NamedTemporaryFile("w")
-    self.source_file.write("\n".join(self.source_lines))
+    self.source_file = tempfile.NamedTemporaryFile()
+    self.target_file = tempfile.NamedTemporaryFile()
+    self.source_file.write("\n".join(self.source_lines).encode("utf-8"))
     self.source_file.flush()
-    self.target_file.write("\n".join(self.target_lines))
+    self.target_file.write("\n".join(self.target_lines).encode("utf-8"))
     self.target_file.flush()
 
   def tearDown(self):
@@ -90,8 +92,10 @@ class ParallelDataProviderTest(tf.test.TestCase):
         item_dicts_ = [sess.run(items_dict) for _ in range(num_epochs * 3)]
 
     for item_dict in item_dicts_:
-      item_dict["target_tokens"] = item_dict["target_tokens"].astype("U")
-      item_dict["source_tokens"] = item_dict["source_tokens"].astype("U")
+      item_dict["target_tokens"] = np.char.decode(
+          item_dict["target_tokens"].astype("S"), "utf-8")
+      item_dict["source_tokens"] = np.char.decode(
+          item_dict["source_tokens"].astype("S"), "utf-8")
 
       # Source is Data + SEQUENCE_END
       self.assertEqual(item_dict["source_len"], 2)
@@ -134,7 +138,8 @@ class ParallelDataProviderTest(tf.test.TestCase):
 
     for item_dict in item_dicts_:
       self.assertEqual(item_dict["source_len"], 2)
-      item_dict["source_tokens"] = item_dict["source_tokens"].astype("U")
+      item_dict["source_tokens"] = np.char.decode(
+          item_dict["source_tokens"].astype("S"), "utf-8")
       self.assertEqual(item_dict["source_tokens"][-1], "SEQUENCE_END")
 
 class ReadFromDataProviderTest(tf.test.TestCase):
@@ -148,7 +153,7 @@ class ReadFromDataProviderTest(tf.test.TestCase):
 
   def test_read_from_data_provider(self):
     file_source, file_target = test_utils.create_temp_parallel_data(
-        sources=["Hello World ."], targets=["Bye"])
+        sources=["Hello World . 笑"], targets=["Bye 泣"])
     data_provider = data_utils.make_parallel_data_provider(
         data_sources_source=[file_source.name],
         data_sources_target=[file_target.name],
@@ -162,14 +167,14 @@ class ReadFromDataProviderTest(tf.test.TestCase):
       with tf.contrib.slim.queues.QueueRunners(sess):
         res = sess.run(features)
 
-    self.assertEqual(res["source_len"], 4)
-    self.assertEqual(res["target_len"], 3)
+    self.assertEqual(res["source_len"], 5)
+    self.assertEqual(res["target_len"], 4)
     np.testing.assert_array_equal(
-        res["source_tokens"].astype("U"),
-        ["Hello", "World", ".", "SEQUENCE_END"])
+        np.char.decode(res["source_tokens"].astype("S"), "utf-8"),
+        ["Hello", "World", ".", "笑", "SEQUENCE_END"])
     np.testing.assert_array_equal(
-        res["target_tokens"].astype("U"),
-        ["SEQUENCE_START", "Bye", "SEQUENCE_END"])
+        np.char.decode(res["target_tokens"].astype("S"), "utf-8"),
+        ["SEQUENCE_START", "Bye", "泣", "SEQUENCE_END"])
 
 
 if __name__ == "__main__":
