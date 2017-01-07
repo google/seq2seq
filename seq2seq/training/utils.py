@@ -283,6 +283,13 @@ def moses_multi_bleu(hypotheses,
   sliced_hypotheses = [x.split(eos_token)[0].strip() for x in hypotheses]
   sliced_references = [x.split(eos_token)[0].strip() for x in references]
 
+  # Strip special "@@ " tokens used for BPE
+  # See https://github.com/rsennrich/subword-nmt
+  # We hope this is rare enough that it will not have any adverse effects
+  # on predicitons that do not use BPE
+  sliced_hypotheses = [_.replace("@@ ", "") for _ in sliced_hypotheses]
+  sliced_references = [_.replace("@@ ", "") for _ in sliced_references]
+
   # Dump hypotheses and references to tempfiles
   hypothesis_file = tempfile.NamedTemporaryFile()
   hypothesis_file.write("\n".join(sliced_hypotheses).encode("utf-8"))
