@@ -6,6 +6,7 @@
 import functools
 import os
 import tempfile
+
 from seq2seq import models
 from seq2seq.data import data_utils, vocab
 from seq2seq.training import HParamsParser
@@ -148,7 +149,8 @@ def create_experiment(output_dir):
       sample_frequency=FLAGS.sample_every_n_steps)
 
   eval_metrics = {
-      "log_perplexity": metrics.streaming_log_perplexity()
+      "log_perplexity": metrics.streaming_log_perplexity(),
+      "bleu": metrics.make_bleu_metric_spec(),
   }
 
   experiment = tf.contrib.learn.experiment.Experiment(
