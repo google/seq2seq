@@ -2,6 +2,10 @@
 Unit tests for loss-related operations.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from seq2seq import losses as seq2seq_losses
 import tensorflow as tf
 import numpy as np

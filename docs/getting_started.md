@@ -74,8 +74,8 @@ With the above input files you can now train a new model:
   --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
   --dev_source $HOME/nmt_data/toy_reverse/dev/sources.txt \
   --dev_target $HOME/nmt_data/toy_reverse/dev/targets.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.txt \
+  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
+  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
   --model AttentionSeq2Seq \
   --batch_size 32 \
   --train_epochs 5 \
@@ -87,8 +87,8 @@ On a CPU the training may take up to 15 minutes. With the trained model you can 
 ```bash
 ./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.txt \
+  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
+  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
   --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   > ${TMPDIR}/nmt_toy_reverse/predictions.txt

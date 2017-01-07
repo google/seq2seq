@@ -1,7 +1,12 @@
 """ Collection of SessionRunHooks
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
+import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.training import basic_session_run_hooks, session_run_hook
@@ -202,11 +207,15 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     result_str += "Prediction followed by Target @ Step {}\n".format(step)
     result_str += ("=" * 100) + "\n"
     for result in result_dicts:
-      target_len = result["target_len"]
+      target_len = result["target_len"][0]
+      result["predicted_tokens"] = np.char.decode(
+          result["predicted_tokens"].astype("S"), "utf-8")
+      result["target_words"] = np.char.decode(
+          result["target_words"].astype("S"), "utf-8")
       predicted_slice = result["predicted_tokens"][:target_len - 1]
       target_slice = result["target_words"][1:target_len]
-      result_str += b" ".join(predicted_slice).decode("utf-8") + "\n"
-      result_str += b" ".join(target_slice).decode("utf-8") + "\n\n"
+      result_str += " ".join(predicted_slice) + "\n"
+      result_str += " ".join(target_slice) + "\n\n"
     result_str += ("=" * 100) + "\n\n"
     tf.logging.info(result_str)
     if self.file:

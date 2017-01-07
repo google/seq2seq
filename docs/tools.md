@@ -13,8 +13,8 @@ If you trained an `AttentionSeq2Seq` model you can use the `bin/print_attention.
 ```
 ./bin/print_attention.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.txt \
+  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
+  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
   --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   --output_dir ${TMPDIR}/attention

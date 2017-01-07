@@ -1,7 +1,14 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 Functions to generate various toy datasets.
 """
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 import argparse
 import os
@@ -29,7 +36,8 @@ PARSER.add_argument(
     required=True)
 ARGS = PARSER.parse_args()
 
-VOCABULARY = list([str(x) for x in range(ARGS.vocab_size)])
+VOCABULARY = list([str(x) for x in range(ARGS.vocab_size - 1)])
+VOCABULARY += ["笑"]
 
 
 def make_copy(num_examples, min_len, max_len):

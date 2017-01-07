@@ -1,6 +1,12 @@
+# -*- coding: utf-8 -*-
+
+"""Tests for Models
 """
-Tests for Models
-"""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 from collections import namedtuple
 
@@ -28,8 +34,9 @@ class EncoderDecoderTests(tf.test.TestCase):
     self.max_decode_length = 40
 
     # Create vocabulary
-    self.vocab_size = 100
-    self.vocab_list = [str(_) for _ in range(self.vocab_size)]
+    self.vocab_list = [str(_) for _ in range(10)]
+    self.vocab_list += ["笑う", "泣く", "了解", "はい", "＾＿＾"]
+    self.vocab_size = len(self.vocab_list)
     self.vocab_file = test_utils.create_temporary_vocab_file(self.vocab_list)
     self.vocab_info = vocab.get_vocab_info(self.vocab_file.name)
 
