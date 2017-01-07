@@ -64,7 +64,7 @@ def main(_argv):
     mapping = None
     if FLAGS.unk_mapping is not None:
       mapping = get_unk_mapping(FLAGS.unk_mapping)
-    if FLAGS.unk_replace == "copy":
+    if FLAGS.unk_replace:
       unk_replace_fn = functools.partial(unk_replace, mapping=mapping)
 
   predictions = {k: v for k, v in predictions.items() if k in prediction_keys}
