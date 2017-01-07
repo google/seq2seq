@@ -254,7 +254,7 @@ def moses_multi_bleu(hypotheses,
     eos_token: Slice hypotheses and references up to this token
 
   Returns:
-    The bleu score.
+    The BLEU score as a float32 value.
   """
 
   if np.size(hypotheses) == 0:
