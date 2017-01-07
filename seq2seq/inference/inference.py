@@ -6,10 +6,10 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import itertools
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.platform import gfile
 
 from seq2seq import models
 from seq2seq.data import data_utils
@@ -48,21 +48,6 @@ def load_model(vocab_source, vocab_target, model_class, model_dir, params=None):
   return model
 
 
-def print_translations(predictions_iter, use_beams=False):
-  """Prints translations, one per line.
-  """
-  for prediction_dict in predictions_iter:
-    tokens = prediction_dict["predicted_tokens"]
-    tokens = np.char.decode(tokens.astype("S"), "utf-8")
-    # If we're using beam search we take the first beam
-    if use_beams:
-      tokens = tokens[:, 0]
-    # Take sentence until SEQUENCE_END
-    tokens = list(itertools.takewhile(lambda x: x != "SEQUENCE_END", tokens))
-    sent = " ".join(tokens)
-    print(sent)
-
-
 def create_predictions_iter(predictions_dict, sess):
   """Runs prediciton fetches in a sessions and flattens batches as needed to
   return an iterator of predictions. Yield elements until an
@@ -87,7 +72,6 @@ def create_predictions_iter(predictions_dict, sess):
           yield {key: value[i] for key, value in predictions_.items()}
       except tf.errors.OutOfRangeError:
         break
-
 
 def create_inference_graph(
     model_class,
@@ -129,3 +113,48 @@ def create_inference_graph(
       labels=labels,
       params=None,
       mode=tf.contrib.learn.ModeKeys.INFER)
+
+
+def unk_replace(source_tokens, predicted_tokens, attention_scores,
+                mapping=None):
+  """Replaces UNK tokens with the source token that has the highest
+  attention score.
+
+  Args:
+    source_tokens: A numpy array of strings.
+    predicted_tokens: A numpy array of strings.
+    attention_scores: A numeric numpy array
+      of shape `[prediction_length, source_length]` that contains
+      the attention scores.
+
+  Returns:
+    A new `predicted_tokens` array.
+  """
+  result = []
+  for token, scores in zip(predicted_tokens, attention_scores):
+    if token == "UNK":
+      max_score_index = np.argmax(scores)
+      chosen_source_token = source_tokens[max_score_index]
+      new_target = chosen_source_token
+      if mapping is not None:
+        new_target = mapping[chosen_source_token]
+      result.append(new_target)
+    else:
+      result.append(token)
+  return np.array(result)
+
+def get_unk_mapping(filename):
+  """Reads a file that specifies a mapping from source to target tokens.
+  The file must contain lines of the form <source>\t<target>"
+
+  Args:
+    filename: path to the mapping file
+
+  Returns:
+    A dictinary that maps from source -> target tokens.
+  """
+  with gfile.GFile(filename, "r") as mapping_file:
+    lines = mapping_file.readlines()
+    mapping = dict([_.split("\t")[0:2] for _ in lines])
+    mapping = {k.strip(): v.strip() for k, v in mapping.items()}
+  return mapping
