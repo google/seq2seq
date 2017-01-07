@@ -55,7 +55,7 @@ def print_translations(predictions_iter, use_beams=False):
     # Take sentence until SEQUENCE_END
     tokens = list(itertools.takewhile(lambda x: x != b"SEQUENCE_END", tokens))
     sent = b" ".join(tokens)
-    print(sent)
+    print(sent.decode("utf-8"))
 
 
 def create_predictions_iter(predictions_dict, sess):
