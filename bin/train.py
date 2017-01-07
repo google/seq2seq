@@ -6,6 +6,7 @@
 import functools
 import os
 import tempfile
+
 from seq2seq import models
 from seq2seq.data import data_utils, vocab
 from seq2seq.training import HParamsParser

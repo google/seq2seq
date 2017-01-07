@@ -9,7 +9,9 @@ import os
 import re
 import subprocess
 import tempfile
+
 import numpy as np
+from six.moves import urllib
 
 import tensorflow as tf
 from tensorflow.python.platform import gfile
@@ -260,10 +262,16 @@ def moses_multi_bleu(hypotheses,
   if np.size(hypotheses) == 0:
     return np.float32(0.0)
 
-  # Find the multi-bleu script
-  training_dir = os.path.dirname(os.path.realpath(__file__))
-  bin_dir = os.path.abspath(os.path.join(training_dir, "..", "..", "bin"))
-  multi_bleu_path = os.path.join(bin_dir, "multi-bleu.perl")
+  # Get MOSES  multi-bleu script
+  multi_bleu_path, _ = urllib.request.urlretrieve(
+      "https://raw.githubusercontent.com/moses-smt/mosesdecoder/"
+      "master/scripts/generic/multi-bleu.perl")
+  os.chmod(multi_bleu_path, 0o755)
+
+  # Alternatively, get file locally
+  # training_dir = os.path.dirname(os.path.realpath(__file__))
+  # bin_dir = os.path.abspath(os.path.join(training_dir, "..", "..", "bin"))
+  # multi_bleu_path = os.path.join(bin_dir, "multi-bleu.perl")
 
   # Decode hypotheses and references
   if hypotheses.dtype == np.dtype("O"):
