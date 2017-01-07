@@ -45,7 +45,7 @@ If you trained a model, such as `AttentionSeq2Seq`, that generates such attentio
 
 A slightly more sophisticated approach to UNK token replacement is to use a mapping instead of copying words from the source. For example, "Munich" is translated as "München" in German, but if you were to simply copy "Munich" from the source you would never get this translation right.
 
-You can use [fast_align](https://github.com/clab/fast_align) to generate such a mapping basedon the
+You can use [fast_align](https://github.com/clab/fast_align) to generate such a mapping based on the
 conditional probabilities of target given source.
 
 ```bash
@@ -54,7 +54,8 @@ git clone https://github.com/clab/fast_align.git
 mkdir fast_align/build && cd fast_align/build
 cmake ../ && make
 
-# Bring you data into a format that fast_align understands
+# Bring you data into a format that fast_align understands:
+# <source> ||| <target>
 paste \
   $HOME/nmt_data/toy_reverse/train/sources.txt \
   $HOME/nmt_data/toy_reverse/train/targets.txt \
@@ -69,7 +70,7 @@ paste \
 
 The output file specified by the `-p` argument will contain conditional probabilities
 for `p(target | source)` in the format of `<source>\t<target>\t<prob>`. These can
-be used to do smarter UNK token replacement:
+be used to do smarter UNK token replacement by passing the `unk_mapping` flag.
 
 ```bash
 ./bin/infer.py \
