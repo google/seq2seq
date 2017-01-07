@@ -100,8 +100,8 @@ def main(_argv):
       source_tokens = np.char.decode(source_tokens.astype("S"), "utf-8")
       source_len = predictions_dict["features.source_len"]
 
-      # We slice the attention scores so that they do not go past
-      # the end of sequence token
+      # We slice the attention scores so that we do not
+      # accidentially replace UNK with a SEQUENCE_END token
       attention_scores = predictions_dict["attention_scores"]
       attention_scores = attention_scores[:, :source_len - 1]
 
