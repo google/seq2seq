@@ -69,21 +69,21 @@ class TestTrainSampleHook(tf.test.TestCase):
       sess.run(tf.assign(global_step, 0))
       mon_sess.run(no_op)
 
-      with open(outfile.name, "r") as readfile:
+      with open(outfile.name, "rb") as readfile:
         self.assertIn("Prediction followed by Target @ Step 0",
                       readfile.read().decode("utf-8"))
 
       # Should not trigger for step 9
       sess.run(tf.assign(global_step, 9))
       mon_sess.run(no_op)
-      with open(outfile.name, "r") as readfile:
+      with open(outfile.name, "rb") as readfile:
         self.assertNotIn("Prediction followed by Target @ Step 9",
                          readfile.read().decode("utf-8"))
 
       # Should trigger for step 10
       sess.run(tf.assign(global_step, 10))
       mon_sess.run(no_op)
-      with open(outfile.name, "r") as readfile:
+      with open(outfile.name, "rb") as readfile:
         self.assertIn("Prediction followed by Target @ Step 10",
                       readfile.read().decode("utf-8"))
 
