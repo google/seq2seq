@@ -179,8 +179,8 @@
 <p>If you trained an <code>AttentionSeq2Seq</code> model you can use the <code>bin/print_attention.py</code> script to dump the raw attention scores and generate alignment visualizations. The usage is similar to the inference script and uses the same input data. For example:</p>
 <pre><code>./bin/print_attention.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.txt \
+  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
+  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
   --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   --output_dir ${TMPDIR}/attention
