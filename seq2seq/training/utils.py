@@ -6,6 +6,10 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import re
+import subprocess
+import tempfile
+import numpy as np
 
 import tensorflow as tf
 from tensorflow.python.platform import gfile
@@ -234,3 +238,66 @@ def print_hparams(hparams):
   for param, value in sorted(hparams.items()):
     tf.logging.info("%s=%s", param, value)
   tf.logging.info("=" * 50)
+
+
+def calculate_bleu(predictions,
+                   targets,
+                   lowercase=False,
+                   eos_token="SEQUENCE_END"):
+  """Calculate the bleu score of two arrays using the multi-bleu script.
+
+  Args:
+    predictions: A numpy array of strings
+    targets: A numpy array of strings
+    lowercase: If true, pass the "-lc" flag to the multi-bleu script
+    eos_token: Slice predictions and targets up to this token
+
+  Returns:
+    The bleu score.
+  """
+
+  if np.size(predictions) == 0:
+    return np.float32(0.0)
+
+  # Find the multi-bleu script
+  training_dir = os.path.dirname(os.path.realpath(__file__))
+  bin_dir = os.path.abspath(os.path.join(training_dir, "..", "..", "bin"))
+  multi_bleu_path = os.path.join(bin_dir, "multi-bleu.perl")
+
+  # Decode predictions and targets
+  if predictions.dtype == np.dtype("O"):
+    predictions = np.char.decode(predictions.astype("S"))
+  if targets.dtype == np.dtype("O"):
+    targets = np.char.decode(targets.astype("S"))
+
+  # Slice all predictions and targets up to EOS
+  sliced_predictions = [x.split(eos_token)[0].strip() for x in predictions]
+  sliced_targets = [x.split(eos_token)[0].strip() for x in targets]
+
+  # Dump predictions and targets to tempfiles
+  predictions_file = tempfile.NamedTemporaryFile()
+  predictions_file.write("\n".join(sliced_predictions).encode("utf-8"))
+  predictions_file.write("\n".encode("utf-8"))
+  predictions_file.flush()
+  targets_file = tempfile.NamedTemporaryFile()
+  targets_file.write("\n".join(sliced_targets).encode("utf-8"))
+  targets_file.write("\n".encode("utf-8"))
+  targets_file.flush()
+
+  # Calculate BLEU using multi-bleu script
+  with open(predictions_file.name, "r") as read_pred:
+    bleu_cmd = [multi_bleu_path]
+    if lowercase:
+      bleu_cmd += ["-lc"]
+    bleu_cmd += [targets_file.name]
+    bleu_out = subprocess.check_output(
+        bleu_cmd, stdin=read_pred, stderr=subprocess.STDOUT)
+    bleu_out = bleu_out.decode("utf-8")
+    bleu_score = re.search(r"BLEU = (.+?),", bleu_out).group(1)
+    bleu_score = float(bleu_score)
+
+  # Close temp files
+  predictions_file.close()
+  targets_file.close()
+
+  return np.float32(bleu_score)

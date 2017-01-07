@@ -58,7 +58,7 @@ class AttentionDecoder(DecoderBase):
 
   def pack_outputs(self, outputs_ta, final_loop_state):
     logits, predicted_ids = DecoderBase.pack_outputs(self, outputs_ta,
-                                                   final_loop_state)
+                                                     final_loop_state)
 
     attention_scores = outputs_ta.attention_scores.stack()
     # Slice attention scores to actual length of the inputs

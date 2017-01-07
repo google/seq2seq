@@ -148,7 +148,8 @@ def create_experiment(output_dir):
       sample_frequency=FLAGS.sample_every_n_steps)
 
   eval_metrics = {
-      "log_perplexity": metrics.streaming_log_perplexity()
+      "log_perplexity": metrics.streaming_log_perplexity(),
+      "bleu": metrics.make_bleu_metric_spec(),
   }
 
   experiment = tf.contrib.learn.experiment.Experiment(
