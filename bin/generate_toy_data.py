@@ -29,7 +29,8 @@ PARSER.add_argument(
     required=True)
 ARGS = PARSER.parse_args()
 
-VOCABULARY = list([str(x) for x in range(ARGS.vocab_size)])
+VOCABULARY = list([str(x) for x in range(ARGS.vocab_size - 1)])
+VOCABULARY += ["笑"]
 
 
 def make_copy(num_examples, min_len, max_len):
