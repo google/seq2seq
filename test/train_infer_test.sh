@@ -7,17 +7,19 @@ rm -rf $TEST_DIR
 mkdir -p $TEST_DIR
 
 # Create dummy vocabulary
-echo -e "a\nb\nc" > $TEST_DIR/vocab
+echo -e "a\nb\nc\n笑\n泣" > $TEST_DIR/vocab
 
 # Create dummy train data
 echo "a a a a
 a a b b
-b b c c" | tee $TEST_DIR/train.sources $TEST_DIR/train.targets > /dev/null
+b b c c
+笑 笑 笑 笑" | tee $TEST_DIR/train.sources $TEST_DIR/train.targets > /dev/null
 
 # Create dummy dev data
 echo "a a a a
 b b b b
-c c c c" | tee $TEST_DIR/dev.sources $TEST_DIR/dev.targets > /dev/null
+c c c c
+泣 泣 泣 泣" | tee $TEST_DIR/dev.sources $TEST_DIR/dev.targets > /dev/null
 
 # Run training for 100 steps
 ./bin/train.py \
