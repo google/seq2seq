@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+
 """Tests for SessionRunHooks.
 """
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import tempfile
 import shutil
@@ -15,8 +18,6 @@ from tensorflow.python.platform import gfile
 
 from seq2seq import graph_utils
 from seq2seq.training import hooks
-from seq2seq.test import utils as test_utils
-from seq2seq.data import vocab
 
 
 class TestPrintModelAnalysisHook(tf.test.TestCase):
@@ -67,18 +68,24 @@ class TestTrainSampleHook(tf.test.TestCase):
       # Should trigger for step 0
       sess.run(tf.assign(global_step, 0))
       mon_sess.run(no_op)
-      self.assertIn("Prediction followed by Target @ Step 0",
-                    outfile.read().decode())
+
+      with open(outfile.name, "r") as readfile:
+        self.assertIn("Prediction followed by Target @ Step 0",
+                      readfile.read().decode("utf-8"))
+
       # Should not trigger for step 9
       sess.run(tf.assign(global_step, 9))
       mon_sess.run(no_op)
-      self.assertNotIn("Prediction followed by Target @ Step 9",
-                       outfile.read().decode())
+      with open(outfile.name, "r") as readfile:
+        self.assertNotIn("Prediction followed by Target @ Step 9",
+                         readfile.read().decode("utf-8"))
+
       # Should trigger for step 10
       sess.run(tf.assign(global_step, 10))
       mon_sess.run(no_op)
-      self.assertIn("Prediction followed by Target @ Step 10",
-                    outfile.read().decode())
+      with open(outfile.name, "r") as readfile:
+        self.assertIn("Prediction followed by Target @ Step 10",
+                      readfile.read().decode("utf-8"))
 
 
 class TestMetadataCaptureHook(tf.test.TestCase):

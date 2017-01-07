@@ -1,6 +1,11 @@
 """Various testing utilities
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import tempfile
 
 def create_temp_parallel_data(sources, targets):
@@ -33,8 +38,8 @@ def create_temporary_vocab_file(words):
   Returns:
     A temporary file object with one word per line
   """
-  vocab_file = tempfile.NamedTemporaryFile("w")
+  vocab_file = tempfile.NamedTemporaryFile()
   for token in words:
-    vocab_file.write(token + "\n")
+    vocab_file.write((token + "\n").encode("utf-8"))
   vocab_file.flush()
   return vocab_file

@@ -1,6 +1,9 @@
 """Utility to pass parameter strings of the form "p1=aa,p2=3,p4=True"
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 class HParamsParser(object):
   """Pases a comma-separated string of hyperaprameters

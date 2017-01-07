@@ -1,6 +1,10 @@
 """Collection of utility functions to read data
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import tensorflow as tf
 
 from seq2seq.data import split_tokens_decoder, parallel_data_provider
