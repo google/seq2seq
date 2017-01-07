@@ -240,23 +240,24 @@ def print_hparams(hparams):
   tf.logging.info("=" * 50)
 
 
-def calculate_bleu(predictions,
-                   targets,
-                   lowercase=False,
-                   eos_token="SEQUENCE_END"):
-  """Calculate the bleu score of two arrays using the multi-bleu script.
+def moses_multi_bleu(hypotheses,
+                     references,
+                     lowercase=False,
+                     eos_token="SEQUENCE_END"):
+  """Calculate the bleu score for hypotheses and references
+  using the MOSES ulti-bleu.perl script.
 
   Args:
-    predictions: A numpy array of strings
-    targets: A numpy array of strings
+    hypotheses: A numpy array of strings where each string is a single example.
+    references: A numpy array of strings where each string is a single example.
     lowercase: If true, pass the "-lc" flag to the multi-bleu script
-    eos_token: Slice predictions and targets up to this token
+    eos_token: Slice hypotheses and references up to this token
 
   Returns:
     The bleu score.
   """
 
-  if np.size(predictions) == 0:
+  if np.size(hypotheses) == 0:
     return np.float32(0.0)
 
   # Find the multi-bleu script
@@ -264,32 +265,32 @@ def calculate_bleu(predictions,
   bin_dir = os.path.abspath(os.path.join(training_dir, "..", "..", "bin"))
   multi_bleu_path = os.path.join(bin_dir, "multi-bleu.perl")
 
-  # Decode predictions and targets
-  if predictions.dtype == np.dtype("O"):
-    predictions = np.char.decode(predictions.astype("S"))
-  if targets.dtype == np.dtype("O"):
-    targets = np.char.decode(targets.astype("S"))
+  # Decode hypotheses and references
+  if hypotheses.dtype == np.dtype("O"):
+    hypotheses = np.char.decode(hypotheses.astype("S"))
+  if references.dtype == np.dtype("O"):
+    references = np.char.decode(references.astype("S"))
 
-  # Slice all predictions and targets up to EOS
-  sliced_predictions = [x.split(eos_token)[0].strip() for x in predictions]
-  sliced_targets = [x.split(eos_token)[0].strip() for x in targets]
+  # Slice all hypotheses and references up to EOS
+  sliced_hypotheses = [x.split(eos_token)[0].strip() for x in hypotheses]
+  sliced_references = [x.split(eos_token)[0].strip() for x in references]
 
-  # Dump predictions and targets to tempfiles
-  predictions_file = tempfile.NamedTemporaryFile()
-  predictions_file.write("\n".join(sliced_predictions).encode("utf-8"))
-  predictions_file.write("\n".encode("utf-8"))
-  predictions_file.flush()
-  targets_file = tempfile.NamedTemporaryFile()
-  targets_file.write("\n".join(sliced_targets).encode("utf-8"))
-  targets_file.write("\n".encode("utf-8"))
-  targets_file.flush()
+  # Dump hypotheses and references to tempfiles
+  hypothesis_file = tempfile.NamedTemporaryFile()
+  hypothesis_file.write("\n".join(sliced_hypotheses).encode("utf-8"))
+  hypothesis_file.write("\n".encode("utf-8"))
+  hypothesis_file.flush()
+  reference_file = tempfile.NamedTemporaryFile()
+  reference_file.write("\n".join(sliced_references).encode("utf-8"))
+  reference_file.write("\n".encode("utf-8"))
+  reference_file.flush()
 
   # Calculate BLEU using multi-bleu script
-  with open(predictions_file.name, "r") as read_pred:
+  with open(hypothesis_file.name, "r") as read_pred:
     bleu_cmd = [multi_bleu_path]
     if lowercase:
       bleu_cmd += ["-lc"]
-    bleu_cmd += [targets_file.name]
+    bleu_cmd += [reference_file.name]
     bleu_out = subprocess.check_output(
         bleu_cmd, stdin=read_pred, stderr=subprocess.STDOUT)
     bleu_out = bleu_out.decode("utf-8")
@@ -297,7 +298,7 @@ def calculate_bleu(predictions,
     bleu_score = float(bleu_score)
 
   # Close temp files
-  predictions_file.close()
-  targets_file.close()
+  hypothesis_file.close()
+  reference_file.close()
 
   return np.float32(bleu_score)

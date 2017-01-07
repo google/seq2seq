@@ -19,7 +19,7 @@ def accumulate_strings(values, name="strings"):
   """Accumulates strings into a vector.
 
   Args:
-    values: A 1-d string tensor contains the values to add to the accumulator.
+    values: A 1-d string tensor that contains values to add to the accumulator.
 
   Returns:
     A tuple (value_tensor, update_op).
@@ -48,14 +48,14 @@ def streaming_bleu(predictions,
                    updates_collections=None,
                    name=None):
   """Calculates BLEU scores by accumulating hypotheses and references in memory
-  over multiple batches.
+  over multiple batches and calling the multi-bleu script at each step.
 
   Args:
     predictions: A tensor with token predictions from the model. Should be
       of shape `[batch, sequence_length]` and dtype string.
     labels: The expected target tokens. Same shape and type as
       `predictions`.
-    eos_token: A string that marks end of sequence. All predictions
+    eos_token: A string that marks the end of a sequence. All predictions
       and labels will be sliced until this string is found.
     lowercase: If set to true, evaluate lowercase BLEU. This is equivalent
       to passing the "-lc" flag to the multi-bleu.perl script.
@@ -69,6 +69,7 @@ def streaming_bleu(predictions,
     A tuple (bleu_value, update_op).
   """
   with variable_scope.variable_scope(name, "bleu_metric"):
+    # Join tokens into single strings
     predictions_flat = tf.reduce_join(predictions, 1, separator=" ")
     labels_flat = tf.reduce_join(labels, 1, separator=" ")
 
@@ -79,7 +80,7 @@ def streaming_bleu(predictions,
 
     bleu_value = tf.py_func(
         func=functools.partial(
-            training_utils.calculate_bleu,
+            training_utils.moses_multi_bleu,
             eos_token=eos_token,
             lowercase=lowercase),
         inp=[sources_value, targets_value],
