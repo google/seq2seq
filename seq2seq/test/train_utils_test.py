@@ -66,8 +66,12 @@ class TestInputFn(tf.test.TestCase):
       with tf.contrib.slim.queues.QueueRunners(sess):
         features_, labels_ = sess.run([features, labels])
 
-    self.assertEqual(features_.keys(), set(["source_tokens", "source_len"]))
-    self.assertEqual(labels_.keys(), set(["target_tokens", "target_len"]))
+    self.assertEqual(
+        set(features_.keys()),
+        set(["source_tokens", "source_len"]))
+    self.assertEqual(
+        set(labels_.keys()),
+        set(["target_tokens", "target_len"]))
 
   def test_without_buckets(self):
     self._test_with_args(batch_size=10)

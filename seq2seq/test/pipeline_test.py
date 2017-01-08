@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Test Cases for RNN encoders.
 """
@@ -5,9 +7,10 @@ Test Cases for RNN encoders.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import argparse
-import importlib
+import imp
 import os
 import shutil
 import tempfile
@@ -16,6 +19,9 @@ import numpy as np
 import tensorflow as tf
 
 from seq2seq.test import utils as test_utils
+
+BIN_FOLDER = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../bin"))
 
 def _clear_flags():
   """Resets Tensorflow's FLAG values"""
@@ -29,6 +35,8 @@ class TrainTest(tf.test.TestCase):
   def setUp(self):
     super(TrainTest, self).setUp()
     self.output_dir = tempfile.mkdtemp()
+    self.bin_folder = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../bin"))
 
   def tearDown(self):
     shutil.rmtree(self.output_dir, ignore_errors=True)
@@ -47,10 +55,10 @@ class TrainTest(tf.test.TestCase):
     vocab_source = test_utils.create_temporary_vocab_file(["a", "b", "c", "笑"])
     vocab_target = test_utils.create_temporary_vocab_file(["a", "b", "c", "泣"])
 
-    # Import training script
     _clear_flags()
     tf.reset_default_graph()
-    train_script = importlib.import_module("bin.train")
+    train_script = imp.load_source(
+        "seq2seq.test.train_bin", os.path.join(BIN_FOLDER, "train.py"))
 
     # Set training flags
     tf.app.flags.FLAGS.output_dir = self.output_dir
@@ -76,7 +84,8 @@ class TrainTest(tf.test.TestCase):
     # Reset flags and import inference script
     _clear_flags()
     tf.reset_default_graph()
-    infer_script = importlib.import_module("bin.infer")
+    infer_script = imp.load_source(
+        "seq2seq.test.infer_bin", os.path.join(BIN_FOLDER, "infer.py"))
 
     # Set inference flags
     tf.app.flags.FLAGS.model_dir = self.output_dir
@@ -94,7 +103,9 @@ class TrainTest(tf.test.TestCase):
     # Visualize attention scores
     _clear_flags()
     tf.reset_default_graph()
-    print_attention_script = importlib.import_module("bin.print_attention")
+    print_attention_script = imp.load_source(
+        "seq2seq.test.print_attention_bin",
+        os.path.join(BIN_FOLDER, "print_attention.py"))
 
     attention_dir = os.path.join(self.output_dir, "att")
 
