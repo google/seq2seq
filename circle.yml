@@ -11,7 +11,7 @@ notify:
 
 test:
   pre:
-    - echo "backend : WXAgg" >> ~/.config/matplotlib/matplotlibrc
+    - "echo 'backend : Agg' >> ~/.config/matplotlib/matplotlibrc"
   override:
     - tox
 
