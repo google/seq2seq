@@ -216,6 +216,12 @@ paste \
   -i $HOME/nmt_data/toy_reverse/train/source_targets.fastalign \
   -v -p $HOME/nmt_data/toy_reverse/train/source_targets.cond \
   &gt; $HOME/nmt_data/toy_reverse/train/source_targets.align
+
+# Get the most probable alignments only
+sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
+  | sort -k1,1 -u \
+  &gt; $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict
+
 </code></pre>
 
 <p>The output file specified by the <code>-p</code> argument will contain conditional probabilities
@@ -228,7 +234,7 @@ be used to do smarter UNK token replacement by passing the <code>unk_mapping</co
   --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   --unk_replace \
-  --unk_mapping $HOME/nmt_data/toy_reverse/train/source_targets.cond \
+  --unk_mapping $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict \
   &gt; ${TMPDIR}/nmt_toy_reverse/predictions.txt
 </code></pre>
               

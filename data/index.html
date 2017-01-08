@@ -67,19 +67,20 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#pre-processed-datasets">Pre-processed datasets</a></li>
+                <li class="toctree-l3"><a href="#ready-to-use-datasets">Ready-to-use Datasets</a></li>
                 
             
-                <li class="toctree-l3"><a href="#trainingdev-data-in-parallel-text-format">Training/Dev data in Parallel Text Format</a></li>
+                <li class="toctree-l3"><a href="#creating-your-own-data">Creating your own data</a></li>
                 
-            
-                <li class="toctree-l3"><a href="#generating-vocabulary">Generating Vocabulary</a></li>
+                    <li><a class="toctree-l4" href="#parallel-text-format">Parallel Text Format</a></li>
                 
-            
-                <li class="toctree-l3"><a href="#subword-unit-preprocessing">Subword Unit Preprocessing</a></li>
+                    <li><a class="toctree-l4" href="#tokenization">Tokenization</a></li>
                 
-            
-                <li class="toctree-l3"><a href="#trainingdev-data-in-tfrecords-format-old">Training/Dev data in TFRecords format (Old)</a></li>
+                    <li><a class="toctree-l4" href="#generating-vocabulary">Generating Vocabulary</a></li>
+                
+                    <li><a class="toctree-l4" href="#subword-units-bpe">Subword Units (BPE)</a></li>
+                
+                    <li><a class="toctree-l4" href="#dictionary-alignments">Dictionary Alignments</a></li>
                 
             
             </ul>
@@ -168,45 +169,72 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="pre-processed-datasets">Pre-processed datasets</h2>
-<p><a href="https://github.com/dennybritz/seq2seq/tree/master/notebooks">See the data generation notebooks</a> for details on how this data was generated.</p>
+                <h2 id="ready-to-use-datasets">Ready-to-use Datasets</h2>
+<p>We prepared the following datasets to help you get started. You can either download the data or generate it yourself
+using the data generation scripts in the <code>tools/data</code> folder.</p>
 <table>
 <thead>
 <tr>
 <th>Dataset</th>
 <th>Description</th>
-<th>Training/Dev/Test Examples</th>
-<th>Vocab Size</th>
+<th>Training/Dev/Test Size</th>
+<th>Vocabulary</th>
 <th>URL</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>WMT'16 EN-DE</td>
-<td>Data for the <a href="http://www.statmt.org/wmt16/translation-task.html">WMT'16 Translation Task</a> English to German. Training data is combined from Europarl v7, Common Crawl, and News v11. Development data is newstest2013. Test data is newstest2015.</td>
+<td>Data for the <a href="http://www.statmt.org/wmt16/translation-task.html">WMT'16 Translation Task</a> English to German. Training data is combined from Europarl v7, Common Crawl, and News Commentary v11. Development data sets include <code>newstest[2010-2015]</code>. <code>newstest2016</code> should serve as test data. All SGM files were converted to plain text. Refer to the <a href="https://github.com/dennybritz/seq2seq/blob/features/bleu-metric/tools/data/wmt16_en_de.sh"><code>tools/data/wmt_16_en_de.sh</code></a> script for more details.</td>
 <td>4.56M/3K/2.6K</td>
-<td>50k</td>
+<td>50k Words <br/> 50k BPE</td>
 <td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpdmlvajhSbS1JTXc">Download</a></td>
 </tr>
 <tr>
 <td>Toy Copy</td>
-<td>A toy dataset where the target sequence is equal to the source sequence. Thus, the network must learn to "copy" the source sequence.</td>
+<td>A toy dataset where the target sequence is equal to the source sequence. The model must learn to copy the source sequence. You can generate this dataset using <a href="https://github.com/dennybritz/seq2seq/blob/features/bleu-metric/tools/data/toy.sh"><code>tools/data/toy.sh</code></a>.</td>
 <td>10k/1k/1k</td>
 <td>20</td>
 <td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpX0FFbHFRbGY3UTQ">Download</a></td>
 </tr>
 <tr>
 <td>Toy Reverse</td>
-<td>A toy dataset where the target sequence is equal to the reversed source sequence.</td>
+<td>A toy dataset where the target sequence is equal to the reversed source sequence. You can generate this dataset using <a href="https://github.com/dennybritz/seq2seq/blob/features/bleu-metric/tools/data/toy.sh"><code>tools/data/toy.sh</code></a>.</td>
 <td>10k/1k/1k</td>
 <td>20</td>
 <td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpR2Z1ZWRQZEZDVHM">Download</a></td>
 </tr>
 </tbody>
 </table>
-<h2 id="trainingdev-data-in-parallel-text-format">Training/Dev data in Parallel Text Format</h2>
-<p>The input pipeline expect parallel tokenized data in raw text format. That is, you need <code>sources.txt</code> and a <code>targets.txt</code> file that contain corresponding sentences, aligned line-by-line. Each line corresponds to one input/output example. These words/tokens in these files must be separated by spaces.</p>
-<h2 id="generating-vocabulary">Generating Vocabulary</h2>
+<h2 id="creating-your-own-data">Creating your own data</h2>
+<p>If you want to use your own data you need to bring it into the right format. A typical data preprocessing pipeline looks as follows:</p>
+<ol>
+<li>Generate data in parallel text format</li>
+<li>Tokenize your data</li>
+<li>Create a fixed vocabulary for your source and target data</li>
+<li>(Optional) Use Subword Units to handle rare or unknown words</li>
+<li>(Optional) Learn an alignment dictionary to handle unknown words</li>
+</ol>
+<h3 id="parallel-text-format">Parallel Text Format</h3>
+<p>The input pipeline expect parallel data in raw text format that is tokenized. You need a <code>sources</code> and <code>targets</code> file that contain corresponding sequences, aligned line-by-line. Each line corresponds to one input/output example. The tokens (words) in these files must be separated by spaces. For example, in Machine Translation you typically have one file with sentences in the source language, and one file with the corresponding translations.</p>
+<h3 id="tokenization">Tokenization</h3>
+<p>To get good results it is crucial to <a href="http://nlp.stanford.edu/IR-book/html/htmledition/tokenization-1.html">tokenize your text</a>. Tokenization can make a big difference in the final results and there are many tools available, such as:</p>
+<ul>
+<li>Use the Moses <a href="https://github.com/moses-smt/mosesdecoder/blob/master/scripts/tokenizer/tokenizer.perl"><code>tokenizer.perl</code></a> script.</li>
+<li>Use a library such a <a href="https://spacy.io/docs/usage/processing-text">spaCy</a>, <a href="http://www.nltk.org/api/nltk.tokenize.html">nltk</a> or <a href="http://nlp.stanford.edu/software/tokenizer.shtml">Stanford Tokenizer</a>.</li>
+</ul>
+<p>For example, to use the Moses tokenizer:</p>
+<pre><code class="bash"># Clone from Github
+git clone https://github.com/moses-smt/mosesdecoder.git
+
+# Tokenize English (en) data
+mosesdecoder/scripts/tokenizer/tokenizer.perl -l en -threads 8 &lt; english_data &gt; english_data.tok
+
+# Tokenize German (de) data
+mosesdecoder/scripts/tokenizer/tokenizer.perl -l de -threads 8 &lt; german_data &gt; german_data.tok
+</code></pre>
+
+<h3 id="generating-vocabulary">Generating Vocabulary</h3>
 <p>A vocabulary file is a raw text file that contains one token per line. The total number of lines is the size of the vocabulary, and each token is mapped to its line number. The special words <code>UNK</code>, <code>SEQUENCE_START</code> and <code>SEQUENCE_END</code> are not part of the vocabulary file, and correspond to <code>vocab_size + 1</code>, <code>vocab_size + 2</code>, and <code>vocab_size + 3</code> respectively</p>
 <p>Given a raw text file of tokens separated by spaces you can generate a vocabulary file using the <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/scripts/generate_vocab.py"><code>generate_vocab.py</code></a> script:</p>
 <pre><code class="shell">./seq2seq/scripts/generate_vocab.py \
@@ -217,7 +245,7 @@
 </code></pre>
 
 <p>The resulting vocabulary file contains one word per line.</p>
-<h2 id="subword-unit-preprocessing">Subword Unit Preprocessing</h2>
+<h3 id="subword-units-bpe">Subword Units (BPE)</h3>
 <p>In order to deal with an open vocabulary, rare words can be split into
 subword units as proposed in [1]. This improves the model's translation
 performance particularly on rare words. The authors propose to use
@@ -244,21 +272,8 @@ files for training the NMT model.</p>
 Rare Words with Subword Units. In Proceedings of the 54th Annual Meeting of
 the Association for Computational Linguistics (ACL 2016).
 Retrieved from http://arxiv.org/abs/1508.07909</p>
-<h2 id="trainingdev-data-in-tfrecords-format-old">Training/Dev data in TFRecords format (Old)</h2>
-<p>The input pipeline expects data in <a href="https://www.tensorflow.org/versions/r0.12/how_tos/reading_data/index.html#file-formats">TFRecord</a> format consisting of <a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/example/example.proto"><code>tf.Example</code></a> protocol buffers. Each <code>Example</code> record contains the following fields:</p>
-<ul>
-<li><code>pair_id (string)</code> (optional) is a dataset-unique id for this example.</li>
-<li><code>source_len (int64)</code> is the length of the source sequence.</li>
-<li><code>target_len (int64)</code> is the length of the target sequence.</li>
-<li><code>source_tokens (string)</code> is a list of source tokens.</li>
-<li><code>target_tokens (string)</code> is a list of targets tokens.</li>
-</ul>
-<p>Given a parallel corpus, i.e. source and target files aligned by line such as <a href="http://www.statmt.org/wmt16/translation-task.html">those from WMT</a>, we provide a <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/scripts/generate_examples.py">script</a> to generate a corresponding TFRecords file:</p>
-<pre><code class="bash">./seq2seq/scripts/generate_examples.py \
-  --source_file /path/to/data/train.de.txt \
-  --target_file /path/to/data/train.en.txt \
-  --output_file /path/to/data/train.tfrecords
-</code></pre>
+<h3 id="dictionary-alignments">Dictionary Alignments</h3>
+<p>TODO</p>
               
             </div>
           </div>

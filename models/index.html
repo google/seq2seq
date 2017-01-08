@@ -246,8 +246,8 @@
 </tr>
 </tbody>
 </table>
-<h2 id="basicseq2seq"><code>BasicSeq2Seq</code></h2>
-<p>A sequence to sequence model that uses a unidirectional encoder and decoder without attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.</p>
+<h2 id="basicseq2seq">BasicSeq2Seq</h2>
+<p>The <code>BasicSeq2Seq</code> model uses a unidirectional encoder and decoder without attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.</p>
 <p>This model suports the following additional hyperparameters.</p>
 <table>
 <thead>
@@ -265,7 +265,7 @@
 </tr>
 <tr>
 <td><code>rnn_cell.num_units</code></td>
-<td>128</td>
+<td><code>128</code></td>
 <td>The number of units to use for the RNN Cell. Applies to both encoder and decoder.</td>
 </tr>
 <tr>
@@ -285,8 +285,8 @@
 </tr>
 </tbody>
 </table>
-<h2 id="attentionseq2seq"><code>AttentionSeq2seq</code></h2>
-<p>A sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>.</p>
+<h2 id="attentionseq2seq">AttentionSeq2seq</h2>
+<p><code>AttentionSeq2seq</code> is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>.</p>
 <table>
 <thead>
 <tr>
@@ -318,7 +318,7 @@
 </tr>
 <tr>
 <td><code>rnn_cell.num_units</code></td>
-<td>128</td>
+<td><code>128</code></td>
 <td>The number of units to use for the RNN Cell. Applies to both encoder and decoder.</td>
 </tr>
 <tr>
