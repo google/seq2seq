@@ -10,7 +10,6 @@ from tensorflow.python.platform import gfile
 import numpy as np
 from matplotlib import pyplot as plt
 
-from seq2seq import graph_utils
 from seq2seq.inference import create_inference_graph, create_predictions_iter
 
 tf.flags.DEFINE_string("source", None, "path to source input data")
@@ -40,7 +39,7 @@ def get_prediction_length(predictions_dict):
   tokens_iter = enumerate(predictions_dict["predicted_tokens"])
   return next(
       ((i + 1) for i, _ in tokens_iter if _ == "SEQUENCE_END"),
-      None)
+      len(predictions_dict["predicted_tokens"]))
 
 def get_scores(predictions_dict):
   """Returns the attention scores, sliced by source and target length.
@@ -134,8 +133,8 @@ def main(_argv):
         tf.logging.info("Wrote %s", output_path)
       attention_scores.append(get_scores(predictions_dict))
 
-    scores_path = os.path.join(FLAGS.output_dir, "attention_scores.npy")
-    np.save(scores_path, np.array(attention_scores))
+    scores_path = os.path.join(FLAGS.output_dir, "attention_scores.npz")
+    np.savez(scores_path, *attention_scores)
 
 
 if __name__ == "__main__":
