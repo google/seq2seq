@@ -185,21 +185,21 @@ using the data generation scripts in the <code>tools/data</code> folder.</p>
 <tbody>
 <tr>
 <td>WMT'16 EN-DE</td>
-<td>Data for the <a href="http://www.statmt.org/wmt16/translation-task.html">WMT'16 Translation Task</a> English to German. Training data is combined from Europarl v7, Common Crawl, and News Commentary v11. Development data sets include <code>newstest[2010-2015]</code>. <code>newstest2016</code> should serve as test data. All SGM files were converted to plain text. Refer to the <a href="https://github.com/dennybritz/seq2seq/blob/features/bleu-metric/tools/data/wmt16_en_de.sh"><code>tools/data/wmt_16_en_de.sh</code></a> script for more details.</td>
+<td>Data for the <a href="http://www.statmt.org/wmt16/translation-task.html">WMT'16 Translation Task</a> English to German. Training data is combined from Europarl v7, Common Crawl, and News Commentary v11. Development data sets include <code>newstest[2010-2015]</code>. <code>newstest2016</code> should serve as test data. All SGM files were converted to plain text. Refer to the <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/data/wmt16_en_de.sh"><code>tools/data/wmt_16_en_de.sh</code></a> script for more details.</td>
 <td>4.56M/3K/2.6K</td>
 <td>50k Words <br/> 50k BPE</td>
 <td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpdmlvajhSbS1JTXc">Download</a></td>
 </tr>
 <tr>
 <td>Toy Copy</td>
-<td>A toy dataset where the target sequence is equal to the source sequence. The model must learn to copy the source sequence. You can generate this dataset using <a href="https://github.com/dennybritz/seq2seq/blob/features/bleu-metric/tools/data/toy.sh"><code>tools/data/toy.sh</code></a>.</td>
+<td>A toy dataset where the target sequence is equal to the source sequence. The model must learn to copy the source sequence. You can generate this dataset using <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh"><code>bin/data/toy.sh</code></a>.</td>
 <td>10k/1k/1k</td>
 <td>20</td>
 <td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpX0FFbHFRbGY3UTQ">Download</a></td>
 </tr>
 <tr>
 <td>Toy Reverse</td>
-<td>A toy dataset where the target sequence is equal to the reversed source sequence. You can generate this dataset using <a href="https://github.com/dennybritz/seq2seq/blob/features/bleu-metric/tools/data/toy.sh"><code>tools/data/toy.sh</code></a>.</td>
+<td>A toy dataset where the target sequence is equal to the reversed source sequence. You can generate this dataset using <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh"><code>bin/data/toy.sh</code></a>.</td>
 <td>10k/1k/1k</td>
 <td>20</td>
 <td><a href="https://drive.google.com/open?id=0B_bZck-ksdkpR2Z1ZWRQZEZDVHM">Download</a></td>
@@ -236,8 +236,8 @@ mosesdecoder/scripts/tokenizer/tokenizer.perl -l de -threads 8 &lt; german_data 
 
 <h3 id="generating-vocabulary">Generating Vocabulary</h3>
 <p>A vocabulary file is a raw text file that contains one token per line. The total number of lines is the size of the vocabulary, and each token is mapped to its line number. The special words <code>UNK</code>, <code>SEQUENCE_START</code> and <code>SEQUENCE_END</code> are not part of the vocabulary file, and correspond to <code>vocab_size + 1</code>, <code>vocab_size + 2</code>, and <code>vocab_size + 3</code> respectively</p>
-<p>Given a raw text file of tokens separated by spaces you can generate a vocabulary file using the <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/scripts/generate_vocab.py"><code>generate_vocab.py</code></a> script:</p>
-<pre><code class="shell">./seq2seq/scripts/generate_vocab.py \
+<p>Given a raw text file of tokens separated by spaces you can generate a vocabulary file using the <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/bin/tools/generate_vocab.py"><code>generate_vocab.py</code></a> script:</p>
+<pre><code class="shell">./bin/tools/generate_vocab.py \
   --input_file /data/source.txt \
   --output_file /data/source_vocab \
   --min_frequency 1 \

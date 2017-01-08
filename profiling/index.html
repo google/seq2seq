@@ -173,8 +173,8 @@
 </ol>
 <p>For complicated graphs timeline files can become quite large and analyzing them using Chrome may be slow and inconvenient. </p>
 <h3 id="profiling-script">Profiling Script</h3>
-<p>An easy way to get basic information about your model is to run the <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/scripts/profile.py"><code>profile.py</code></a> script. It uses <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/tfprof">TFProf</a> to read metadata saved by the <code>MetadataCaptureHook</code> and generates several analyses.</p>
-<pre><code class="shell">/seq2seq/scripts/profile.py --model_dir=/path/to/model/dir
+<p>An easy way to get basic information about your model is to run the <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/tools/profile.py"><code>profile.py</code></a> script. It uses <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/tfprof">TFProf</a> to read metadata saved by the <code>MetadataCaptureHook</code> and generates several analyses.</p>
+<pre><code class="shell">./bin/tools/profile.py --model_dir=/path/to/model/dir
 </code></pre>
 
 <p>This command will generate 4 files:</p>
