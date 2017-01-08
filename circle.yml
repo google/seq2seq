@@ -1,4 +1,6 @@
 dependencies:
+  pre:
+    - sudo apt-get update; sudo apt-get install python-matplotlib python3-matplotlib python-tk python3-tk
   override:
     - pip install tox tox-pyenv mkdocs
     - pyenv local 2.7.10 3.5.1
