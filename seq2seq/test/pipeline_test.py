@@ -29,18 +29,18 @@ def _clear_flags():
   tf.app.flags.FLAGS = tf.python.platform.flags._FlagValues()
   tf.app.flags._global_parser = argparse.ArgumentParser()
 
-class TrainTest(tf.test.TestCase):
+class PipelineTest(tf.test.TestCase):
   """Tests training and inference scripts.
   """
   def setUp(self):
-    super(TrainTest, self).setUp()
+    super(PipelineTest, self).setUp()
     self.output_dir = tempfile.mkdtemp()
     self.bin_folder = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../bin"))
 
   def tearDown(self):
     shutil.rmtree(self.output_dir, ignore_errors=True)
-    super(TrainTest, self).tearDown()
+    super(PipelineTest, self).tearDown()
 
   def test_train_infer(self):
     """Tests training and inference scripts.
