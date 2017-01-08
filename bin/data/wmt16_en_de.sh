@@ -105,13 +105,13 @@ for f in ${OUTPUT_DIR}/*.en; do
 done
 
 # Create vocabulary for EN data
-$BASE_DIR/bin/generate_vocab.py \
+$BASE_DIR/bin/tools/generate_vocab.py \
   --input_file ${OUTPUT_DIR}/train.en.tok \
   --output_file ${OUTPUT_DIR}/vocab.en.50k \
   --max_vocab_size 50000
 
 # Create vocabulary for DE data
-$BASE_DIR/bin/generate_vocab.py \
+$BASE_DIR/bin/tools/generate_vocab.py \
   --input_file ${OUTPUT_DIR}/train.de.tok \
   --output_file ${OUTPUT_DIR}/vocab.de.50k \
   --max_vocab_size 50000
