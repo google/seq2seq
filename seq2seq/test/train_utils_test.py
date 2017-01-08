@@ -10,8 +10,10 @@ import tempfile
 import tensorflow as tf
 import numpy as np
 
+from seq2seq.data import data_utils
+from seq2seq.test import utils as test_utils
 from seq2seq.training import utils as training_utils
-from seq2seq.training import HParamsParser
+from seq2seq.training import HParamsParser, hooks
 
 
 class TestHparamsReadWrite(tf.test.TestCase):
@@ -43,6 +45,80 @@ class TestHparamsReadWrite(tf.test.TestCase):
     params_str = training_utils.read_hparams(file.name)
     final_params = self.parser.parse(params_str)
     self.assertEqual(final_params, self.hparams)
+
+
+class TestInputFn(tf.test.TestCase):
+  """Tests create_input_fn"""
+  def _test_with_args(self, **kwargs):
+    """Helper function to test create_input_fn with keyword arguments"""
+    sources_file, targets_file = test_utils.create_temp_parallel_data(
+        sources=["Hello World ."],
+        targets=["Goodbye ."]
+    )
+    data_provider_fn = lambda: data_utils.make_parallel_data_provider(
+        [sources_file.name], [targets_file.name])
+    input_fn = training_utils.create_input_fn(
+        data_provider_fn=data_provider_fn,
+        **kwargs)
+    features, labels = input_fn()
+
+    with self.test_session() as sess:
+      with tf.contrib.slim.queues.QueueRunners(sess):
+        features_, labels_ = sess.run([features, labels])
+
+    self.assertEqual(
+        set(features_.keys()),
+        set(["source_tokens", "source_len"]))
+    self.assertEqual(
+        set(labels_.keys()),
+        set(["target_tokens", "target_len"]))
+
+  def test_without_buckets(self):
+    self._test_with_args(batch_size=10)
+
+  def test_wit_buckets(self):
+    self._test_with_args(batch_size=10, bucket_boundaries=[0, 5, 10])
+
+
+class TestDefaultHooks(tf.test.TestCase):
+  """Tests the creation of default training hooks"""
+  def test_hooks(self):
+    estimator = tf.contrib.learn.LinearClassifier(
+        feature_columns=tf.contrib.layers.sparse_column_with_hash_bucket(
+            "test", 10))
+    default_hooks = training_utils.create_default_training_hooks(
+        estimator=estimator)
+
+    hook_types = list(map(type, default_hooks))
+    self.assertIn(hooks.PrintModelAnalysisHook, hook_types)
+    self.assertIn(hooks.TrainSampleHook, hook_types)
+    self.assertIn(hooks.MetadataCaptureHook, hook_types)
+    self.assertIn(hooks.TokensPerSecondCounter, hook_types)
+
+
+class TestMosesBleu(tf.test.TestCase):
+  """Tests using the Moses multi-bleu script to calcualte BLEU score"""
+  def test_multi_bleu(self):
+    result = training_utils.moses_multi_bleu(
+        hypotheses=np.array(["The brown fox jumps over the dog"]),
+        references=np.array(["The quick brown fox jumps over the lazy dog"]),
+        lowercase=False)
+    self.assertEqual(result, 50.25)
+
+  def test_multi_bleu_lowercase(self):
+    result = training_utils.moses_multi_bleu(
+        hypotheses=np.array(["The brown fox jumps over The Dog"]),
+        references=np.array(["The quick brown fox jumps over the lazy dog"]),
+        lowercase=True)
+    self.assertEqual(result, 50.25)
+
+  def test_multi_bleu_with_eos(self):
+    result = training_utils.moses_multi_bleu(
+        hypotheses=np.array([
+            "The brown fox jumps over the dog SEQUENCE_END2 x x x"]),
+        references=np.array(["The quick brown fox jumps over the lazy dog"]),
+        lowercase=False)
+    self.assertEqual(result, 50.25)
 
 
 class TestLRDecay(tf.test.TestCase):

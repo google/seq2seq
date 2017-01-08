@@ -1,4 +1,6 @@
 dependencies:
+  pre:
+    - sudo apt-get update; sudo apt-get install python-matplotlib python3-matplotlib python-tk python3-tk
   override:
     - pip install tox tox-pyenv mkdocs
     - pyenv local 2.7.10 3.5.1
@@ -8,6 +10,9 @@ notify:
     - url: https://webhooks.gitter.im/e/3e39fb29521e82ee001d
 
 test:
+  pre:
+    - mkdir -p $HOME/.config/matplotlib
+    - "echo 'backend : Agg' >> $HOME/.config/matplotlib/matplotlibrc"
   override:
     - tox
 

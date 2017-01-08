@@ -339,6 +339,10 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
 
   def create_model(self, params=None):
     params_ = BasicSeq2Seq.default_params().copy()
+    params_.update({
+        "rnn_cell.dropout_input_keep_prob": 0.8,
+        "rnn_cell.num_layers": 2
+    })
     params_.update(params or {})
     return BasicSeq2Seq(
         source_vocab_info=self.vocab_info,
