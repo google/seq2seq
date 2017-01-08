@@ -10,6 +10,8 @@ notify:
     - url: https://webhooks.gitter.im/e/3e39fb29521e82ee001d
 
 test:
+  pre:
+    - echo "backend : WXAgg" >> ~/.config/matplotlib/matplotlibrc
   override:
     - tox
 
