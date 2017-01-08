@@ -274,7 +274,7 @@ def moses_multi_bleu(hypotheses,
   # Alternatively, get file locally
   # training_dir = os.path.dirname(os.path.realpath(__file__))
   # bin_dir = os.path.abspath(os.path.join(training_dir, "..", "..", "bin"))
-  # multi_bleu_path = os.path.join(bin_dir, "multi-bleu.perl")
+  # multi_bleu_path = os.path.join(bin_dir, "tools/multi-bleu.perl")
 
   # Decode hypotheses and references
   if hypotheses.dtype == np.dtype("O"):
