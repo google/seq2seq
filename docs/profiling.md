@@ -15,10 +15,10 @@ For complicated graphs timeline files can become quite large and analyzing them 
 
 ### Profiling Script
 
-An easy way to get basic information about your model is to run the [`profile.py`](https://github.com/dennybritz/seq2seq/blob/master/seq2seq/scripts/profile.py) script. It uses [TFProf](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/tfprof) to read metadata saved by the `MetadataCaptureHook` and generates several analyses.
+An easy way to get basic information about your model is to run the [`profile.py`](https://github.com/dennybritz/seq2seq/blob/master/bin/tools/profile.py) script. It uses [TFProf](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/tfprof) to read metadata saved by the `MetadataCaptureHook` and generates several analyses.
 
 ```shell
-/seq2seq/scripts/profile.py --model_dir=/path/to/model/dir
+./bin/tools/profile.py --model_dir=/path/to/model/dir
 ```
 
 This command will generate 4 files:

@@ -274,13 +274,13 @@ def moses_multi_bleu(hypotheses,
   # Alternatively, get file locally
   # training_dir = os.path.dirname(os.path.realpath(__file__))
   # bin_dir = os.path.abspath(os.path.join(training_dir, "..", "..", "bin"))
-  # multi_bleu_path = os.path.join(bin_dir, "multi-bleu.perl")
+  # multi_bleu_path = os.path.join(bin_dir, "tools/multi-bleu.perl")
 
   # Decode hypotheses and references
   if hypotheses.dtype == np.dtype("O"):
-    hypotheses = np.char.decode(hypotheses.astype("S"))
+    hypotheses = np.char.decode(hypotheses.astype("S"), "utf-8")
   if references.dtype == np.dtype("O"):
-    references = np.char.decode(references.astype("S"))
+    references = np.char.decode(references.astype("S"), "utf-8")
 
   # Slice all hypotheses and references up to EOS
   sliced_hypotheses = [x.split(eos_token)[0].strip() for x in hypotheses]

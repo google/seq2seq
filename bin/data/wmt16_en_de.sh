@@ -111,19 +111,18 @@ for f in ${OUTPUT_DIR}/*.tok.en; do
 done
 
 # Create vocabulary for EN data
-$BASE_DIR/bin/generate_vocab.py \
+$BASE_DIR/bin/tools/generate_vocab.py \
   --input_file ${OUTPUT_DIR}/train.tok.clean.en \
   --output_file ${OUTPUT_DIR}/vocab.50k.en \
   --max_vocab_size 50000
 
 # Create vocabulary for DE data
-$BASE_DIR/bin/generate_vocab.py \
+$BASE_DIR/bin/tools/generate_vocab.py \
   --input_file ${OUTPUT_DIR}/train.tok.clean.de \
   --output_file ${OUTPUT_DIR}/vocab.50k.de \
   --max_vocab_size 50000
 
 # Generate Subword Units (BPE)
-
 # Clone Subword NMT
 if [ ! -d "${OUTPUT_DIR}/subword-nmt" ]; then
   git clone https://github.com/rsennrich/subword-nmt.git "${OUTPUT_DIR}/subword-nmt"

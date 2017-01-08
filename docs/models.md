@@ -21,9 +21,9 @@ The following hyperparameters are sahred by all models, unless explicitly stated
 | `optimizer.lr_staircase` | `False` | If `True` decay the learning rate at discrete intervals. This is fed as the `staircase` argument to the decay function defined above. See Tensorfow documentation for more details. |
 | `optimizer.clip_gradients` | `5.0` | Clip gradients by their global norm. |
 
-## `BasicSeq2Seq`
+## BasicSeq2Seq
 
-A sequence to sequence model that uses a unidirectional encoder and decoder without attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.
+The `BasicSeq2Seq` model uses a unidirectional encoder and decoder without attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.
 
 This model suports the following additional hyperparameters.
 
@@ -31,16 +31,16 @@ This model suports the following additional hyperparameters.
 | Name | Default | Description |
 | --- | --- | --- |
 | `rnn_cell.type` | `BasicLSTMCell` | The class name of a RNN Cell defined in `tf.contrib.rnn`. The most common values are `BasicLSTMCell`, `LSTMCell` or `GRUCell`. Applies to both encoder and decoder. |
-| `rnn_cell.num_units` | 128 | The number of units to use for the RNN Cell. Applies to both encoder and decoder. |
+| `rnn_cell.num_units` | `128` | The number of units to use for the RNN Cell. Applies to both encoder and decoder. |
 | `rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.num_layers` | `1` | Number of RNN layers. Applies to both encoder and decoder. |
 
 
 
-## `AttentionSeq2seq`
+## AttentionSeq2seq
 
-A sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473).
+`AttentionSeq2seq` is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473).
 
 | Name | Default | Description |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ A sequence to sequence model that uses a unidirectional or bidirectional encoder
 | `attention.score_type` | `bahdanau` | The formula used to calculate attention scores. Available values are `bahdanau` and `dot`. `bahdanau` is described in [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473). `dot` is described in [Effective Approaches to Attention-based Neural Machine Translation](https://arxiv.org/abs/1508.04025).  |
 | `encoder.type` | `BidirectionalRNNEncoder` | Type of encoder to use. This is the class name of an encoder defined in `seq2seq.encoder`. Currently the supported value are `BidirectionalRNNEncoder` and `UnidirectionalRNNEncoder`. |
 | `rnn_cell.type` | `BasicLSTMCell` | The class name of a RNN Cell defined in `tf.contrib.rnn`. The most common values are `BasicLSTMCell`, `LSTMCell` or `GRUCell`. Applies to both encoder and decoder. |
-| `rnn_cell.num_units` | 128 | The number of units to use for the RNN Cell. Applies to both encoder and decoder. |
+| `rnn_cell.num_units` | `128` | The number of units to use for the RNN Cell. Applies to both encoder and decoder. |
 | `rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.num_layers` | `1` | Number of RNN layers. Applies to both encoder and decoder. |
