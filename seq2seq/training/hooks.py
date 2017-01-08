@@ -207,7 +207,7 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     result_str += "Prediction followed by Target @ Step {}\n".format(step)
     result_str += ("=" * 100) + "\n"
     for result in result_dicts:
-      target_len = result["target_len"][0]
+      target_len = result["target_len"]
       result["predicted_tokens"] = np.char.decode(
           result["predicted_tokens"].astype("S"), "utf-8")
       result["target_words"] = np.char.decode(

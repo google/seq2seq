@@ -176,8 +176,8 @@ def beam_search_step(logits, beam_state, config):
   time_ = beam_state.time + 1
 
   # Calculate the current lengths of the predictions
-  prediction_lengths = sequence_length(beam_state.predicted_ids, config.eos_token,
-                                       False)
+  prediction_lengths = sequence_length(
+      beam_state.predicted_ids, config.eos_token, False)
   prediction_lengths = tf.to_int32(prediction_lengths)
 
   # Find all beams that are "finished" (i.e. have an EOS token already)
