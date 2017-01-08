@@ -139,7 +139,7 @@ def unk_replace(source_tokens, predicted_tokens, attention_scores,
       max_score_index = np.argmax(scores)
       chosen_source_token = source_tokens[max_score_index]
       new_target = chosen_source_token
-      if mapping is not None:
+      if mapping is not None and chosen_source_token in mapping:
         new_target = mapping[chosen_source_token]
       result.append(new_target)
     else:

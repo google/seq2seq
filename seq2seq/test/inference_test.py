@@ -48,9 +48,9 @@ class TestUnkReplace(tf.test.TestCase):
 
   def test_with_mapping(self):
     #pylint: disable=no-self-use
-    source_tokens = "A B C D".split(" ")
-    predicted_tokens = "1 2 UNK 4".split(" ")
-    attention_scores = np.identity(4)
+    source_tokens = "A B C D A".split(" ")
+    predicted_tokens = "1 2 UNK 4 UNK".split(" ")
+    attention_scores = np.identity(5)
     mapping = {"C": "3"}
 
     new_tokens = inference.unk_replace(
@@ -59,7 +59,7 @@ class TestUnkReplace(tf.test.TestCase):
         attention_scores=attention_scores,
         mapping=mapping)
 
-    np.testing.assert_array_equal(new_tokens, "1 2 3 4".split(" "))
+    np.testing.assert_array_equal(new_tokens, "1 2 3 4 A".split(" "))
 
 if __name__ == '__main__':
   tf.test.main()
