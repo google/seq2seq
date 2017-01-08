@@ -11,7 +11,8 @@ notify:
 
 test:
   pre:
-    - "echo 'backend : Agg' >> ~/.config/matplotlib/matplotlibrc"
+    - mkdir -p $HOME/.config/matplotlib
+    - "echo 'backend : Agg' >> $HOME/.config/matplotlib/matplotlibrc"
   override:
     - tox
 
