@@ -181,7 +181,7 @@
 </tr>
 <tr>
 <td><code>source.reverse</code></td>
-<td><code>False</code></td>
+<td><code>True</code></td>
 <td>If set to true, reverse the source sequence before feeding it into the encoder.</td>
 </tr>
 <tr>
@@ -303,12 +303,12 @@
 </tr>
 <tr>
 <td><code>attention.score_type</code></td>
-<td><code>bahdanau</code></td>
+<td><code>dot</code></td>
 <td>The formula used to calculate attention scores. Available values are <code>bahdanau</code> and <code>dot</code>. <code>bahdanau</code> is described in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>. <code>dot</code> is described in <a href="https://arxiv.org/abs/1508.04025">Effective Approaches to Attention-based Neural Machine Translation</a>.</td>
 </tr>
 <tr>
 <td><code>encoder.type</code></td>
-<td><code>BidirectionalRNNEncoder</code></td>
+<td><code>UnidirectionalRNNEncoder</code></td>
 <td>Type of encoder to use. This is the class name of an encoder defined in <code>seq2seq.encoder</code>. Currently the supported value are <code>BidirectionalRNNEncoder</code> and <code>UnidirectionalRNNEncoder</code>.</td>
 </tr>
 <tr>
