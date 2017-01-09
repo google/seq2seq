@@ -42,8 +42,8 @@ class AttentionSeq2Seq(Seq2SeqBase):
     params = Seq2SeqBase.default_params().copy()
     params.update({
         "attention.dim": 128,
-        "attention.score_type": "bahdanau",
-        "encoder.type": "BidirectionalRNNEncoder",
+        "attention.score_type": "dot",
+        "encoder.type": "UnidirectionalRNNEncoder",
         "rnn_cell.type": "BasicLSTMCell",
         "rnn_cell.num_units": 128,
         "rnn_cell.dropout_input_keep_prob": 1.0,
@@ -75,12 +75,22 @@ class AttentionSeq2Seq(Seq2SeqBase):
     attention_layer = decoders.AttentionLayer(
         num_units=self.params["attention.dim"],
         score_type=self.params["attention.score_type"])
+
+    reverse_scores_lengths = None
+    if self.params["source.reverse"]:
+      reverse_scores_lengths = source_len
+      if self.use_beam_search:
+        reverse_scores_lengths = tf.tile(
+            input=reverse_scores_lengths,
+            multiples=[self.params["inference.beam_search.beam_width"]])
+
     decoder_fn = decoders.AttentionDecoder(
         cell=decoder_cell,
         input_fn=decoder_input_fn,
         vocab_size=self.target_vocab_info.total_size,
         attention_inputs=encoder_output.outputs,
         attention_fn=attention_layer,
+        reverse_scores_lengths=reverse_scores_lengths,
         max_decode_length=self.params["target.max_seq_len"])
 
     if self.use_beam_search:

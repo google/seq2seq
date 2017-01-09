@@ -130,6 +130,7 @@ def main(_argv):
         output_path = os.path.join(FLAGS.output_dir, "{:05d}.png".format(idx))
         create_figure(predictions_dict)
         plt.savefig(output_path)
+        plt.close()
         tf.logging.info("Wrote %s", output_path)
       attention_scores.append(get_scores(predictions_dict))
 

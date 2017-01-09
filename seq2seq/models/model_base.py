@@ -121,7 +121,7 @@ class Seq2SeqBase(ModelBase):
   def default_params():
     return {
         "source.max_seq_len": 40,
-        "source.reverse": False,
+        "source.reverse": True,
         "target.max_seq_len": 40,
         "embedding.dim": 100,
         "inference.beam_search.beam_width": 0,

@@ -22,7 +22,7 @@ def att_sum_bahdanau(v_att, keys, query):
 @function.Defun(tf.float32, tf.float32, func_name="att_sum_dot", noinline=True)
 def att_sum_dot(keys, query):
   """Calculates a batch- and timweise dot product"""
-  return tf.reduce_sum(keys + tf.expand_dims(query, 1), [2])
+  return tf.reduce_sum(keys * tf.expand_dims(query, 1), [2])
 
 
 class AttentionLayer(GraphModule):
