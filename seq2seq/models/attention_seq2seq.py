@@ -44,11 +44,16 @@ class AttentionSeq2Seq(Seq2SeqBase):
         "attention.dim": 128,
         "attention.score_type": "dot",
         "encoder.type": "UnidirectionalRNNEncoder",
-        "rnn_cell.type": "BasicLSTMCell",
-        "rnn_cell.num_units": 128,
-        "rnn_cell.dropout_input_keep_prob": 1.0,
-        "rnn_cell.dropout_output_keep_prob": 1.0,
-        "rnn_cell.num_layers": 1
+        "encoder.rnn_cell.type": "BasicLSTMCell",
+        "encoder.rnn_cell.num_units": 128,
+        "encoder.rnn_cell.dropout_input_keep_prob": 1.0,
+        "encoder.rnn_cell.dropout_output_keep_prob": 1.0,
+        "encoder.rnn_cell.num_layers": 1,
+        "decoder.rnn_cell.type": "BasicLSTMCell",
+        "decoder.rnn_cell.num_units": 128,
+        "decoder.rnn_cell.dropout_input_keep_prob": 1.0,
+        "decoder.rnn_cell.dropout_output_keep_prob": 1.0,
+        "decoder.rnn_cell.num_layers": 1
     })
     return params
 
@@ -60,18 +65,29 @@ class AttentionSeq2Seq(Seq2SeqBase):
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
     encoder_cell = training_utils.get_rnn_cell(
-        cell_type=self.params["rnn_cell.type"],
-        num_units=self.params["rnn_cell.num_units"],
-        num_layers=self.params["rnn_cell.num_layers"],
-        dropout_input_keep_prob=(self.params["rnn_cell.dropout_input_keep_prob"]
-                                 if enable_dropout else 1.0),
+        cell_type=self.params["encoder.rnn_cell.type"],
+        num_units=self.params["encoder.rnn_cell.num_units"],
+        num_layers=self.params["encoder.rnn_cell.num_layers"],
+        dropout_input_keep_prob=(
+            self.params["encoder.rnn_cell.dropout_input_keep_prob"]
+            if enable_dropout else 1.0),
         dropout_output_keep_prob=(
-            self.params["rnn_cell.dropout_output_keep_prob"]
+            self.params["encoder.rnn_cell.dropout_output_keep_prob"]
             if enable_dropout else 1.0))
     encoder_fn = self.encoder_class(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 
-    decoder_cell = encoder_cell
+    decoder_cell = training_utils.get_rnn_cell(
+        cell_type=self.params["decoder.rnn_cell.type"],
+        num_units=self.params["decoder.rnn_cell.num_units"],
+        num_layers=self.params["decoder.rnn_cell.num_layers"],
+        dropout_input_keep_prob=(
+            self.params["decoder.rnn_cell.dropout_input_keep_prob"]
+            if enable_dropout else 1.0),
+        dropout_output_keep_prob=(
+            self.params["decoder.rnn_cell.dropout_output_keep_prob"]
+            if enable_dropout else 1.0))
+
     attention_layer = decoders.AttentionLayer(
         num_units=self.params["attention.dim"],
         score_type=self.params["attention.score_type"])
