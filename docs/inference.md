@@ -1,6 +1,6 @@
 ## Performing Inference
 
-After you have trained your mode you can use the `bin/infer.py` script to make predictions with your model. For example, from the [Getting Started Guide](getting-started.md):
+After you have trained your mode you can use the `bin/infer.py` script to make predictions with your model. For example, from the [Getting Started Guide](getting_started.md):
 
 ```bash
 ./bin/infer.py \

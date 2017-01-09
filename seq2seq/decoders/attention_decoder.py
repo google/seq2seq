@@ -34,6 +34,9 @@ class AttentionDecoder(DecoderBase):
       For an example, see `seq2seq.decoder.attention.AttentionLayer`.
     max_decode_length: Maximum length for decoding steps
       for each example of shape `[B]`.
+    reverse_scores: If true, reverse the attention scores in the output.
+      This is used for when a reversed source sequence is fed as an input
+      but you want to return the scores in non-reversed order.
     prediction_fn: Optional. A function that generates a predictions
       of shape `[B]` from a logits of shape `[B, vocab_size]`.
       By default, this is argmax.
@@ -46,6 +49,7 @@ class AttentionDecoder(DecoderBase):
                attention_inputs,
                attention_fn,
                max_decode_length,
+               reverse_scores=False,
                attention_inputs_max_len=500,
                prediction_fn=None,
                name="attention_decoder"):
@@ -55,6 +59,7 @@ class AttentionDecoder(DecoderBase):
     self.attention_inputs = attention_inputs
     self.attention_fn = attention_fn
     self.attention_inputs_max_len = attention_inputs_max_len
+    self.reverse_scores = reverse_scores
 
   def pack_outputs(self, outputs_ta, final_loop_state):
     logits, predicted_ids = DecoderBase.pack_outputs(self, outputs_ta,
@@ -64,6 +69,9 @@ class AttentionDecoder(DecoderBase):
     # Slice attention scores to actual length of the inputs
     attention_input_len = tf.shape(self.attention_inputs)[1]
     attention_scores = attention_scores[:, :, :attention_input_len]
+
+    if self.reverse_scores:
+      attention_scores = tf.reverse_v2(attention_scores, [2])
 
     attention_context = outputs_ta.attention_context.stack()
     return AttentionDecoderOutput(logits, predicted_ids, attention_scores,

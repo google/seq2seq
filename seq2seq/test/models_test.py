@@ -362,6 +362,9 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
 
   def create_model(self, params=None):
     params_ = AttentionSeq2Seq.default_params().copy()
+    params_.update({
+        "source.reverse": True
+    })
     params_.update(params or {})
     return AttentionSeq2Seq(
         source_vocab_info=self.vocab_info,
