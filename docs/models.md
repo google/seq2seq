@@ -7,7 +7,7 @@ The following hyperparameters are sahred by all models, unless explicitly stated
 | Name | Default | Description |
 | --- | --- | --- |
 | `source.max_seq_len` | `40` | Maximum length of source sequences. An example is sliced to this length before being fed to the encoder. |
-| `source.reverse` | `False` | If set to true, reverse the source sequence before feeding it into the encoder.|
+| `source.reverse` | `True` | If set to true, reverse the source sequence before feeding it into the encoder.|
 | `target.max_seq_len` | `40` | Maximum length of target sequences. An example is sliced to this length before being fed to the decoder. |
 | `embedding.dim` | `100` | Dimensionality of the embedding layer. |
 | `optimizer.name` | `Adam` | Type of Optimizer to use, e.g. `Adam`, `SGD` or `Momentum`. The name is fed to Tensorflow's [optimize_loss](https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss) function. See Tensorflow documentation for more details and all available options. |
