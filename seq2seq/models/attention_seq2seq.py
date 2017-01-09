@@ -42,8 +42,8 @@ class AttentionSeq2Seq(Seq2SeqBase):
     params = Seq2SeqBase.default_params().copy()
     params.update({
         "attention.dim": 128,
-        "attention.score_type": "bahdanau",
-        "encoder.type": "BidirectionalRNNEncoder",
+        "attention.score_type": "dot",
+        "encoder.type": "UnidirectionalRNNEncoder",
         "rnn_cell.type": "BasicLSTMCell",
         "rnn_cell.num_units": 128,
         "rnn_cell.dropout_input_keep_prob": 1.0,
