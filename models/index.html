@@ -312,29 +312,54 @@
 <td>Type of encoder to use. This is the class name of an encoder defined in <code>seq2seq.encoder</code>. Currently the supported value are <code>BidirectionalRNNEncoder</code> and <code>UnidirectionalRNNEncoder</code>.</td>
 </tr>
 <tr>
-<td><code>rnn_cell.type</code></td>
+<td><code>encoder.rnn_cell.type</code></td>
 <td><code>BasicLSTMCell</code></td>
-<td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>. Applies to both encoder and decoder.</td>
+<td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>.</td>
 </tr>
 <tr>
-<td><code>rnn_cell.num_units</code></td>
+<td><code>encoder.rnn_cell.num_units</code></td>
 <td><code>128</code></td>
-<td>The number of units to use for the RNN Cell. Applies to both encoder and decoder.</td>
+<td>The number of units to use for the RNN Cell.</td>
 </tr>
 <tr>
-<td><code>rnn_cell.dropout_input_keep_prob</code></td>
+<td><code>encoder.rnn_cell.dropout_input_keep_prob</code></td>
 <td><code>1.0</code></td>
-<td>Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout. Applies to both encoder and decoder.</td>
+<td>Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout.</td>
 </tr>
 <tr>
-<td><code>rnn_cell.dropout_output_keep_prob</code></td>
+<td><code>encoder.rnn_cell.dropout_output_keep_prob</code></td>
 <td><code>1.0</code></td>
-<td>Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout. Applies to both encoder and decoder.</td>
+<td>Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout.</td>
 </tr>
 <tr>
-<td><code>rnn_cell.num_layers</code></td>
+<td><code>encoder.rnn_cell.num_layers</code></td>
 <td><code>1</code></td>
-<td>Number of RNN layers. Applies to both encoder and decoder.</td>
+<td>Number of RNN layers.</td>
+</tr>
+<tr>
+<td><code>decoder.rnn_cell.type</code></td>
+<td><code>BasicLSTMCell</code></td>
+<td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>.</td>
+</tr>
+<tr>
+<td><code>decoder.rnn_cell.num_units</code></td>
+<td><code>128</code></td>
+<td>The number of units to use for the RNN Cell.</td>
+</tr>
+<tr>
+<td><code>decoder.rnn_cell.dropout_input_keep_prob</code></td>
+<td><code>1.0</code></td>
+<td>Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout.</td>
+</tr>
+<tr>
+<td><code>decoder.rnn_cell.dropout_output_keep_prob</code></td>
+<td><code>1.0</code></td>
+<td>Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout.</td>
+</tr>
+<tr>
+<td><code>decoder.rnn_cell.num_layers</code></td>
+<td><code>1</code></td>
+<td>Number of RNN layers.</td>
 </tr>
 </tbody>
 </table>
