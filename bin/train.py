@@ -27,7 +27,7 @@ tf.flags.DEFINE_string("train_target", None,
 tf.flags.DEFINE_string("dev_source", None,
                        """Path to the development data source sentences.
                        Same format as training data.""")
-tf.flags.DEFINE_string("dev_target", None
+tf.flags.DEFINE_string("dev_target", None,
                        """Path to the development data target sentences.
                        Same format as training data.""")
 tf.flags.DEFINE_string("vocab_source", None,
