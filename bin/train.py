@@ -18,34 +18,61 @@ from tensorflow.contrib.learn.python.learn import learn_runner
 from tensorflow.contrib.learn.python.learn.estimators import run_config
 
 # Input Data
-tf.flags.DEFINE_string("train_source", None, "path to source training data")
-tf.flags.DEFINE_string("train_target", None, "path to target training data")
-tf.flags.DEFINE_string("dev_source", None, "path to source dev data")
-tf.flags.DEFINE_string("dev_target", None, "path to target dev data")
-tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
-tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
+tf.flags.DEFINE_string("train_source", None,
+                       """Path to the training data source sentences. A raw
+                       text files with tokens separated by spaces.""")
+tf.flags.DEFINE_string("train_target", None,
+                       """Path to the training data target sentences. A raw
+                       text files with tokens separated by spaces.""")
+tf.flags.DEFINE_string("dev_source", None,
+                       """Path to the development data source sentences.
+                       Same format as training data.""")
+tf.flags.DEFINE_string("dev_target", None
+                       """Path to the development data target sentences.
+                       Same format as training data.""")
+tf.flags.DEFINE_string("vocab_source", None,
+                       """Path to the source vocabulary.
+                       A raw text file with one word per line.""")
+tf.flags.DEFINE_string("vocab_target", None,
+                       """Path to the target vocabulary.
+                       A raw text file with one word per line.""")
 
 # Model Configuration
+tf.flags.DEFINE_string("model", "AttentionSeq2Seq",
+                       """The model class to use. Refer to the documentation
+                       for all available models.""")
 tf.flags.DEFINE_string("buckets", None,
-                       """A comma-separated list of sequence lenght buckets,
-                       e.g. 10,20,30""")
-tf.flags.DEFINE_integer("batch_size", 16, "the train/dev batch size")
-tf.flags.DEFINE_string("hparams", None, "overwrite hyperparameter values")
-tf.flags.DEFINE_string("model", "BasicSeq2Seq", "model class")
-tf.flags.DEFINE_string("output_dir", None, "directory to write to")
+                       """Buckets input sequences according to these length.
+                       A comma-separated list of sequence length buckets, e.g.
+                       "10,20,30" would result in 4 buckets:
+                       <10, 10-20, 20-30, >30. None disabled bucketing. """)
+tf.flags.DEFINE_integer("batch_size", 16,
+                        """Batch size used for training and evaluation.""")
+tf.flags.DEFINE_string("hparams", None,
+                       """A comma-separated list of hyeperparameter values that
+                       overwrite the model defaults, e.g.
+                       "optimizer.name=Adam,optimization.learning_rate=0.1".
+                       Refer to the documentation for a detailed list of
+                       available hyperparameters.""")
+tf.flags.DEFINE_string("output_dir", None,
+                       """The directory to write model checkpoints and summaries
+                       to. If None, a local temporary directory is created.""")
 
 # Training parameters
 tf.flags.DEFINE_string("schedule", None,
                        """Estimator function to call, defaults to
                        train_and_evaluate for local run""")
-tf.flags.DEFINE_integer("train_steps", None, "maximum number of training steps")
+tf.flags.DEFINE_integer("train_steps", None,
+                        """Maximum number of training steps to run.
+                         If None, train forever.""")
 tf.flags.DEFINE_integer("train_epochs", None,
-                        """Maximum number of training epochs. Defaults to None,
-                        which means train forever.""")
+                        """Maximum number of training epochs over the data.
+                         If None, train forever.""")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
-                        "evaluate after this many training steps")
+                        "Run evaluation on validation data every N steps.")
 tf.flags.DEFINE_integer("sample_every_n_steps", 500,
-                        "sample training predictions every N steps")
+                        """Sample and print sequence predictions every N steps
+                        during training.""")
 
 # RunConfig Flags
 tf.flags.DEFINE_integer("tf_random_seed", None,
@@ -53,20 +80,18 @@ tf.flags.DEFINE_integer("tf_random_seed", None,
                         this value allows consistency between reruns.""")
 tf.flags.DEFINE_integer("save_checkpoints_secs", 600,
                         """Save checkpoints every this many seconds.
-                        Can not be specified with save_checkpoints_steps.
-                        Default is 600.""")
+                        Can not be specified with save_checkpoints_steps.""")
 tf.flags.DEFINE_integer("save_checkpoints_steps", None,
                         """Save checkpoints every this many steps.
                         Can not be specified with save_checkpoints_secs.""")
 tf.flags.DEFINE_integer("keep_checkpoint_max", 5,
                         """Maximum number of recent checkpoint files to keep.
                         As new files are created, older files are deleted.
-                        If None or 0, all checkpoint files are kept.
-                        Defaults to 5 (that is, the 5 most recent checkpoint
-                        files are kept.)""")
+                        If None or 0, all checkpoint files are kept.""")
 tf.flags.DEFINE_integer("keep_checkpoint_every_n_hours", 4,
-                        """Number of hours between each checkpoint to be saved.
-                        Default is 4.""")
+                        """In addition to keeping the most recent checkpoint
+                        files, keep one checkpoint file for every N hours of
+                        training.""")
 
 FLAGS = tf.flags.FLAGS
 

@@ -1,51 +1,66 @@
 ### Input Files
 
-To train a model you need to follow files. See [Data](https://github.com/dennybritz/seq2seq/wiki/Data) for more details on how to generate or download each of them.
+To train a model you need to follow files. Refer to [Data](https://github.com/dennybritz/seq2seq/wiki/Data) for more details on each of these.
 
-- Training data: Two parallel (line by line aligned) text files that are tokenized, i.e. have words separated by spaces.
+- Training data: Two parallel (aligned line by line) tokenized text files with tokens separated by spaces.
 - Development data: Same format as the training data, but used for validation.
-- Source vocabulary file: A file with one word per line that defines the source vocabulary.
-- Target vocabulary file: Same format as the source vocabulary, but for the target language.
+- Source vocabulary: Defines the source vocabulary. A raw text file that contains one word per line.
+- Target vocabulary: Defines the target vocabulary. A raw text file that contains one word per line.
 
-### Running Training
+### Training Script & Parameters
 
-From the root directory, run:
+To train a new model, run the training script as follows (also see [Getting Started](getting_started.md):
 
 ```shell
-python -m seq2seq.training.train \
---train_source=data/train.sources.txt \
---train_target=data/train.targets.txt \
---dev_source=data/dev.sources.txt \
---dev_target=data/dev.targets.txt \
---vocab_source=data/vocab_source \
---vocab_target=data/vocab_target \
---model AttentionSeq2Seq \
---batch_size=16 \
---hparams="rnn_cell.num_layers=2,
-  rnn_cell.type=GRUCell,
-  rnn_cell.num_units=128,
-  source.max_seq_len=40,
-  target.max_seq_len=40" \
---output_dir=/path/to/model/dir \
---buckets=10,15,20,25,30,35
+./bin/train.py \
+  --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
+  --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
+  --dev_source $HOME/nmt_data/toy_reverse/dev/sources.txt \
+  --dev_target $HOME/nmt_data/toy_reverse/dev/targets.txt \
+  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
+  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
+  --model AttentionSeq2Seq \
+  --batch_size 32 \
+  --train_epochs 5 \
+  --output_dir ${TMPDIR}/nmt_toy_reverse
 ```
 
-Here, `train_source`, `train_target` `dev_source`, `dev_source`, `vocab_source` and `vocab_target` are the input files described above. 
+The [train.py](https://github.com/dennybritz/seq2seq/blob/master/bin/train.py) has many more options. Bold arguments
+are requied.
 
-`model` is the name of some class defined in `seq2seq.models`. Currently, the available models are:
+| Argument | Default | Description |
+| --- | --- | --- |
+| **train_source** | --- | Path to the training data source sentences. A raw text files with tokens separated by spaces. |
+| **train_target** | --- | Path to the training data target sentences. A raw text files with tokens separated by spaces. |
+| **dev_source** | --- | Path to the development data source sentences. Same format as training data. |
+| **dev_target** | --- | Path to the development data source sentences. Same format as training data.|
+| **vocab_source** | --- | Path to the source vocabulary. A raw text file with one word per line. |
+| **vocab_target** | --- | Path to the target vocabulary. A raw text file with one word per line. |
+| model | `AttentionSeq2Seq` | The model class to use. Refer to the documentation for all available models. |
+| buckets | `None` | Buckets input sequences according to these length. A comma-separated list of sequence length buckets, e.g. `"10,20,30"` would result in 4 buckets: `<10, 10-20, 20-30, >30`. `None` disables bucketing. |
+| batch_size | `16` | Batch size used for training and evaluation. |
+| hparams | `None` | A comma-separated list of hyeperparameter values that overwrite the model defaults, e.g. `"optimizer.name=Adam,optimizer.learning_rate=0.1"`. Refer to the documentation for a detailed list of available hyperparameters. |
+| output_dir | `None` | The directory to write model checkpoints and summaries to. If None, a local temporary directory is created. |
+| train_steps | `None` | Maximum number of training steps to run. If None, train forever. |
+| train_epochs | `None` | Maximum number of training epochs over the data. If None, train forever. |
+| eval_every_n_steps | `1000` | Run evaluation on validation data every N steps. |
+| sample_every_n_steps | `500` | Sample and print sequence predictions every N steps during training. |
+| tf_random_seed | `None` | Random seed for TensorFlow initializers. Setting this value allows consistency between reruns. |
+| save_checkpoints_secs | `600` | Save checkpoints every this many seconds. Can not be specified with `save_checkpoints_steps`. |
+| save_checkpoints_steps | `None` | Save checkpoints every this many steps. Can not be specified with `save_checkpoints_secs`. |
+| keep_checkpoint_max | `5` | Maximum number of recent checkpoint files to keep. As new files are created, older files are deleted. If None or 0, all checkpoint files are kept. |
+| keep_checkpoint_every_n_hours | `4` | In addition to keeping the most recent checkpoint files, keep one checkpoint file for every N hours of training. |
 
-- `BasicSeq2Seq` - Uses a unidirectional RNN encoder, passes state from encoder to decoder, and uses no attention mechanism.
-- `AttentionSeq2Seq` - Uses a bidirectional RNN encoder and an attention mechanism.
 
-Refer to the source code comments for more details of these details.
+### Distributed Training
 
-`hparams` are model-specific Hyperparameters. Refer to the [`default_params`](https://github.com/dennybritz/seq2seq/blob/master/seq2seq/models/attention_seq2seq.py#L25) of model classes for a list of all available hyperparameters.
+Distributed Training is supported out of the box using `tf.learn`. Cluster Configurations can be specified using
+the `TF_CONFIG` environment variable, which is parsed by the [`RunConfig`](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py). Refer to the [Distributed Tensorflow](https://www.tensorflow.org/how_tos/distributed/) Guide for more information.
 
-`buckets` is an optional argument that you can use to speed up training by bucketing training examples into batches of roughly equal length. `10,15,20,25,30,35` would result in 8 buckets: Sequences of length `<10`, `10..15`, ..., and `>35`.
 
 ### Monitoring Training
 
-In addition to looking at the training output, you can use Tensorboard to monitor progress:
+In addition to looking at the output of the training script, Tensorflow write summaries and training logs into the specified `output_dir`. Use [Tensorboard](https://www.tensorflow.org/how_tos/summaries_and_tensorboard/) to visualize training progress.
 
 ```shell
 tensorboard --logdir=/path/to/model/dir
