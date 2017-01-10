@@ -9,7 +9,7 @@ Text Summarization or Image Captioning.
 
 We built [seq2seq] with the following goals in mind:
 
-1. **Usability** You can train a model with a single command. The input data are raw text files rather than esoteric file formats. Using pre-trained models to make predictions is straightforward.
+1. **Usability** You can train a model with a single command. The input data are stored in raw text rather than obscure file formats. Using pre-trained models to make predictions is straightforward.
 
 2. **Extensibility**. Code is structured so that it is easy to build upon. For example, adding a new attention mechanism or encoder architecture requires only minimal code changes.
 
