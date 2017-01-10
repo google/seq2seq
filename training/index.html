@@ -84,7 +84,10 @@
                 <li class="toctree-l3"><a href="#input-files">Input Files</a></li>
                 
             
-                <li class="toctree-l3"><a href="#running-training">Running Training</a></li>
+                <li class="toctree-l3"><a href="#training-script-parameters">Training Script &amp; Parameters</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#distributed-training">Distributed Training</a></li>
                 
             
                 <li class="toctree-l3"><a href="#monitoring-training">Monitoring Training</a></li>
@@ -118,14 +121,7 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../profiling/">Profiling</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../developer_guide/">Developer Guide</a>
+        <a class="" href="../contributing/">Contributing</a>
         
     </li>
 <li>
@@ -163,44 +159,146 @@
             <div class="section">
               
                 <h3 id="input-files">Input Files</h3>
-<p>To train a model you need to follow files. See <a href="https://github.com/dennybritz/seq2seq/wiki/Data">Data</a> for more details on how to generate or download each of them.</p>
+<p>To train a model you need to follow files. Refer to <a href="https://github.com/dennybritz/seq2seq/wiki/Data">Data</a> for more details on each of these.</p>
 <ul>
-<li>Training data: Two parallel (line by line aligned) text files that are tokenized, i.e. have words separated by spaces.</li>
+<li>Training data: Two parallel (aligned line by line) tokenized text files with tokens separated by spaces.</li>
 <li>Development data: Same format as the training data, but used for validation.</li>
-<li>Source vocabulary file: A file with one word per line that defines the source vocabulary.</li>
-<li>Target vocabulary file: Same format as the source vocabulary, but for the target language.</li>
+<li>Source vocabulary: Defines the source vocabulary. A raw text file that contains one word per line.</li>
+<li>Target vocabulary: Defines the target vocabulary. A raw text file that contains one word per line.</li>
 </ul>
-<h3 id="running-training">Running Training</h3>
-<p>From the root directory, run:</p>
-<pre><code class="shell">python -m seq2seq.training.train \
---train_source=data/train.sources.txt \
---train_target=data/train.targets.txt \
---dev_source=data/dev.sources.txt \
---dev_target=data/dev.targets.txt \
---vocab_source=data/vocab_source \
---vocab_target=data/vocab_target \
---model AttentionSeq2Seq \
---batch_size=16 \
---hparams=&quot;rnn_cell.num_layers=2,
-  rnn_cell.type=GRUCell,
-  rnn_cell.num_units=128,
-  source.max_seq_len=40,
-  target.max_seq_len=40&quot; \
---output_dir=/path/to/model/dir \
---buckets=10,15,20,25,30,35
+<h3 id="training-script-parameters">Training Script &amp; Parameters</h3>
+<p>To train a new model, run the training script as follows (also see <a href="../getting_started/">Getting Started</a>:</p>
+<pre><code class="shell">./bin/train.py \
+  --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
+  --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
+  --dev_source $HOME/nmt_data/toy_reverse/dev/sources.txt \
+  --dev_target $HOME/nmt_data/toy_reverse/dev/targets.txt \
+  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
+  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
+  --model AttentionSeq2Seq \
+  --batch_size 32 \
+  --train_epochs 5 \
+  --output_dir ${TMPDIR}/nmt_toy_reverse
 </code></pre>
 
-<p>Here, <code>train_source</code>, <code>train_target</code> <code>dev_source</code>, <code>dev_source</code>, <code>vocab_source</code> and <code>vocab_target</code> are the input files described above. </p>
-<p><code>model</code> is the name of some class defined in <code>seq2seq.models</code>. Currently, the available models are:</p>
-<ul>
-<li><code>BasicSeq2Seq</code> - Uses a unidirectional RNN encoder, passes state from encoder to decoder, and uses no attention mechanism.</li>
-<li><code>AttentionSeq2Seq</code> - Uses a bidirectional RNN encoder and an attention mechanism.</li>
-</ul>
-<p>Refer to the source code comments for more details of these details.</p>
-<p><code>hparams</code> are model-specific Hyperparameters. Refer to the <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/models/attention_seq2seq.py#L25"><code>default_params</code></a> of model classes for a list of all available hyperparameters.</p>
-<p><code>buckets</code> is an optional argument that you can use to speed up training by bucketing training examples into batches of roughly equal length. <code>10,15,20,25,30,35</code> would result in 8 buckets: Sequences of length <code>&lt;10</code>, <code>10..15</code>, ..., and <code>&gt;35</code>.</p>
+<p>The <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/train.py">train.py</a> has many more options. Bold arguments
+are requied.</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>train_source</strong></td>
+<td>---</td>
+<td>Path to the training data source sentences. A raw text files with tokens separated by spaces.</td>
+</tr>
+<tr>
+<td><strong>train_target</strong></td>
+<td>---</td>
+<td>Path to the training data target sentences. A raw text files with tokens separated by spaces.</td>
+</tr>
+<tr>
+<td><strong>dev_source</strong></td>
+<td>---</td>
+<td>Path to the development data source sentences. Same format as training data.</td>
+</tr>
+<tr>
+<td><strong>dev_target</strong></td>
+<td>---</td>
+<td>Path to the development data source sentences. Same format as training data.</td>
+</tr>
+<tr>
+<td><strong>vocab_source</strong></td>
+<td>---</td>
+<td>Path to the source vocabulary. A raw text file with one word per line.</td>
+</tr>
+<tr>
+<td><strong>vocab_target</strong></td>
+<td>---</td>
+<td>Path to the target vocabulary. A raw text file with one word per line.</td>
+</tr>
+<tr>
+<td>model</td>
+<td><code>AttentionSeq2Seq</code></td>
+<td>The model class to use. Refer to the documentation for all available models.</td>
+</tr>
+<tr>
+<td>buckets</td>
+<td><code>None</code></td>
+<td>Buckets input sequences according to these length. A comma-separated list of sequence length buckets, e.g. <code>"10,20,30"</code> would result in 4 buckets: <code>&lt;10, 10-20, 20-30, &gt;30</code>. <code>None</code> disables bucketing.</td>
+</tr>
+<tr>
+<td>batch_size</td>
+<td><code>16</code></td>
+<td>Batch size used for training and evaluation.</td>
+</tr>
+<tr>
+<td>hparams</td>
+<td><code>None</code></td>
+<td>A comma-separated list of hyeperparameter values that overwrite the model defaults, e.g. <code>"optimizer.name=Adam,optimizer.learning_rate=0.1"</code>. Refer to the documentation for a detailed list of available hyperparameters.</td>
+</tr>
+<tr>
+<td>output_dir</td>
+<td><code>None</code></td>
+<td>The directory to write model checkpoints and summaries to. If None, a local temporary directory is created.</td>
+</tr>
+<tr>
+<td>train_steps</td>
+<td><code>None</code></td>
+<td>Maximum number of training steps to run. If None, train forever.</td>
+</tr>
+<tr>
+<td>train_epochs</td>
+<td><code>None</code></td>
+<td>Maximum number of training epochs over the data. If None, train forever.</td>
+</tr>
+<tr>
+<td>eval_every_n_steps</td>
+<td><code>1000</code></td>
+<td>Run evaluation on validation data every N steps.</td>
+</tr>
+<tr>
+<td>sample_every_n_steps</td>
+<td><code>500</code></td>
+<td>Sample and print sequence predictions every N steps during training.</td>
+</tr>
+<tr>
+<td>tf_random_seed</td>
+<td><code>None</code></td>
+<td>Random seed for TensorFlow initializers. Setting this value allows consistency between reruns.</td>
+</tr>
+<tr>
+<td>save_checkpoints_secs</td>
+<td><code>600</code></td>
+<td>Save checkpoints every this many seconds. Can not be specified with <code>save_checkpoints_steps</code>.</td>
+</tr>
+<tr>
+<td>save_checkpoints_steps</td>
+<td><code>None</code></td>
+<td>Save checkpoints every this many steps. Can not be specified with <code>save_checkpoints_secs</code>.</td>
+</tr>
+<tr>
+<td>keep_checkpoint_max</td>
+<td><code>5</code></td>
+<td>Maximum number of recent checkpoint files to keep. As new files are created, older files are deleted. If None or 0, all checkpoint files are kept.</td>
+</tr>
+<tr>
+<td>keep_checkpoint_every_n_hours</td>
+<td><code>4</code></td>
+<td>In addition to keeping the most recent checkpoint files, keep one checkpoint file for every N hours of training.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="distributed-training">Distributed Training</h3>
+<p>Distributed Training is supported out of the box using <code>tf.learn</code>. Cluster Configurations can be specified using
+the <code>TF_CONFIG</code> environment variable, which is parsed by the <a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py"><code>RunConfig</code></a>. Refer to the <a href="https://www.tensorflow.org/how_tos/distributed/">Distributed Tensorflow</a> Guide for more information.</p>
 <h3 id="monitoring-training">Monitoring Training</h3>
-<p>In addition to looking at the training output, you can use Tensorboard to monitor progress:</p>
+<p>In addition to looking at the output of the training script, Tensorflow write summaries and training logs into the specified <code>output_dir</code>. Use <a href="https://www.tensorflow.org/how_tos/summaries_and_tensorboard/">Tensorboard</a> to visualize training progress.</p>
 <pre><code class="shell">tensorboard --logdir=/path/to/model/dir
 </code></pre>
               
