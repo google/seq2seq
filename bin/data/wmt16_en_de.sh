@@ -70,7 +70,7 @@ ${OUTPUT_DIR}/mosesdecoder/scripts/ems/support/input-from-sgm.perl \
   < ${OUTPUT_DIR_DATA}/dev/dev/newstest2014-deen-ref.en.sgm \
   > ${OUTPUT_DIR_DATA}/dev/dev/newstest2014.en
 
-# Convert newstest20145 data into raw text format
+# Convert newstest2015 data into raw text format
 ${OUTPUT_DIR}/mosesdecoder/scripts/ems/support/input-from-sgm.perl \
   < ${OUTPUT_DIR_DATA}/dev/dev/newstest2015-deen-src.de.sgm \
   > ${OUTPUT_DIR_DATA}/dev/dev/newstest2015.de
