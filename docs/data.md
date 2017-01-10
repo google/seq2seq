@@ -5,9 +5,9 @@ make explicit what kind of processing has been done on the data.
 
 | Dataset | Description | Training/Dev/Test Size | Vocabulary | Download |
 | --- | --- | --- | --- | --- |
-| WMT'16 EN-DE | Data for the [WMT'16 Translation Task](http://www.statmt.org/wmt16/translation-task.html) English to German. Training data is combined from Europarl v7, Common Crawl, and News Commentary v11. Development data sets include `newstest[2010-2015]`. `newstest2016` should serve as test data. All SGM files were converted to plain text.  | 4.56M/3K/2.6K | 50k Words <br/> 50k BPE| [Download](https://drive.google.com/open?id=0B_bZck-ksdkpdmlvajhSbS1JTXc) <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/wmt16_en_de.sh) |
-| Toy Copy | A toy dataset where the target sequence is equal to the source sequence. The model must learn to copy the source sequence. | 10k/1k/1k | 20 | [Download](https://drive.google.com/open?id=0B_bZck-ksdkpX0FFbHFRbGY3UTQ) <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh) |
-| Toy Reverse | A toy dataset where the target sequence is equal to the reversed source sequence. | 10k/1k/1k | 20 | [Download](https://drive.google.com/open?id=0B_bZck-ksdkpR2Z1ZWRQZEZDVHM) <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh) |
+| WMT'16 EN-DE | Data for the [WMT'16 Translation Task](http://www.statmt.org/wmt16/translation-task.html) English to German. Training data is combined from Europarl v7, Common Crawl, and News Commentary v11. Development data sets include `newstest[2010-2015]`. `newstest2016` should serve as test data. All SGM files were converted to plain text.  | 4.56M/3K/2.6K | 50k Words <br/> 50k BPE| Download <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/wmt16_en_de.sh) |
+| Toy Copy | A toy dataset where the target sequence is equal to the source sequence. The model must learn to copy the source sequence. | 10k/1k/1k | 20 | Download <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh) |
+| Toy Reverse | A toy dataset where the target sequence is equal to the reversed source sequence. | 10k/1k/1k | 20 | Download <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh) |
 
 ## Creating your own data
 
