@@ -10,5 +10,4 @@ pages:
     - Inference: inference.md
     - Tools: tools.md
     - Results and Pre-Trained Models: benchmarks.md
-    - Profiling: profiling.md
     - Developer Guide: developer_guide.md

@@ -1,6 +1,6 @@
 ## Performing Inference
 
-After you have trained your mode you can use the `bin/infer.py` script to make predictions with your model. For example, from the [Getting Started Guide](getting_started.md):
+After you have trained a model you can use the `bin/infer.py` script to make predictions. For example, from the [Getting Started Guide](getting_started.md):
 
 ```bash
 ./bin/infer.py \
@@ -18,13 +18,13 @@ the `checkpoint_path` flag.
 
 ## Beam Search
 
-To perform beam search you can pass the `beam_width` flag to specify the number of beams to use. When using beam search
+**Beam Search is currently experimental.** To perform beam search you can pass the `beam_width` flag to specify the number of beams to use. When using beam search
 your batch size will be set to 1 and the `beam_width` will be used as an implicit batch size. Beam search can thus become very expensive with large beam widths.
 
 
 ## UNK token replacement using a Copy Mechanism
 
-Rare words (such as place and people names) are often not included in the target vocabulary and result in `UNK` tokens in the output predictions. An easy strategy to improve predictions is to replace each `UNK` token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces `source_length` alignment scores for each target token.
+Rare words (such as place and people names) are often not included in the target vocabulary and result in `UNK` tokens in the output predictions. An easy strategy to improve predictions is to replace each `UNK` token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces `[source_length]` alignment scores for each target token.
 
 If you trained a model, such as `AttentionSeq2Seq`, that generates such attention scores you can use them to perform UNK token replacement by passing the `unk_replace` flag to the inference script.
 
@@ -43,9 +43,9 @@ If you trained a model, such as `AttentionSeq2Seq`, that generates such attentio
 
 ## UNK token replacement using a mapping
 
-A slightly more sophisticated approach to UNK token replacement is to use a mapping instead of copying words from the source. For example, "Munich" is translated as "München" in German, but if you were to simply copy "Munich" from the source you would never get this translation right.
+A slightly more sophisticated approach to UNK token replacement is to use a mapping instead of copying words from the source. For example, "Munich" is always translated as "München" in German, so that simply copying "Munich" from the source you would never result in the right translation even if the words are perfectly aligned using attention scores.
 
-You can use [fast_align](https://github.com/clab/fast_align) to generate such a mapping based on the
+One strategy is to use [fast_align](https://github.com/clab/fast_align) to generate a mapping based on the
 conditional probabilities of target given source.
 
 ```bash
@@ -67,7 +67,7 @@ paste \
   -v -p $HOME/nmt_data/toy_reverse/train/source_targets.cond \
   > $HOME/nmt_data/toy_reverse/train/source_targets.align
 
-# Get the most probable alignments only
+# Find the most probable traslation for each word and write them to a file
 sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
   | sort -k1,1 -u \
   > $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict
