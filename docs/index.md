@@ -1,4 +1,4 @@
-i## Introduction
+## Introduction
 
 [seq2seq] is an open source framework for sequence learning in Tensorflow.
 The main use case is Neural Machine Translation (NMT), but [seq2seq] can be
