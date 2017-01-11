@@ -5,8 +5,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
-
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.platform import gfile
@@ -15,24 +13,23 @@ from seq2seq import models
 from seq2seq.data import data_utils
 from seq2seq.data import vocab
 from seq2seq.training import utils as training_utils
-from seq2seq.training import HParamsParser
 
-def load_model(vocab_source, vocab_target, model_class, model_dir, params=None):
+def load_model(model_dir, params=None):
   """Loads a model class from a given directory
   """
+
+  train_options = training_utils.TrainOptions.load(model_dir)
+
   # Load vocabulary
-  source_vocab_info = vocab.get_vocab_info(vocab_source)
-  target_vocab_info = vocab.get_vocab_info(vocab_target)
+  source_vocab_info = vocab.get_vocab_info(train_options.source_vocab_path)
+  target_vocab_info = vocab.get_vocab_info(train_options.target_vocab_path)
 
   # Find model class
-  model_class = getattr(models, model_class)
+  model_class = getattr(models, train_options.model_class)
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()
-  hparams_parser = HParamsParser(hparams)
-  saved_hparams = training_utils.read_hparams(
-      os.path.join(model_dir, "hparams.txt"))
-  hparams = hparams_parser.parse(saved_hparams)
+  hparams.update(train_options.hparams)
 
   if params is not None:
     hparams.update(params)
@@ -74,13 +71,24 @@ def create_predictions_iter(predictions_dict, sess):
         break
 
 def create_inference_graph(
-    model_class,
     model_dir,
     input_file,
-    vocab_source,
-    vocab_target,
     batch_size=32,
     beam_width=None):
+  """Creates a graph to perform inference.
+
+  Args:
+    model_dir: The output directory passed during training. This
+      directory must contain model checkpoints.
+    input_file: A source input file to read from.
+    batch_size: The batch size used for inference
+    beam_width: The beam width for beam search. If None,
+      no beam search is used.
+
+  Returns:
+    The return value of the model functions, typically a tuple of
+    (predictions, loss, train_op).
+  """
 
   params_overrides = {}
   if beam_width is not None:
@@ -88,12 +96,7 @@ def create_inference_graph(
     batch_size = 1
     params_overrides["inference.beam_search.beam_width"] = beam_width
 
-  model = load_model(
-      vocab_source=vocab_source,
-      vocab_target=vocab_target,
-      model_class=model_class,
-      model_dir=model_dir,
-      params=params_overrides)
+  model = load_model(model_dir)
 
   data_provider = lambda: data_utils.make_parallel_data_provider(
       data_sources_source=[input_file],

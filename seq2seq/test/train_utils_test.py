@@ -14,7 +14,7 @@ import numpy as np
 from seq2seq.data import data_utils
 from seq2seq.test import utils as test_utils
 from seq2seq.training import utils as training_utils
-from seq2seq.training import HParamsParser, hooks
+from seq2seq.training import hooks
 
 
 class TestTrainOptions(tf.test.TestCase):
@@ -26,7 +26,6 @@ class TestTrainOptions(tf.test.TestCase):
     self.hparams = {
         "num_layers": 4
     }
-    self.parser = HParamsParser(self.hparams)
     self.model_class = "AttentionSeq2Seq"
     self.source_vocab_file = "some_file"
     self.target_vocab_file = "some_file2"
@@ -37,16 +36,14 @@ class TestTrainOptions(tf.test.TestCase):
 
   def test_read_write(self):
     saved_opts = training_utils.TrainOptions(
-        model_dir=self.model_dir,
         hparams=self.hparams,
         model_class=self.model_class,
         source_vocab_path=self.source_vocab_file,
         target_vocab_path=self.target_vocab_file)
-    saved_opts.dump()
+    saved_opts.dump(self.model_dir)
 
     loaded_opt = training_utils.TrainOptions.load(
-        model_dir=self.model_dir,
-        hparams_parser=self.parser)
+        model_dir=self.model_dir)
 
     self.assertEqual(saved_opts.hparams, loaded_opt.hparams)
     self.assertEqual(saved_opts.model_class, loaded_opt.model_class)
@@ -56,16 +53,13 @@ class TestTrainOptions(tf.test.TestCase):
 
   def test_read_write_partial(self):
     saved_opts = training_utils.TrainOptions(
-        model_dir=self.model_dir,
         hparams=self.hparams,
         model_class=None,
         source_vocab_path=self.source_vocab_file,
         target_vocab_path=None)
-    saved_opts.dump()
+    saved_opts.dump(self.model_dir)
 
-    loaded_opt = training_utils.TrainOptions.load(
-        model_dir=self.model_dir,
-        hparams_parser=self.parser)
+    loaded_opt = training_utils.TrainOptions.load(self.model_dir)
 
     self.assertEqual(saved_opts.hparams, loaded_opt.hparams)
     self.assertEqual(saved_opts.model_class, loaded_opt.model_class)
@@ -175,7 +169,7 @@ class TestMosesBleu(tf.test.TestCase):
   def test_multi_bleu_with_eos(self):
     result = training_utils.moses_multi_bleu(
         hypotheses=np.array([
-            "The brown fox jumps over the dog SEQUENCE_END2 x x x"]),
+            "The brown fox jumps over the dog SEQUENCE_END 2 x x x"]),
         references=np.array(["The quick brown fox jumps over the lazy dog"]),
         lowercase=False)
     self.assertEqual(result, 50.25)
