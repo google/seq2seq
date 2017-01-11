@@ -15,7 +15,7 @@ To use your own data you must bring it into the right format. A typical data pre
 
 1. Generate data in parallel text format
 2. Tokenize your data
-3. Create a fixed vocabularies for your source and target data
+3. Create fixed vocabularies for your source and target data
 4. (Optional) Use Subword Units to handle rare or unknown words
 
 #### Parallel Text Format
