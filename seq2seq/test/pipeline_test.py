@@ -26,7 +26,7 @@ BIN_FOLDER = os.path.abspath(
 def _clear_flags():
   """Resets Tensorflow's FLAG values"""
   #pylint: disable=W0212
-  tf.app.flags.FLAGS = tf.python.platform.flags._FlagValues()
+  tf.app.flags.FLAGS = tf.app.flags._FlagValues()
   tf.app.flags._global_parser = argparse.ArgumentParser()
 
 class PipelineTest(tf.test.TestCase):
