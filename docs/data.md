@@ -18,7 +18,7 @@ To use your own data you must bring it into the right format. A typical data pre
 3. Create fixed vocabularies for your source and target data
 4. (Optional) Use Subword Units to handle rare or unknown words
 
-#### Parallel Text Format
+### Parallel Text Format
 
 The input pipeline expects parallel `sources` and `targets` files where each pair of lines corresponds to one input/output example. The files must be in raw text format and tokenized with space delimiters. For example, an (extremely short and silly) Machine Translation dataset could consist of:
 
