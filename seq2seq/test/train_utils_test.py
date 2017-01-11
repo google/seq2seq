@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import shutil
 import tempfile
 import tensorflow as tf
 import numpy as np
@@ -16,35 +17,94 @@ from seq2seq.training import utils as training_utils
 from seq2seq.training import HParamsParser, hooks
 
 
-class TestHparamsReadWrite(tf.test.TestCase):
-  """Tests reading and writing of HParam values
-  """
+class TestTrainOptions(tf.test.TestCase):
+  """Tests reading and writing of training options"""
 
   def setUp(self):
-    super(TestHparamsReadWrite, self).setUp()
+    super(TestTrainOptions, self).setUp()
+    self.model_dir = tempfile.mkdtemp()
     self.hparams = {
-        "rnn_dim": 128,
-        "num_layers": 2,
-        "rnn_cell_type": "LSTM",
-        "dropout": 0.8
+        "num_layers": 4
     }
     self.parser = HParamsParser(self.hparams)
+    self.model_class = "AttentionSeq2Seq"
+    self.source_vocab_file = "some_file"
+    self.target_vocab_file = "some_file2"
 
-  def test_write(self):
-    file = tempfile.NamedTemporaryFile()
-    training_utils.write_hparams(self.hparams, file.name)
-    lines = file.read()
-    self.assertEqual(
-        lines.decode(),
-        "dropout=0.8\nnum_layers=2\nrnn_cell_type=LSTM\nrnn_dim=128")
-    file.close()
+  def tearDown(self):
+    super(TestTrainOptions, self).tearDown()
+    shutil.rmtree(self.model_dir)
 
-  def test_write_read(self):
-    file = tempfile.NamedTemporaryFile()
-    training_utils.write_hparams(self.hparams, file.name)
-    params_str = training_utils.read_hparams(file.name)
-    final_params = self.parser.parse(params_str)
-    self.assertEqual(final_params, self.hparams)
+  def test_read_write(self):
+    saved_opts = training_utils.TrainOptions(
+        model_dir=self.model_dir,
+        hparams=self.hparams,
+        model_class=self.model_class,
+        source_vocab_path=self.source_vocab_file,
+        target_vocab_path=self.target_vocab_file)
+    saved_opts.dump()
+
+    loaded_opt = training_utils.TrainOptions.load(
+        model_dir=self.model_dir,
+        hparams_parser=self.parser)
+
+    self.assertEqual(saved_opts.hparams, loaded_opt.hparams)
+    self.assertEqual(saved_opts.model_class, loaded_opt.model_class)
+    self.assertEqual(saved_opts.source_vocab_path, loaded_opt.source_vocab_path)
+    self.assertEqual(saved_opts.target_vocab_path, loaded_opt.target_vocab_path)
+
+
+  def test_read_write_partial(self):
+    saved_opts = training_utils.TrainOptions(
+        model_dir=self.model_dir,
+        hparams=self.hparams,
+        model_class=None,
+        source_vocab_path=self.source_vocab_file,
+        target_vocab_path=None)
+    saved_opts.dump()
+
+    loaded_opt = training_utils.TrainOptions.load(
+        model_dir=self.model_dir,
+        hparams_parser=self.parser)
+
+    self.assertEqual(saved_opts.hparams, loaded_opt.hparams)
+    self.assertEqual(saved_opts.model_class, loaded_opt.model_class)
+    self.assertEqual(saved_opts.source_vocab_path, loaded_opt.source_vocab_path)
+    self.assertEqual(saved_opts.target_vocab_path, loaded_opt.target_vocab_path)
+
+
+  def test_partial_read_write(self):
+    pass
+
+# class TestHparamsReadWrite(tf.test.TestCase):
+#   """Tests reading and writing of HParam values
+#   """
+
+#   def setUp(self):
+#     super(TestHparamsReadWrite, self).setUp()
+#     self.hparams = {
+#         "rnn_dim": 128,
+#         "num_layers": 2,
+#         "rnn_cell_type": "LSTM",
+#         "dropout": 0.8
+#     }
+#     self.parser = HParamsParser(self.hparams)
+
+#   def test_write(self):
+#     file = tempfile.NamedTemporaryFile()
+#     training_utils.write_hparams(self.hparams, file.name)
+#     lines = file.read()
+#     self.assertEqual(
+#         lines.decode(),
+#         "dropout=0.8\nnum_layers=2\nrnn_cell_type=LSTM\nrnn_dim=128")
+#     file.close()
+
+#   def test_write_read(self):
+#     file = tempfile.NamedTemporaryFile()
+#     training_utils.write_hparams(self.hparams, file.name)
+#     params_str = training_utils.read_hparams(file.name)
+#     final_params = self.parser.parse(params_str)
+#     self.assertEqual(final_params, self.hparams)
 
 
 class TestInputFn(tf.test.TestCase):

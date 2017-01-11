@@ -8,10 +8,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import defaultdict
 import os
 import re
 import subprocess
 import tempfile
+import json
 
 from collections import namedtuple
 
@@ -24,84 +26,42 @@ from tensorflow.python.platform import gfile
 from seq2seq.data.data_utils import read_from_data_provider
 from seq2seq.training import hooks
 
-class TrainParams(object):
-  def __init__(self, model_dir, hparams=None, model_class=None, source_vocab=None, target_vocab=None):
+class TrainOptions(object):
+  def __init__(self, model_dir, hparams=None, model_class=None, source_vocab_path=None, target_vocab_path=None):
     self.model_dir = model_dir
     self.hparams = hparams
     self.model_class = model_class
-    self.source_vocab = source_vocab
-    self.target_vocab = target_vocab
+    self.source_vocab_path = source_vocab_path
+    self.target_vocab_path = target_vocab_path
 
   @staticmethod
-  def hparams_path(model_dir):
-    return os.path.join(model_dir, "hparams.txt")
-
-  @staticmethod
-  def model_class_path(model_dir):
-    return os.path.join(model_dir, "model_class.txt")
-
-  @staticmethod
-  def source_vocab_path(model_dir):
-    return os.path.join(model_dir, "source_vocab.txt")
-
-  @staticmethod
-  def target_vocab_path(model_dir):
-    return os.path.join(model_dir, "target_vocab.txt")
-
-  def _write(self, data, path):
-    with gfile.GFile(path, "w") as file:
-      file.write(data)
-    tf.logging.info("Wrote %s", path)
+  def path(model_dir):
+    return os.path.join(model_dir, "train_options.json")
 
   def dump(self):
     gfile.MakeDirs(self.model_dir)
+    options_dict = {
+      "hparams": self.hparams,
+      "model_class": self.model_class,
+      "source_vocab_path": self.source_vocab_path,
+      "target_vocab_path": self.target_vocab_path
+    }
 
-    if self.hparams:
-      hparams_str = "\n".join(
-          ["{}={}".format(k, v) for k, v in sorted(self.hparams.hparams.items())])
-      self._write(hparams_str, self.hparams_path(self.model_dir))
-
-    if self.model_class:
-      self._write(self.model_class, self.model_class_path(self.model_dir))
-
-    if self.source_vocab:
-      gfile.Copy(self.source_vocab, self.source_vocab_path(self.model_dir))
-      tf.logging.info("Wrote %s", self.source_vocab_path(self.model_dir))
-
-    if self.target_vocab:
-      gfile.Copy(self.target_vocab, self.target_vocab_path(self.model_dir))
-      tf.logging.info("Wrote %s", self.target_vocab_path(self.model_dir))
+    with gfile.GFile(TrainOptions.path(self.model_dir), "w") as file:
+      file.write(json.dumps(options_dict).encode("utf-8"))
 
   @staticmethod
   def load(model_dir, hparams_parser):
-    hparams = None
-    model_class = None
-    source_vocab = None
-    target_vocab = None
+    with gfile.GFile(TrainOptions.path(model_dir), "r") as file:
+      options_dict = json.loads(file.read().decode("utf-8"))
+    options_dict = defaultdict(None, options_dict)
 
-    if gfile.Exists(TrainParams.hparams_path(model_dir)) and hparams_parser is not None:
-      with gfile.GFile(TrainParams.hparams_path(model_dir), "r") as file:
-        lines = file.readlines()
-        hparams = hparams_parser.parse(",".join(lines))
-
-    if gfile.Exists(TrainParams.model_class_path((model_dir))):
-      with gfile.GFile(TrainParams.model_class_path(model_dir), "r") as file:
-        model_class = file.read().strip()
-
-    if gfile.Exists(TrainParams.source_vocab_path(model_dir)):
-      source_vocab = TrainParams.source_vocab_path(model_dir)
-
-    if gfile.Exists(TrainParams.target_vocab_path(model_dir)):
-      target_vocab = TrainParams.target_vocab_path(model_dir)
-
-    return TrainParams(
+    return TrainOptions(
         model_dir=model_dir,
-        hparams=hparams,
-        model_class=model_class,
-        source_vocab=source_vocab,
-        target_vocab=target_vocab)
-
-
+        hparams=options_dict["hparams"],
+        model_class=options_dict["model_class"],
+        source_vocab_path=options_dict["source_vocab_path"],
+        target_vocab_path=options_dict["target_vocab_path"])
 
 
 def get_rnn_cell(cell_type,
@@ -251,78 +211,6 @@ def create_input_fn(data_provider_fn,
     return features_batch, labels_batch
 
   return input_fn
-
-
-def write_params(output_dir, train_params):
-  """
-  Dumps training parameters to a file.
-
-  Args:
-    output_dir: Directory to write to
-    train_params: A `TrainParams` instance.
-  """
-  gfile.MakeDirs(output_dir)
-
-  def write(path, data):
-    gfile.MakeDirs(os.path.dirname(path))
-    with gfile.GFile(path, "w") as file:
-      file.write(data)
-    tf.logging.info("Wrote %s", path)
-
-  if train_params.hparams is not None:
-    hparams_str = "\n".join(
-        ["{}={}".format(k, v) for k, v in sorted(train_params.hparams.items())])
-    write(os.path.join(output_dir, "hparams.txt"), hparams_str)
-
-  if train_params.hparams is not model_class:
-    write(os.path.join(output_dir, "hparams.txt"), hparams_str)
-  
-
-
-  # Write hyperparameters
-  # if hparams_dict is not None:
-
-  #   hparams_path = os.path.join(output_dir, "hparams.txt")
-  #   out = "\n".join(
-  #       ["{}={}".format(k, v) for k, v in sorted(hparams_dict.items())])
-  #   with gfile.GFile(hparams_path, "w") as file:
-  #     file.write(out)
-  #   tf.logging.info("Wrote %s", hparams_path)
-
-  # Write model_class
-  if model_class is not None:
-    model_class_path = os.path.join(output_dir, "model_class.txt")
-    with gfile.GFile(model_class_path, "w") as file:
-      file.write(model_class)
-    tf.logging.info("Wrote %s", model_class)
-
-
-
-def read_hparams(output_dir):
-  """
-  Reads hyperparameters into a string that can be used with a
-  HParamsParser.
-
-  Args:
-    output_dir: Absolute path to the file to read from
-  """
-
-  hparams_path = os.path.join(output_dir, "hparams.txt")
-  model_class_path = os.path.join(output_dir, "model_class.txt")
-
-  hparams = None
-  if gfile.Exists(hparams_path):
-    with gfile.GFile(hparams_path, "r") as file:
-      lines = file.readlines()
-    hparams = ",".join(lines)
-
-  model_class = None
-  if gfile.Exists(model_class_path):
-    with gfile.GFile(model_class_path, "r") as file:
-      model_class = file.read().trim()
-
-  return hparams, model_class
-
 
 
 def create_default_training_hooks(estimator, sample_frequency=500):
