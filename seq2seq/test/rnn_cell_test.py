@@ -43,7 +43,7 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
     self.assertAllClose(res_standard_[1][0], res_test_[1][0])
     self.assertAllClose(res_standard_[1][1], res_test_[1][1])
 
-  def test_wit_residuals(self):
+  def test_with_residuals(self):
     inputs = tf.constant(np.random.randn(1, 2))
     state = (
         tf.constant(np.random.randn(1, 2)),
@@ -64,7 +64,7 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
     self.assertAllClose([[-0.7694797, -0.1046757]], res_test_[1][0])
     self.assertAllClose([[-0.89064711, -0.61222793]], res_test_[1][1])
 
-  def test_wit_residuals_and_diff_input_size(self):
+  def test_with_residuals_transform(self):
     inputs = tf.constant(np.random.randn(1, 5))
     state = (
         tf.constant(np.random.randn(1, 2)),
@@ -83,7 +83,7 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
     # Just a smoke test, these numbers are not calculated by hand
     self.assertAllClose([[-0.18053266, -0.45155333]], res_test_[0])
     self.assertAllClose([[-0.3921121, -0.56264944]], res_test_[1][0])
-    self.assertAllClose([[ 0.58282027, 0.29629828]], res_test_[1][1])
+    self.assertAllClose([[0.58282027, 0.29629828]], res_test_[1][1])
 
 
 if __name__ == "__main__":

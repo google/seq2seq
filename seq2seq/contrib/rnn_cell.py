@@ -46,12 +46,12 @@ class ExtendedMultiRNNCell(MultiRNNCell):
       # Residual connections are only possible when input and output
       # sizes are equal. Optionally transform the initial inputs to
       # `cell[0].output_size`
-      if self._cells[0].output_size != inputs.get_shape().as_list()[0]:
-        inputs = tf.contrib.layers.fully_connected(
-            inputs=inputs,
-            num_outputs=self._cells[0].output_size,
-            activation_fn=None,
-            scope="input_transform")
+      # if self._cells[0].output_size != inputs.get_shape().as_list()[0]:
+      #   inputs = tf.contrib.layers.fully_connected(
+      #       inputs=inputs,
+      #       num_outputs=self._cells[0].output_size,
+      #       activation_fn=None,
+      #       scope="input_transform")
 
       # Iterate through all layers (code from MultiRNNCell)
       cur_inp = inputs
