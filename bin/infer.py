@@ -11,9 +11,6 @@ from seq2seq.inference import create_inference_graph, create_predictions_iter
 from seq2seq.inference import unk_replace, get_unk_mapping
 
 tf.flags.DEFINE_string("source", None, "path to source training data")
-tf.flags.DEFINE_string("vocab_source", None, "Path to source vocabulary file")
-tf.flags.DEFINE_string("vocab_target", None, "Path to target vocabulary file")
-tf.flags.DEFINE_string("model", "AttentionSeq2Seq", "model class")
 tf.flags.DEFINE_string("model_dir", None, "directory to load model from")
 tf.flags.DEFINE_string("checkpoint_path", None,
                        """Full path to the checkpoint to be loaded. If None,
@@ -40,10 +37,7 @@ def main(_argv):
   """
 
   predictions, _, _ = create_inference_graph(
-      model_class=FLAGS.model,
       model_dir=FLAGS.model_dir,
-      vocab_source=FLAGS.vocab_source,
-      vocab_target=FLAGS.vocab_target,
       input_file=FLAGS.source,
       batch_size=FLAGS.batch_size,
       beam_width=FLAGS.beam_width

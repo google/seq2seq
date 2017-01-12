@@ -8,10 +8,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from collections import defaultdict
 import os
 import re
 import subprocess
 import tempfile
+import json
 
 import numpy as np
 from six.moves import urllib
@@ -21,6 +23,73 @@ from tensorflow.python.platform import gfile
 
 from seq2seq.data.data_utils import read_from_data_provider
 from seq2seq.training import hooks
+
+class TrainOptions(object):
+  """A collectionf of options that are passed to the training script
+  and should be saved to perform inference later on.
+
+  Args:
+    model_dir: The model directory. Options will be dumped in this
+      directory.
+    hparams: A dictionary of hyperparameter values.
+    model_class: The model class name, a string.
+    source_vocab_path: Path to the source vocabulary
+    target_vocab_path: Path to the target vocabulary
+  """
+  def __init__(self,
+               hparams=None,
+               model_class=None,
+               source_vocab_path=None,
+               target_vocab_path=None):
+    self.hparams = hparams
+    self.model_class = model_class
+    self.source_vocab_path = source_vocab_path
+    self.target_vocab_path = target_vocab_path
+
+  @staticmethod
+  def path(model_dir):
+    """Returns the path to the options file.
+
+    Args:
+      model_dir: The model directory
+    """
+    return os.path.join(model_dir, "train_options.json")
+
+  def dump(self, model_dir):
+    """Dumps the options to a file in the model directory.
+
+    Args:
+      model_dir: Path to the model directory. The options will be
+      dumped into a file in this directory.
+    """
+    gfile.MakeDirs(model_dir)
+    options_dict = {
+        "hparams": self.hparams,
+        "model_class": self.model_class,
+        "source_vocab_path": self.source_vocab_path,
+        "target_vocab_path": self.target_vocab_path
+    }
+
+    with gfile.GFile(TrainOptions.path(model_dir), "w") as file:
+      file.write(json.dumps(options_dict).encode("utf-8"))
+
+  @staticmethod
+  def load(model_dir):
+    """ Loads options from the given model directory.
+
+    Args:
+      model_dir: Path to the model directory.
+    """
+    with gfile.GFile(TrainOptions.path(model_dir), "r") as file:
+      options_dict = json.loads(file.read().decode("utf-8"))
+    options_dict = defaultdict(None, options_dict)
+
+    return TrainOptions(
+        hparams=options_dict["hparams"],
+        model_class=options_dict["model_class"],
+        source_vocab_path=options_dict["source_vocab_path"],
+        target_vocab_path=options_dict["target_vocab_path"])
+
 
 def get_rnn_cell(cell_type,
                  num_units,
@@ -169,34 +238,6 @@ def create_input_fn(data_provider_fn,
     return features_batch, labels_batch
 
   return input_fn
-
-
-def write_hparams(hparams_dict, path):
-  """
-  Writes hyperparameter values to a file.
-
-  Args:
-    hparams_dict: The dictionary of hyperparameters
-    path: Absolute path to write to
-  """
-  gfile.MakeDirs(os.path.dirname(path))
-  out = "\n".join(
-      ["{}={}".format(k, v) for k, v in sorted(hparams_dict.items())])
-  with gfile.GFile(path, "w") as file:
-    file.write(out)
-
-
-def read_hparams(path):
-  """
-  Reads hyperparameters into a string that can be used with a
-  HParamsParser.
-
-  Args:
-    path: Absolute path to the file to read from
-  """
-  with gfile.GFile(path, "r") as file:
-    lines = file.readlines()
-  return ",".join(lines)
 
 
 def create_default_training_hooks(estimator, sample_frequency=500):

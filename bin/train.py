@@ -16,6 +16,8 @@ from seq2seq.training import metrics
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
 from tensorflow.contrib.learn.python.learn.estimators import run_config
+from tensorflow.python.platform import gfile
+
 
 # Input Data
 tf.flags.DEFINE_string("train_source", None,
@@ -123,11 +125,24 @@ def create_experiment(output_dir):
   if FLAGS.hparams is not None:
     hparams = HParamsParser(hparams).parse(FLAGS.hparams)
 
-  # Print and save hparams
+  # Print hparams
   training_utils.print_hparams(hparams)
+
+  # One the main worker, save training options and vocabulary
   if config.is_chief:
-    training_utils.write_hparams(
-        hparams, os.path.join(output_dir, "hparams.txt"))
+     # Copy vocabulary to output directory
+    gfile.MakeDirs(output_dir)
+    source_vocab_path = os.path.join(output_dir, "vocab_source")
+    gfile.Copy(FLAGS.vocab_source, source_vocab_path)
+    target_vocab_path = os.path.join(output_dir, "vocab_target")
+    gfile.Copy(FLAGS.vocab_target, target_vocab_path)
+    # Save train options
+    train_options = training_utils.TrainOptions(
+        hparams=hparams,
+        model_class=FLAGS.model,
+        source_vocab_path=source_vocab_path,
+        target_vocab_path=target_vocab_path)
+    train_options.dump(output_dir)
 
   # Create model
   model = model_class(

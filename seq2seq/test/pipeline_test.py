@@ -90,9 +90,6 @@ class PipelineTest(tf.test.TestCase):
     # Set inference flags
     tf.app.flags.FLAGS.model_dir = self.output_dir
     tf.app.flags.FLAGS.source = sources_dev.name
-    tf.app.flags.FLAGS.vocab_source = vocab_source.name
-    tf.app.flags.FLAGS.vocab_target = vocab_target.name
-    tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
     tf.app.flags.FLAGS.batch_size = 2
     tf.app.flags.FLAGS.checkpoint_path = os.path.join(
         self.output_dir, "model.ckpt-50")
@@ -113,9 +110,6 @@ class PipelineTest(tf.test.TestCase):
     tf.app.flags.FLAGS.output_dir = attention_dir
     tf.app.flags.FLAGS.model_dir = self.output_dir
     tf.app.flags.FLAGS.source = sources_dev.name
-    tf.app.flags.FLAGS.vocab_source = vocab_source.name
-    tf.app.flags.FLAGS.vocab_target = vocab_target.name
-    tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
     tf.app.flags.FLAGS.batch_size = 2
     tf.app.flags.FLAGS.checkpoint_path = os.path.join(
         self.output_dir, "model.ckpt-50")
