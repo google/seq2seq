@@ -342,6 +342,7 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
     params_.update({
         "rnn_cell.dropout_input_keep_prob": 0.8,
         "rnn_cell.num_layers": 2,
+        "rnn_cell.residual_connections": True,
         "rnn_cell.cell_spec":  """
             { "class": "LSTMCell", "num_units": 128 }"""
     })
