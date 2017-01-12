@@ -93,6 +93,19 @@ class TrainOptions(object):
         target_vocab_path=options_dict["target_vocab_path"])
 
 def cell_from_spec(cell_spec):
+  """Create a RNN Cell instance from a JSON string.
+
+  Args:
+    cell_spec: A JSON string of the form
+      { "class": "BasicLSTMCell", "num_units": 16, ... }
+      The "class" property is treated in a special way and used
+      to look up the class object in `seq2seq.contrib.rnn_cell`. All other
+      items in the JSON object are passed as parameters to the cell
+      constructor.
+
+  Returns:
+    A RNNCell instance.
+  """
   cell_spec_dict = json.loads(cell_spec)
   if "class" not in cell_spec_dict:
     raise ValueError("cell_spec must specify \"class\".")
