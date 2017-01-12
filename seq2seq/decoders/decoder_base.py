@@ -44,7 +44,6 @@ class RNNStep(GraphModule):
     self.step_fn = step_fn
     self.next_input_fn = next_input_fn
     self.initial_state = initial_state
-    # self.sequence_length = sequence_length
 
   def _build(self, time_, cell_output, cell_state, loop_state):
     initial_call = (cell_output is None)
