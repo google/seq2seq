@@ -139,7 +139,7 @@ for merge_ops in 8000 16000 32000 64000; do
 
   echo "Apply BPE with merge_ops=${merge_ops} to tokenized files..."
   for lang in en de; do
-    for f in ${OUTPUT_DIR}/*.tok*.${lang}; do
+    for f in ${OUTPUT_DIR}/*.tok.${lang} ${OUTPUT_DIR}/*.tok.clean.${lang}; do
       outfile="${f%.*}.bpe.${merge_ops}.${lang}"
       ${OUTPUT_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${merge_ops}" < $f > "${outfile}"
       echo ${outfile}
