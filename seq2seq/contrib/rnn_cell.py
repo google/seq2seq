@@ -6,11 +6,20 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import sys
+import inspect
+
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
 from tensorflow.python.util import nest
 
 from tensorflow.contrib.rnn import MultiRNNCell
+
+# Import all cell classes from Tensorflow
+TF_CELL_CLASSES = [x for x in tf.contrib.rnn.__dict__.values() if
+                   inspect.isclass(x) and issubclass(x, tf.contrib.rnn.RNNCell)]
+for cell_class in TF_CELL_CLASSES:
+  setattr(sys.modules[__name__], cell_class.__name__, cell_class)
 
 class ExtendedMultiRNNCell(MultiRNNCell):
   """Extends the Tensorflow MultiRNNCell with residual connections"""

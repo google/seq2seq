@@ -39,13 +39,12 @@ class BasicSeq2Seq(Seq2SeqBase):
   def default_params():
     params = Seq2SeqBase.default_params().copy()
     params.update({
-        "rnn_cell.type": "BasicLSTMCell",
-        "rnn_cell.num_units": 128,
+        "rnn_cell.cell_spec": """
+            { "class": "BasicLSTMCell", "num_units": 128}""",
         "rnn_cell.dropout_input_keep_prob": 1.0,
         "rnn_cell.dropout_output_keep_prob": 1.0,
         "rnn_cell.num_layers": 1,
         "rnn_cell.residual_connections": False,
-        "rnn_cell.extra_args_json": ""
     })
     return params
 
@@ -58,16 +57,14 @@ class BasicSeq2Seq(Seq2SeqBase):
     # Create Encoder
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
     encoder_cell = training.utils.get_rnn_cell(
-        cell_type=self.params["rnn_cell.type"],
-        num_units=self.params["rnn_cell.num_units"],
+        cell_spec=self.params["rnn_cell.cell_spec"],
         num_layers=self.params["rnn_cell.num_layers"],
         dropout_input_keep_prob=(self.params["rnn_cell.dropout_input_keep_prob"]
                                  if enable_dropout else 1.0),
         dropout_output_keep_prob=(
             self.params["rnn_cell.dropout_output_keep_prob"]
             if enable_dropout else 1.0),
-        residual_connections=self.params["rnn_cell.residual_connections"],
-        extra_args_json=self.params["rnn_cell.extra_args_json"])
+        residual_connections=self.params["rnn_cell.residual_connections"])
     encoder_fn = encoders.UnidirectionalRNNEncoder(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 

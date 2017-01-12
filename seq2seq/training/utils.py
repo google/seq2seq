@@ -92,19 +92,37 @@ class TrainOptions(object):
         source_vocab_path=options_dict["source_vocab_path"],
         target_vocab_path=options_dict["target_vocab_path"])
 
+def cell_from_spec(cell_spec):
+  cell_spec_dict = json.loads(cell_spec)
+  if "class" not in cell_spec_dict:
+    raise ValueError("cell_spec must specify \"class\".")
 
-def get_rnn_cell(cell_type,
-                 num_units,
+  # Find the cell class
+  cell_class_name = cell_spec_dict.pop("class")
+  cell_class = getattr(rnn_cell, cell_class_name)
+
+  # Make sure additional arguments are valid
+  cell_args = set(inspect.getargspec(cell_class).args[1:])
+  for key in cell_spec_dict.keys():
+    if key not in cell_args:
+      raise ValueError(
+          """{} is not a valid argument for {} class. Available arguments
+          are: {}""".format(key, cell_class.__name__, cell_args))
+
+  # Create cell
+  return cell_class(**cell_spec_dict)
+
+
+def get_rnn_cell(cell_spec,
                  num_layers=1,
                  dropout_input_keep_prob=1.0,
                  dropout_output_keep_prob=1.0,
-                 residual_connections=False,
-                 extra_args_json=""):
+                 residual_connections=False):
   """Creates a new RNN Cell.
 
   Args:
-    cell_type: A cell lass name defined in `tf.contrib.rnn`,
-      e.g. `LSTMCell` or `GRUCell`
+    cell_spec: A JSON string that defines how to create a cell instance.
+      See `cell_from_spec` for more details.
     num_units: Number of cell units
     num_layers: Number of layers. The cell will be wrapped with
       `tf.contrib.rnn.MultiRNNCell`
@@ -123,19 +141,7 @@ def get_rnn_cell(cell_type,
     An instance of `tf.contrib.rnn.RNNCell`.
   """
   #pylint: disable=redefined-variable-type
-  cell_class = getattr(tf.contrib.rnn, cell_type)
-
-  extra_args_dict = {}
-  if extra_args_json:
-    extra_args_dict = json.loads(extra_args_json)
-    cell_args = set(inspect.getargspec(cell_class).args[1:])
-    for key in extra_args_dict.keys():
-      if key not in cell_args:
-        raise ValueError(
-            """{} is not a valid argument for {} class. Available arguments
-            are: {}""".format(key, cell_class.__name__, cell_args))
-
-  cell = cell_class(num_units=num_units, **extra_args_dict)
+  cell = cell_from_spec(cell_spec)
 
   if dropout_input_keep_prob < 1.0 or dropout_output_keep_prob < 1.0:
     cell = tf.contrib.rnn.DropoutWrapper(

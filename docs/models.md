@@ -30,13 +30,12 @@ This model suports the following additional hyperparameters.
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `rnn_cell.type` | `BasicLSTMCell` | The class name of a RNN Cell defined in `tf.contrib.rnn`. The most common values are `BasicLSTMCell`, `LSTMCell` or `GRUCell`. Applies to both encoder and decoder. |
-| `rnn_cell.num_units` | `128` | The number of units to use for the RNN Cell. Applies to both encoder and decoder. |
+| `rnn_cell.cell_spec` | `{ "class": "BasicLSTMCell", "num_units": 128}` | A JSON string that specifies the cell class and parameters, for example `{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }`. The JSON object must contain a `class` property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in `tf.contrib.rnn` or `seq2seq.contrib.rnn_cell`.|
 | `rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.num_layers` | `1` | Number of RNN layers. Applies to both encoder and decoder. |
 | `rnn_cell.residual_connections` | `False` | If true, add residual connections between all RNN layers. |
-| `rnn_cell.extra_args_json` | `""` | A JSON dictionary with extra arguments that should be passed to the cell constructor. For example, this can be used to pass something like `{ "use_peepholes": true, "forget_bias": 0.5}` to `LSTMCell`.|
+
 
 
 
@@ -49,18 +48,14 @@ This model suports the following additional hyperparameters.
 | `attention.dim` | `128` | Number of units in the attention layer. |
 | `attention.score_type` | `dot` | The formula used to calculate attention scores. Available values are `bahdanau` and `dot`. `bahdanau` is described in [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473). `dot` is described in [Effective Approaches to Attention-based Neural Machine Translation](https://arxiv.org/abs/1508.04025).  |
 | `encoder.type` | `UnidirectionalRNNEncoder` | Type of encoder to use. This is the class name of an encoder defined in `seq2seq.encoder`. Currently the supported value are `BidirectionalRNNEncoder` and `UnidirectionalRNNEncoder`. |
-| `encoder.rnn_cell.type` | `BasicLSTMCell` | The class name of a RNN Cell defined in `tf.contrib.rnn`. The most common values are `BasicLSTMCell`, `LSTMCell` or `GRUCell`. |
-| `encoder.rnn_cell.num_units` | `128` | The number of units to use for the RNN Cell. |
+| `encoder.rnn_cell.cell_spec` | `{ "class": "BasicLSTMCell", "num_units": 128}` | A JSON string that specifies the cell class and parameters, for example `{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }`. The JSON object must contain a `class` property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in `tf.contrib.rnn` or `seq2seq.contrib.rnn_cell`.|
 | `encoder.rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. |
 | `encoder.rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. |
 | `encoder.rnn_cell.num_layers` | `1` | Number of RNN layers. |
 | `encoder.rnn_cell.residual_connections` | `False` | If true, add residual connections between all RNN layers in the encoder. |
-| `encoder.rnn_cell.extra_args_json` | `""` | A JSON dictionary with extra arguments that should be passed to the cell constructor. For example, this can be used to pass something like `{ "use_peepholes": true, "forget_bias": 0.5}` to `LSTMCell`.|
-| `decoder.rnn_cell.type` | `BasicLSTMCell` | The class name of a RNN Cell defined in `tf.contrib.rnn`. The most common values are `BasicLSTMCell`, `LSTMCell` or `GRUCell`. |
-| `decoder.rnn_cell.num_units` | `128` | The number of units to use for the RNN Cell. |
+| `decoder.rnn_cell.cell_spec` | `{ "class": "BasicLSTMCell", "num_units": 128}` | A JSON string that specifies the cell class and parameters, for example `{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }`. The JSON object must contain a `class` property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in `tf.contrib.rnn` or `seq2seq.contrib.rnn_cell`.|
 | `decoder.rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. |
 | `decoder.rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. |
 | `decoder.rnn_cell.num_layers` | `1` | Number of RNN layers. |
 | `decoder.rnn_cell.residual_connections` | `False` | If true, add residual connections between all RNN layers in the decoder. |
-| `decoder.rnn_cell.extra_args_json` | `""` | A JSON dictionary with extra arguments that should be passed to the cell constructor. For example, this can be used to pass something like `{ "use_peepholes": true, "forget_bias": 0.5}` to `LSTMCell`.|
 
