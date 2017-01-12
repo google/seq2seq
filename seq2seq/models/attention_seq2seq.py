@@ -50,12 +50,14 @@ class AttentionSeq2Seq(Seq2SeqBase):
         "encoder.rnn_cell.dropout_output_keep_prob": 1.0,
         "encoder.rnn_cell.num_layers": 1,
         "encoder.rnn_cell.residual_connections": False,
+        "encoder.rnn_cell.extra_args_json": "",
         "decoder.rnn_cell.type": "BasicLSTMCell",
         "decoder.rnn_cell.num_units": 128,
         "decoder.rnn_cell.dropout_input_keep_prob": 1.0,
         "decoder.rnn_cell.dropout_output_keep_prob": 1.0,
         "decoder.rnn_cell.num_layers": 1,
-        "decoder.rnn_cell.residual_connections": False
+        "decoder.rnn_cell.residual_connections": False,
+        "encoder.rnn_cell.extra_args_json": ""
     })
     return params
 
@@ -77,7 +79,8 @@ class AttentionSeq2Seq(Seq2SeqBase):
             self.params["encoder.rnn_cell.dropout_output_keep_prob"]
             if enable_dropout else 1.0),
         residual_connections=self.params[
-            "encoder.rnn_cell.residual_connections"])
+            "encoder.rnn_cell.residual_connections"],
+        extra_args_json=self.params["encoder.rnn_cell.extra_args_json"])
     encoder_fn = self.encoder_class(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 
@@ -92,7 +95,8 @@ class AttentionSeq2Seq(Seq2SeqBase):
             self.params["decoder.rnn_cell.dropout_output_keep_prob"]
             if enable_dropout else 1.0),
         residual_connections=self.params[
-            "decoder.rnn_cell.residual_connections"])
+            "decoder.rnn_cell.residual_connections"],
+        extra_args_json=self.params["decoder.rnn_cell.extra_args_json"])
 
     attention_layer = decoders.AttentionLayer(
         num_units=self.params["attention.dim"],
