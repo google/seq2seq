@@ -136,7 +136,6 @@ def get_rnn_cell(cell_spec,
   Args:
     cell_spec: A JSON string that defines how to create a cell instance.
       See `cell_from_spec` for more details.
-    num_units: Number of cell units
     num_layers: Number of layers. The cell will be wrapped with
       `tf.contrib.rnn.MultiRNNCell`
     dropout_input_keep_prob: Dropout keep probability applied
@@ -145,10 +144,6 @@ def get_rnn_cell(cell_spec,
       to the output of cell *at each layer*
     residual_connections: If true, add residual connections
       between all cells
-    extra_args_json: A JSON string that is parsed and whose attributes
-      are given as extra arguments to the created cell. For example,
-      '{ "use_peepholes": true }'. Invalid arguments for the passed
-      cell type result in a ValueError.
 
   Returns:
     An instance of `tf.contrib.rnn.RNNCell`.
