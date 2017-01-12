@@ -276,6 +276,11 @@
 <td><code>1</code></td>
 <td>Number of RNN layers. Applies to both encoder and decoder.</td>
 </tr>
+<tr>
+<td><code>rnn_cell.residual_connections</code></td>
+<td><code>False</code></td>
+<td>If true, add residual connections between all RNN layers.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="attentionseq2seq">AttentionSeq2seq</h2>
@@ -330,6 +335,11 @@
 <td>Number of RNN layers.</td>
 </tr>
 <tr>
+<td><code>encoder.rnn_cell.residual_connections</code></td>
+<td><code>False</code></td>
+<td>If true, add residual connections between all RNN layers in the encoder.</td>
+</tr>
+<tr>
 <td><code>decoder.rnn_cell.type</code></td>
 <td><code>BasicLSTMCell</code></td>
 <td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>.</td>
@@ -353,6 +363,11 @@
 <td><code>decoder.rnn_cell.num_layers</code></td>
 <td><code>1</code></td>
 <td>Number of RNN layers.</td>
+</tr>
+<tr>
+<td><code>decoder.rnn_cell.residual_connections</code></td>
+<td><code>False</code></td>
+<td>If true, add residual connections between all RNN layers in the decoder.</td>
 </tr>
 </tbody>
 </table>
