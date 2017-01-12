@@ -8,6 +8,7 @@ from __future__ import print_function
 
 from seq2seq.graph_module import GraphModule
 
+from seq2seq import contrib
 from seq2seq import data
 from seq2seq import decoders
 from seq2seq import encoders
