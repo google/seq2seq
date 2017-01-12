@@ -128,23 +128,24 @@ if [ ! -d "${OUTPUT_DIR}/subword-nmt" ]; then
   git clone https://github.com/rsennrich/subword-nmt.git "${OUTPUT_DIR}/subword-nmt"
 fi
 
-# Learn BPE
-echo "Learning BPE. This may take a while..."
-${OUTPUT_DIR}/subword-nmt/learn_bpe.py -s 50000 < "${OUTPUT_DIR}/train.tok.clean.de" > "${OUTPUT_DIR}/bpe.50k.de"
-${OUTPUT_DIR}/subword-nmt/learn_bpe.py -s 50000 < "${OUTPUT_DIR}/train.tok.clean.en" > "${OUTPUT_DIR}/bpe.50k.en"
+# Learn Shared BPE
+for merge_ops in 8000 16000 32000 64000; do
+  echo "Learning BPE with merge_ops=${merge_ops}. This may take a while..."
+  cat "${OUTPUT_DIR}/train.tok.clean.de" "${OUTPUT_DIR}/train.tok.clean.en" | \
+    ${OUTPUT_DIR}/subword-nmt/learn_bpe.py -s $merge_ops > "${OUTPUT_DIR}/bpe.${merge_ops}"
 
-# Apply BPE
-echo "Applying BPE to all tokenized files..."
-for f in ${OUTPUT_DIR}/*.tok.clean.de; do
-  ${OUTPUT_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.50k.de" < $f > "${f%.*}.bpe.50k.de"
-done
-for f in ${OUTPUT_DIR}/*.tok.clean.en; do
-  ${OUTPUT_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.50k.en" < $f > "${f%.*}.bpe.50k.en"
-done
+  # Create vocabulary for BPE
+  ${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/bpe.${merge_ops}" | cut -f1 -d ' ' > "${OUTPUT_DIR}/vocab.bpe.${merge_ops}"
 
-# Create vocabulary for BPE
-${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/train.tok.clean.bpe.50k.de" | cut -f1 -d ' ' > "${OUTPUT_DIR}/vocab.bpe.50k.de"
-${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/train.tok.clean.bpe.50k.en" | cut -f1 -d ' ' > "${OUTPUT_DIR}/vocab.bpe.50k.en"
+  echo "Apply BPE with merge_ops=${merge_ops} to tokenized files..."
+  for lang in en de; do
+    for f in ${OUTPUT_DIR}/*.tok.${lang} ${OUTPUT_DIR}/*.tok.clean.${lang}; do
+      outfile="${f%.*}.bpe.${merge_ops}.${lang}"
+      ${OUTPUT_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${merge_ops}" < $f > "${outfile}"
+      echo ${outfile}
+    done
+  done
+done
 
 echo "All done."
 
