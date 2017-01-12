@@ -129,8 +129,6 @@ if [ ! -d "${OUTPUT_DIR}/subword-nmt" ]; then
 fi
 
 # Learn Shared BPE
-
-
 for merge_ops in 8000 16000 32000 64000; do
   echo "Learning BPE with merge_ops=${merge_ops}. This may take a while..."
   cat "${OUTPUT_DIR}/train.tok.clean.de" "${OUTPUT_DIR}/train.tok.clean.en" | \
@@ -140,23 +138,14 @@ for merge_ops in 8000 16000 32000 64000; do
   ${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/bpe.${merge_ops}" | cut -f1 -d ' ' > "${OUTPUT_DIR}/vocab.bpe.${merge_ops}"
 
   echo "Apply BPE with merge_ops=${merge_ops} to tokenized files..."
-
-  # Apply BPE to DE data
-  for f in ${OUTPUT_DIR}/*.tok*.de; do
-    outfile="${f%.*}.bpe.${merge_ops}.de"
-    ${OUTPUT_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${merge_ops}" < $f > "${outfile}"
-    echo ${outfile}
-  done
-
-  # Apply BPE to EN data
-  for f in ${OUTPUT_DIR}/*.tok*.en; do
-    outfile="${f%.*}.bpe.${merge_ops}.en"
-    ${OUTPUT_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${merge_ops}" < $f > "${outfile}"
-    echo ${outfile}
+  for lang in en de; do
+    for f in ${OUTPUT_DIR}/*.tok*.${lang}; do
+      outfile="${f%.*}.bpe.${merge_ops}.${lang}"
+      ${OUTPUT_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${merge_ops}" < $f > "${outfile}"
+      echo ${outfile}
+    done
   done
 done
-
-
 
 echo "All done."
 
