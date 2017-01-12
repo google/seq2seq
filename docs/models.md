@@ -35,6 +35,7 @@ This model suports the following additional hyperparameters.
 | `rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.num_layers` | `1` | Number of RNN layers. Applies to both encoder and decoder. |
+| `rnn_cell.residual_connections` | `False` | Add residual connections between all RNN layers. |
 
 
 

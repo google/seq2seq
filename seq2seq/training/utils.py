@@ -19,6 +19,7 @@ from six.moves import urllib
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
+from seq2seq.contrib import rnn_cell
 from seq2seq.data.data_utils import read_from_data_provider
 from seq2seq.training import hooks
 
@@ -26,7 +27,8 @@ def get_rnn_cell(cell_type,
                  num_units,
                  num_layers=1,
                  dropout_input_keep_prob=1.0,
-                 dropout_output_keep_prob=1.0):
+                 dropout_output_keep_prob=1.0,
+                 residual_connections=False):
   """Creates a new RNN Cell.
 
   Args:
@@ -39,6 +41,8 @@ def get_rnn_cell(cell_type,
       to the input of cell *at each layer*
     dropout_output_keep_prob: Dropout keep probability applied
       to the output of cell *at each layer*
+    residual_connections: If true, add residual connections
+      between all cells
 
   Returns:
     An instance of `tf.contrib.rnn.RNNCell`.
@@ -54,7 +58,9 @@ def get_rnn_cell(cell_type,
         output_keep_prob=dropout_output_keep_prob)
 
   if num_layers > 1:
-    cell = tf.contrib.rnn.MultiRNNCell([cell] * num_layers)
+    cell = rnn_cell.ExtendedMultiRNNCell(
+        cells=[cell] * num_layers,
+        residual_connections=residual_connections)
 
   return cell
 
