@@ -17,6 +17,7 @@ import numpy as np
 
 
 class SuperLSTMCellTest(tf.test.TestCase):
+  """Tests the SuperLSTMCell"""
   def test_cell(self):
     inputs = tf.constant(np.random.randn(1, 2), dtype=tf.float32)
     state = (
@@ -36,6 +37,7 @@ class SuperLSTMCellTest(tf.test.TestCase):
 
 
 class HyperLSTMCellTest(tf.test.TestCase):
+  """Tests the HyperLSTMCellTest"""
   def test_cell(self):
     inputs = tf.constant(np.random.randn(1, 2), dtype=tf.float32)
     with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
