@@ -57,7 +57,7 @@ class AttentionSeq2Seq(Seq2SeqBase):
         "decoder.rnn_cell.dropout_output_keep_prob": 1.0,
         "decoder.rnn_cell.num_layers": 1,
         "decoder.rnn_cell.residual_connections": False,
-        "encoder.rnn_cell.extra_args_json": ""
+        "decoder.rnn_cell.extra_args_json": ""
     })
     return params
 
