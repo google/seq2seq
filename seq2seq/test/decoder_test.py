@@ -27,7 +27,7 @@ class DecoderTests(object):
     self.input_depth = 10
     self.cell = tf.contrib.rnn.LSTMCell(32)
     self.vocab_size = 100
-    self.max_decode_length = 16
+    self.max_decode_length = 20
 
   def create_decoder(self, input_fn):
     """Creates the decoder module.
@@ -99,7 +99,10 @@ class DecoderTests(object):
       """
       return tf.nn.embedding_lookup(embeddings, predicted_ids)
 
-    decoder_input_fn = DynamicDecoderInputs(initial_input, make_input_fn)
+    decoder_input_fn = DynamicDecoderInputs(
+        initial_inputs=initial_input,
+        make_input_fn=make_input_fn,
+        max_decode_length=self.max_decode_length)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
     decoder_output, _, _ = decoder_fn(initial_state, seq_length)
 
@@ -110,9 +113,45 @@ class DecoderTests(object):
 
     np.testing.assert_array_equal(
         decoder_output_.logits.shape,
-        [self.sequence_length, self.batch_size, self.vocab_size])
+        [self.max_decode_length, self.batch_size, self.vocab_size])
     np.testing.assert_array_equal(decoder_output_.predicted_ids.shape,
-                                  [self.sequence_length, self.batch_size])
+                                  [self.max_decode_length, self.batch_size])
+
+  def test_inference_early_stopping(self):
+    initial_input = tf.random_normal([self.batch_size, self.input_depth])
+    seq_length = tf.ones(self.batch_size, dtype=tf.int32) * self.sequence_length
+    initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
+    embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
+
+    def make_input_fn(predicted_ids):
+      """Looks up the predictions in the embeddings.
+      """
+      return tf.nn.embedding_lookup(embeddings, predicted_ids)
+
+    def elements_finished_fn(time_, predicted_ids):
+      """Looks up the predictions in the embeddings.
+      """
+      ones_batch = tf.ones(tf.shape(predicted_ids[0]), dtype=time_.dtype)
+      return (ones_batch * time_) >= 5
+
+    decoder_input_fn = DynamicDecoderInputs(
+        initial_inputs=initial_input,
+        make_input_fn=make_input_fn,
+        max_decode_length=self.max_decode_length,
+        elements_finished_fn=elements_finished_fn)
+    decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
+    decoder_output, _, _ = decoder_fn(initial_state, seq_length)
+
+    #pylint: disable=E1101
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      decoder_output_ = sess.run(decoder_output)
+
+    np.testing.assert_array_equal(
+        decoder_output_.logits.shape,
+        [5, self.batch_size, self.vocab_size])
+    np.testing.assert_array_equal(decoder_output_.predicted_ids.shape,
+                                  [5, self.batch_size])
 
   def test_with_beam_search(self):
     # Batch size for beam search must be 1.
@@ -133,7 +172,10 @@ class DecoderTests(object):
       """
       return tf.nn.embedding_lookup(embeddings, predicted_ids)
 
-    decoder_input_fn = DynamicDecoderInputs(initial_input, make_input_fn)
+    decoder_input_fn = DynamicDecoderInputs(
+        initial_inputs=initial_input,
+        make_input_fn=make_input_fn,
+        max_decode_length=self.max_decode_length)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
     decoder_fn = beam_search_decoder.BeamSearchDecoder(
         decoder=decoder_fn, config=config)
@@ -147,22 +189,22 @@ class DecoderTests(object):
 
     np.testing.assert_array_equal(
         decoder_output_.logits.shape,
-        [self.sequence_length, 1, config.beam_width, self.vocab_size])
+        [self.max_decode_length, 1, config.beam_width, self.vocab_size])
     np.testing.assert_array_equal(
         decoder_output_.predicted_ids.shape,
-        [self.sequence_length, 1, config.beam_width])
+        [self.max_decode_length, 1, config.beam_width])
     np.testing.assert_array_equal(
         decoder_output_.beam_parent_ids.shape,
-        [self.sequence_length, 1, config.beam_width])
+        [self.max_decode_length, 1, config.beam_width])
     np.testing.assert_array_equal(
         decoder_output_.scores.shape,
-        [self.sequence_length, 1, config.beam_width])
+        [self.max_decode_length, 1, config.beam_width])
     np.testing.assert_array_equal(
         decoder_output_.original_outputs.predicted_ids.shape,
-        [self.sequence_length, 1, config.beam_width])
+        [self.max_decode_length, 1, config.beam_width])
     np.testing.assert_array_equal(
         decoder_output_.original_outputs.logits.shape,
-        [self.sequence_length, 1, config.beam_width, self.vocab_size])
+        [self.max_decode_length, 1, config.beam_width, self.vocab_size])
 
     return decoder_output
 

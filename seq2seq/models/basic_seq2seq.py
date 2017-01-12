@@ -77,7 +77,7 @@ class BasicSeq2Seq(Seq2SeqBase):
         cell=decoder_cell,
         input_fn=decoder_input_fn,
         vocab_size=self.target_vocab_info.total_size,
-        max_decode_length=self.params["target.max_seq_len"])
+        max_decode_length=self.params["inference.max_decode_length"])
 
     if self.use_beam_search:
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204

@@ -110,20 +110,29 @@ class Seq2SeqBase(ModelBase):
     self.source_vocab_info = source_vocab_info
     self.target_vocab_info = target_vocab_info
 
-  def create_featurizer(self):
+  def create_featurizer(self, mode):
+    max_seq_len_source = self.params["source.max_seq_len"]
+    max_seq_len_target = self.params["target.max_seq_len"]
+
+    # In EVAL and INFER we do not slice the examples to a maximum length
+    if mode != tf.contrib.learn.ModeKeys.TRAIN:
+      max_seq_len_source = None
+      max_seq_len_target = None
+
     return featurizers.Seq2SeqFeaturizer(
         source_vocab_info=self.source_vocab_info,
         target_vocab_info=self.target_vocab_info,
-        max_seq_len_source=self.params["source.max_seq_len"],
-        max_seq_len_target=self.params["target.max_seq_len"])
+        max_seq_len_source=max_seq_len_source,
+        max_seq_len_target=max_seq_len_target)
 
   @staticmethod
   def default_params():
     return {
-        "source.max_seq_len": 40,
+        "source.max_seq_len": 50,
         "source.reverse": True,
-        "target.max_seq_len": 40,
+        "target.max_seq_len": 50,
         "embedding.dim": 100,
+        "inference.max_decode_length": 100,
         "inference.beam_search.beam_width": 0,
         "inference.beam_search.score_fn": "logprob_score",
         "inference.beam_search.choose_successors_fn": "choose_top_k",
@@ -207,7 +216,7 @@ class Seq2SeqBase(ModelBase):
 
   def _build(self, features, labels, params, mode):
     # Pre-process features and labels
-    features, labels = self.create_featurizer()(features, labels)
+    features, labels = self.create_featurizer(mode)(features, labels)
 
     # Add to graph collection for later use
     graph_utils.add_dict_to_collection(features, "features")
@@ -247,15 +256,24 @@ class Seq2SeqBase(ModelBase):
         """
         return tf.nn.embedding_lookup(target_embedding, predictions)
 
+      def elements_finished_fn(_time_, predictions):
+        return tf.equal(
+            predictions,
+            tf.cast(self.target_vocab_info.special_vocab.SEQUENCE_END,
+                    dtype=predictions.dtype))
+
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
-          initial_inputs=initial_input, make_input_fn=make_input_fn)
+          initial_inputs=initial_input,
+          make_input_fn=make_input_fn,
+          max_decode_length=self.params["inference.max_decode_length"],
+          elements_finished_fn=elements_finished_fn)
 
       # Decode
       decoder_output = self.encode_decode(
           source=source_embedded,
           source_len=features["source_len"],
           decoder_input_fn=decoder_input_fn_infer,
-          target_len=self.params["target.max_seq_len"],
+          target_len=None,
           mode=mode)
       predictions = self._create_predictions(
           decoder_output=decoder_output,
@@ -270,8 +288,8 @@ class Seq2SeqBase(ModelBase):
     # During training/eval, we have labels and use them for teacher forcing
     # We don't feed the last SEQUENCE_END token
     decoder_input_fn_train = decoders.FixedDecoderInputs(
-        inputs=target_embedded[:, :-1],
-        sequence_length=labels["target_len"] - 1)
+        inputs=target_embedded[:, :],
+        sequence_length=labels["target_len"])
 
     decoder_output = self.encode_decode(
         source=source_embedded,

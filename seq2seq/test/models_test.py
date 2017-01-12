@@ -116,7 +116,8 @@ class EncoderDecoderTests(tf.test.TestCase):
     decoder_input_fn = DynamicDecoderInputs(
         initial_inputs=tf.zeros(
             [self.batch_size, self.input_depth], dtype=tf.float32),
-        make_input_fn=make_input_fn)
+        make_input_fn=make_input_fn,
+        max_decode_length=self.max_decode_length)
 
     decoder_output = model.encode_decode(
         source=tf.convert_to_tensor(
@@ -159,7 +160,8 @@ class EncoderDecoderTests(tf.test.TestCase):
     decoder_input_fn = DynamicDecoderInputs(
         initial_inputs=tf.zeros(
             [self.batch_size, self.input_depth], dtype=tf.float32),
-        make_input_fn=make_input_fn)
+        make_input_fn=make_input_fn,
+        max_decode_length=self.max_decode_length)
 
     decoder_output = model.encode_decode(
         source=tf.convert_to_tensor(
@@ -294,11 +296,11 @@ class EncoderDecoderTests(tf.test.TestCase):
     predictions_, = fetches_
     np.testing.assert_array_equal(
         predictions_["logits"].shape,
-        [self.batch_size, model.params["target.max_seq_len"],
+        [self.batch_size, model.params["inference.max_decode_length"],
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
         predictions_["predicted_ids"].shape,
-        [self.batch_size, model.params["target.max_seq_len"]])
+        [self.batch_size, model.params["inference.max_decode_length"]])
 
   def test_pipeline_beam_search_infer(self):
     self.batch_size = 1
@@ -308,7 +310,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         params={"inference.beam_search.beam_width": 10})
     predictions_, = fetches_
 
-    seq_length = model.params["target.max_seq_len"]
+    seq_length = model.params["inference.max_decode_length"]
     vocab_size = model.target_vocab_info.total_size
     np.testing.assert_array_equal(
         predictions_["logits"].shape,
