@@ -9,6 +9,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import defaultdict
+import inspect
 import os
 import re
 import subprocess
@@ -97,7 +98,8 @@ def get_rnn_cell(cell_type,
                  num_layers=1,
                  dropout_input_keep_prob=1.0,
                  dropout_output_keep_prob=1.0,
-                 residual_connections=False):
+                 residual_connections=False,
+                 extra_args_json=""):
   """Creates a new RNN Cell.
 
   Args:
@@ -112,13 +114,28 @@ def get_rnn_cell(cell_type,
       to the output of cell *at each layer*
     residual_connections: If true, add residual connections
       between all cells
+    extra_args_json: A JSON string that is parsed and whose attributes
+      are given as extra arguments to the created cell. For example,
+      '{ "use_peepholes": true }'. Invalid arguments for the passed
+      cell type result in a ValueError.
 
   Returns:
     An instance of `tf.contrib.rnn.RNNCell`.
   """
   #pylint: disable=redefined-variable-type
   cell_class = getattr(tf.contrib.rnn, cell_type)
-  cell = cell_class(num_units)
+
+  extra_args_dict = {}
+  if extra_args_json:
+    extra_args_dict = json.loads(extra_args_json)
+    cell_args = set(inspect.getargspec(cell_class).args[1:])
+    for key in extra_args_dict.keys():
+      if key not in cell_args:
+        raise ValueError(
+            """{} is not a valid argument for {} class. Available arguments
+            are: {}""".format(key, cell_class.__name__, cell_args))
+
+  cell = cell_class(num_units=num_units, **extra_args_dict)
 
   if dropout_input_keep_prob < 1.0 or dropout_output_keep_prob < 1.0:
     cell = tf.contrib.rnn.DropoutWrapper(

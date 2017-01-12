@@ -11,10 +11,60 @@ import tempfile
 import tensorflow as tf
 import numpy as np
 
+from seq2seq.contrib import rnn_cell
 from seq2seq.data import data_utils
 from seq2seq.test import utils as test_utils
 from seq2seq.training import utils as training_utils
 from seq2seq.training import hooks
+
+class TestGetRNNCell(tf.test.TestCase):
+  """Tests the get_rnn_cell function.
+  """
+  def test_single_layer(self):
+    cell = training_utils.get_rnn_cell(
+        cell_type="BasicLSTMCell",
+        num_units=16,
+        num_layers=1)
+    self.assertIsInstance(cell, tf.contrib.rnn.BasicLSTMCell)
+    self.assertEqual(cell.output_size, 16)
+
+  def test_multi_layer(self):
+    cell = training_utils.get_rnn_cell(
+        cell_type="BasicLSTMCell",
+        num_units=16,
+        num_layers=2)
+    self.assertIsInstance(cell, rnn_cell.ExtendedMultiRNNCell)
+    self.assertEqual(cell.output_size, 16)
+
+  def test_dropout(self):
+    cell = training_utils.get_rnn_cell(
+        cell_type="BasicLSTMCell",
+        num_units=16,
+        num_layers=1,
+        dropout_input_keep_prob=0.5)
+    self.assertIsInstance(cell, tf.contrib.rnn.DropoutWrapper)
+    self.assertEqual(cell.output_size, 16)
+
+  def test_extra_args(self):
+
+    # Invalid args should raise a ValueError
+    with self.assertRaises(ValueError):
+      training_utils.get_rnn_cell(
+          cell_type="LSTMCell",
+          num_units=16,
+          num_layers=1,
+          extra_args_json="""{ "use_peepholes": true, "ERROR": 0.5}""")
+
+    cell = training_utils.get_rnn_cell(
+        cell_type="LSTMCell",
+        num_units=16,
+        num_layers=1,
+        extra_args_json="""{ "use_peepholes": true, "forget_bias": 0.5}""")
+    self.assertIsInstance(cell, tf.contrib.rnn.LSTMCell)
+    #pylint: disable=E1101,W0212
+    self.assertEqual(cell._use_peepholes, True)
+    self.assertEqual(cell._forget_bias, 0.5)
+    self.assertEqual(cell.output_size, 16)
 
 
 class TestTrainOptions(tf.test.TestCase):
