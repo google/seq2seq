@@ -1,6 +1,6 @@
 ### Input Files
 
-To train a model you need to follow files. Refer to [Data](https://github.com/dennybritz/seq2seq/wiki/Data) for more details on each of these.
+In order to train a model, you need the following files. Refer to [Data](https://github.com/dennybritz/seq2seq/wiki/Data) for more details on each of these.
 
 - Training data: Two parallel (aligned line by line) tokenized text files with tokens separated by spaces.
 - Development data: Same format as the training data, but used for validation.
@@ -9,7 +9,7 @@ To train a model you need to follow files. Refer to [Data](https://github.com/de
 
 ### Training Script & Parameters
 
-To train a new model, run the training script as follows (also see [Getting Started](getting_started.md):
+To train a new model, run the training script below (also see [Getting Started](getting_started.md):
 
 ```shell
 ./bin/train.py \
@@ -25,37 +25,35 @@ To train a new model, run the training script as follows (also see [Getting Star
   --output_dir ${TMPDIR}/nmt_toy_reverse
 ```
 
-The [train.py](https://github.com/dennybritz/seq2seq/blob/master/bin/train.py) has many more options. Bold arguments
-are requied.
+The [train.py](https://github.com/dennybritz/seq2seq/blob/master/bin/train.py) script has many more options. Bold arguments are required.
 
 | Argument | Default | Description |
 | --- | --- | --- |
-| **train_source** | --- | Path to the training data source sentences. A raw text files with tokens separated by spaces. |
-| **train_target** | --- | Path to the training data target sentences. A raw text files with tokens separated by spaces. |
+| **train_source** | --- | Path to the training data source sentences. A raw text file with tokens separated by spaces. |
+| **train_target** | --- | Path to the training data target sentences. A raw text file with tokens separated by spaces. |
 | **dev_source** | --- | Path to the development data source sentences. Same format as training data. |
-| **dev_target** | --- | Path to the development data source sentences. Same format as training data.|
+| **dev_target** | --- | Path to the development data target sentences. Same format as training data.|
 | **vocab_source** | --- | Path to the source vocabulary. A raw text file with one word per line. |
 | **vocab_target** | --- | Path to the target vocabulary. A raw text file with one word per line. |
 | model | `AttentionSeq2Seq` | The model class to use. Refer to the documentation for all available models. |
 | buckets | `None` | Buckets input sequences according to these length. A comma-separated list of sequence length buckets, e.g. `"10,20,30"` would result in 4 buckets: `<10, 10-20, 20-30, >30`. `None` disables bucketing. |
 | batch_size | `16` | Batch size used for training and evaluation. |
-| hparams | `None` | A comma-separated list of hyeperparameter values that overwrite the model defaults, e.g. `"optimizer.name=Adam,optimizer.learning_rate=0.1"`. Refer to the documentation for a detailed list of available hyperparameters. |
+| hparams | `None` | A comma-separated list of hyeperparameter values that overwrite the model defaults, e.g. `"optimizer.name=Adam,optimizer.learning_rate=0.1"`. Refer to the Models section and the TensorFlow documentation for a detailed list of available hyperparameters. |
 | output_dir | `None` | The directory to write model checkpoints and summaries to. If None, a local temporary directory is created. |
 | train_steps | `None` | Maximum number of training steps to run. If None, train forever. |
 | train_epochs | `None` | Maximum number of training epochs over the data. If None, train forever. |
 | eval_every_n_steps | `1000` | Run evaluation on validation data every N steps. |
 | sample_every_n_steps | `500` | Sample and print sequence predictions every N steps during training. |
 | tf_random_seed | `None` | Random seed for TensorFlow initializers. Setting this value allows consistency between reruns. |
-| save_checkpoints_secs | `600` | Save checkpoints every this many seconds. Can not be specified with `save_checkpoints_steps`. |
-| save_checkpoints_steps | `None` | Save checkpoints every this many steps. Can not be specified with `save_checkpoints_secs`. |
+| save_checkpoints_secs | `600` | Save checkpoints every N seconds. Can not be specified with `save_checkpoints_steps`. |
+| save_checkpoints_steps | `None` | Save checkpoints every N steps. Can not be specified with `save_checkpoints_secs`. |
 | keep_checkpoint_max | `5` | Maximum number of recent checkpoint files to keep. As new files are created, older files are deleted. If None or 0, all checkpoint files are kept. |
 | keep_checkpoint_every_n_hours | `4` | In addition to keeping the most recent checkpoint files, keep one checkpoint file for every N hours of training. |
 
 
 ### Distributed Training
 
-Distributed Training is supported out of the box using `tf.learn`. Cluster Configurations can be specified using
-the `TF_CONFIG` environment variable, which is parsed by the [`RunConfig`](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py). Refer to the [Distributed Tensorflow](https://www.tensorflow.org/how_tos/distributed/) Guide for more information.
+Distributed Training is supported out of the box using `tf.learn`. Cluster Configurations can be specified using the `TF_CONFIG` environment variable, which is parsed by the [`RunConfig`](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py). Refer to the [Distributed Tensorflow](https://www.tensorflow.org/how_tos/distributed/) Guide for more information.
 
 
 ### Monitoring Training
