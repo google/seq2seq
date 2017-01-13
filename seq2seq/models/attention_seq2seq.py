@@ -63,7 +63,6 @@ class AttentionSeq2Seq(Seq2SeqBase):
                     source,
                     source_len,
                     decoder_input_fn,
-                    target_len,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
     encoder_cell = training_utils.get_rnn_cell(
@@ -121,7 +120,6 @@ class AttentionSeq2Seq(Seq2SeqBase):
 
     decoder_output, _, _ = decoder_fn(
         initial_state=decoder_cell.zero_state(
-            tf.shape(source_len)[0], dtype=tf.float32),
-        sequence_length=target_len)
+            tf.shape(source_len)[0], dtype=tf.float32))
 
     return decoder_output

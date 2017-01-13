@@ -45,7 +45,7 @@ class DecoderTests(object):
 
     decoder_input_fn = FixedDecoderInputs(inputs, seq_length)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
-    decoder_output, _, _ = decoder_fn(initial_state, seq_length)
+    decoder_output, _, _ = decoder_fn(initial_state)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -70,7 +70,7 @@ class DecoderTests(object):
 
     decoder_input_fn = FixedDecoderInputs(inputs, seq_length)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
-    decoder_output, _, _ = decoder_fn(initial_state, seq_length)
+    decoder_output, _, _ = decoder_fn(initial_state)
 
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
         logits=decoder_output.logits,
@@ -104,7 +104,7 @@ class DecoderTests(object):
         make_input_fn=make_input_fn,
         max_decode_length=self.max_decode_length)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
-    decoder_output, _, _ = decoder_fn(initial_state, seq_length)
+    decoder_output, _, _ = decoder_fn(initial_state)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -140,7 +140,7 @@ class DecoderTests(object):
         max_decode_length=self.max_decode_length,
         elements_finished_fn=elements_finished_fn)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
-    decoder_output, _, _ = decoder_fn(initial_state, seq_length)
+    decoder_output, _, _ = decoder_fn(initial_state)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -180,7 +180,7 @@ class DecoderTests(object):
     decoder_fn = beam_search_decoder.BeamSearchDecoder(
         decoder=decoder_fn, config=config)
 
-    decoder_output, _, _ = decoder_fn(initial_state, sequence_length=None)
+    decoder_output, _, _ = decoder_fn(initial_state)
 
     #pylint: disable=E1101
     with self.test_session() as sess:

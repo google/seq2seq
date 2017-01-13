@@ -79,9 +79,7 @@ class EncoderDecoderTests(tf.test.TestCase):
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decoder_input_fn=decoder_input_fn,
-        target_len=tf.convert_to_tensor(
-            ex.target_len, dtype=tf.int32))
+        decoder_input_fn=decoder_input_fn)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -124,8 +122,7 @@ class EncoderDecoderTests(tf.test.TestCase):
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decoder_input_fn=decoder_input_fn,
-        target_len=self.max_decode_length)
+        decoder_input_fn=decoder_input_fn)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -168,8 +165,7 @@ class EncoderDecoderTests(tf.test.TestCase):
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decoder_input_fn=decoder_input_fn,
-        target_len=self.max_decode_length)
+        decoder_input_fn=decoder_input_fn)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -213,9 +209,7 @@ class EncoderDecoderTests(tf.test.TestCase):
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decoder_input_fn=decoder_input_fn,
-        target_len=tf.convert_to_tensor(
-            ex.target_len, dtype=tf.int32))
+        decoder_input_fn=decoder_input_fn)
 
     # Get a loss to optimize
     losses = seq2seq_losses.cross_entropy_sequence_loss(
@@ -272,22 +266,20 @@ class EncoderDecoderTests(tf.test.TestCase):
     model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.TRAIN)
     predictions_, loss_, _ = fetches_
 
-    # We have predictions for each target words and the SEQUENCE_START token.
-    # That's why it's `target_len + 1`
     target_len = self.max_decode_length + 10
     max_decode_length = model.params["target.max_seq_len"]
-    expected_decode_len = np.minimum(target_len + 1, max_decode_length)
+    expected_decode_len = np.minimum(target_len, max_decode_length)
 
     np.testing.assert_array_equal(
         predictions_["logits"].shape,
-        [self.batch_size, expected_decode_len,
+        [self.batch_size, expected_decode_len - 1,
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
         predictions_["losses"].shape,
         [self.batch_size, expected_decode_len - 1])
     np.testing.assert_array_equal(
         predictions_["predicted_ids"].shape,
-        [self.batch_size, expected_decode_len])
+        [self.batch_size, expected_decode_len - 1])
     self.assertFalse(np.isnan(loss_))
 
 

@@ -273,7 +273,6 @@ class Seq2SeqBase(ModelBase):
           source=source_embedded,
           source_len=features["source_len"],
           decoder_input_fn=decoder_input_fn_infer,
-          target_len=None,
           mode=mode)
       predictions = self._create_predictions(
           decoder_output=decoder_output,
@@ -288,19 +287,18 @@ class Seq2SeqBase(ModelBase):
     # During training/eval, we have labels and use them for teacher forcing
     # We don't feed the last SEQUENCE_END token
     decoder_input_fn_train = decoders.FixedDecoderInputs(
-        inputs=target_embedded[:, :],
-        sequence_length=labels["target_len"])
+        inputs=target_embedded[:, :-1],
+        sequence_length=labels["target_len"] -1)
 
     decoder_output = self.encode_decode(
         source=source_embedded,
         source_len=features["source_len"],
         decoder_input_fn=decoder_input_fn_train,
-        target_len=labels["target_len"],
         mode=mode)
 
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(
-        logits=decoder_output.logits[:-1, :, :],
+        logits=decoder_output.logits[:, :, :],
         targets=tf.transpose(labels["target_ids"][:, 1:], [1, 0]),
         sequence_length=labels["target_len"] - 1)
 

@@ -52,7 +52,6 @@ class BasicSeq2Seq(Seq2SeqBase):
                     source,
                     source_len,
                     decoder_input_fn,
-                    target_len,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     # Create Encoder
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
@@ -84,7 +83,6 @@ class BasicSeq2Seq(Seq2SeqBase):
           decoder_fn)
 
     decoder_output, _, _ = decoder_fn(
-        initial_state=encoder_output.final_state,
-        sequence_length=target_len)
+        initial_state=encoder_output.final_state)
 
     return decoder_output

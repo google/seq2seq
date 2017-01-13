@@ -271,10 +271,7 @@ class DecoderBase(GraphModule):
     predicted_ids = outputs_ta.predicted_ids.stack()
     return DecoderOutput(logits=logits, predicted_ids=predicted_ids)
 
-  def _build(self, initial_state, sequence_length):
-    if sequence_length is None:
-      sequence_length = self.max_decode_length
-
+  def _build(self, initial_state):
     rnn_loop_fn = RNNStep(
         step_fn=self.step,
         next_input_fn=self.create_next_input,
