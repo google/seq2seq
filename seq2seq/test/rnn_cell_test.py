@@ -15,6 +15,45 @@ from seq2seq.contrib import rnn_cell
 
 import numpy as np
 
+
+class SuperLSTMCellTest(tf.test.TestCase):
+  """Tests the SuperLSTMCell"""
+  def test_cell(self):
+    inputs = tf.constant(np.random.randn(1, 2), dtype=tf.float32)
+    state = (
+        tf.constant(np.random.randn(1, 2), dtype=tf.float32),
+        tf.constant(np.random.randn(1, 2), dtype=tf.float32))
+    with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
+      cell = rnn_cell.SuperLSTMCell(2, use_layer_norm=True)
+      res = cell(inputs, state)
+
+    with self.test_session() as sess:
+      sess.run([tf.global_variables_initializer()])
+      res_ = sess.run(res)
+
+    self.assertEqual(res_[0].shape, (1, 2))
+    self.assertEqual(res_[1][0].shape, (1, 2))
+    self.assertEqual(res_[1][1].shape, (1, 2))
+
+
+class HyperLSTMCellTest(tf.test.TestCase):
+  """Tests the HyperLSTMCellTest"""
+  def test_cell(self):
+    inputs = tf.constant(np.random.randn(1, 2), dtype=tf.float32)
+    with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
+      cell = rnn_cell.HyperLSTMCell(2, use_layer_norm=True, hyper_num_units=2)
+      state = cell.zero_state(1, dtype=tf.float32)
+      res = cell(inputs, state)
+
+    with self.test_session() as sess:
+      sess.run([tf.global_variables_initializer()])
+      res_ = sess.run(res)
+
+    self.assertEqual(res_[0].shape, (1, 2))
+    self.assertEqual(res_[1][0].shape, (1, 4))
+    self.assertEqual(res_[1][1].shape, (1, 4))
+
+
 class ExtendedMultiRNNCellTest(tf.test.TestCase):
   """Tests the ExtendedMultiRNNCell"""
 
