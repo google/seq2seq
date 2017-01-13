@@ -152,7 +152,6 @@ class Seq2SeqBase(ModelBase):
                     source,
                     source_len,
                     decoder_input_fn,
-                    target_len,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     """Should be implemented by child classes"""
     raise NotImplementedError

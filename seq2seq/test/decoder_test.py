@@ -90,7 +90,6 @@ class DecoderTests(object):
 
   def test_with_dynamic_inputs(self):
     initial_input = tf.random_normal([self.batch_size, self.input_depth])
-    seq_length = tf.ones(self.batch_size, dtype=tf.int32) * self.sequence_length
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
@@ -119,7 +118,6 @@ class DecoderTests(object):
 
   def test_inference_early_stopping(self):
     initial_input = tf.random_normal([self.batch_size, self.input_depth])
-    seq_length = tf.ones(self.batch_size, dtype=tf.int32) * self.sequence_length
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
