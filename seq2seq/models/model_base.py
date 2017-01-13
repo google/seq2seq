@@ -288,7 +288,7 @@ class Seq2SeqBase(ModelBase):
     # We don't feed the last SEQUENCE_END token
     decoder_input_fn_train = decoders.FixedDecoderInputs(
         inputs=target_embedded[:, :-1],
-        sequence_length=labels["target_len"] -1)
+        sequence_length=labels["target_len"] - 1)
 
     decoder_output = self.encode_decode(
         source=source_embedded,
