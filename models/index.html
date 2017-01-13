@@ -252,14 +252,9 @@
 </thead>
 <tbody>
 <tr>
-<td><code>rnn_cell.type</code></td>
-<td><code>BasicLSTMCell</code></td>
-<td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>. Applies to both encoder and decoder.</td>
-</tr>
-<tr>
-<td><code>rnn_cell.num_units</code></td>
-<td><code>128</code></td>
-<td>The number of units to use for the RNN Cell. Applies to both encoder and decoder.</td>
+<td><code>rnn_cell.cell_spec</code></td>
+<td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
+<td>A JSON string that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The JSON object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
 </tr>
 <tr>
 <td><code>rnn_cell.dropout_input_keep_prob</code></td>
@@ -310,14 +305,9 @@
 <td>Type of encoder to use. This is the class name of an encoder defined in <code>seq2seq.encoder</code>. Currently the supported value are <code>BidirectionalRNNEncoder</code> and <code>UnidirectionalRNNEncoder</code>.</td>
 </tr>
 <tr>
-<td><code>encoder.rnn_cell.type</code></td>
-<td><code>BasicLSTMCell</code></td>
-<td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>.</td>
-</tr>
-<tr>
-<td><code>encoder.rnn_cell.num_units</code></td>
-<td><code>128</code></td>
-<td>The number of units to use for the RNN Cell.</td>
+<td><code>encoder.rnn_cell.cell_spec</code></td>
+<td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
+<td>A JSON string that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The JSON object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
 </tr>
 <tr>
 <td><code>encoder.rnn_cell.dropout_input_keep_prob</code></td>
@@ -340,14 +330,9 @@
 <td>If true, add residual connections between all RNN layers in the encoder.</td>
 </tr>
 <tr>
-<td><code>decoder.rnn_cell.type</code></td>
-<td><code>BasicLSTMCell</code></td>
-<td>The class name of a RNN Cell defined in <code>tf.contrib.rnn</code>. The most common values are <code>BasicLSTMCell</code>, <code>LSTMCell</code> or <code>GRUCell</code>.</td>
-</tr>
-<tr>
-<td><code>decoder.rnn_cell.num_units</code></td>
-<td><code>128</code></td>
-<td>The number of units to use for the RNN Cell.</td>
+<td><code>decoder.rnn_cell.cell_spec</code></td>
+<td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
+<td>A JSON string that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The JSON object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
 </tr>
 <tr>
 <td><code>decoder.rnn_cell.dropout_input_keep_prob</code></td>
