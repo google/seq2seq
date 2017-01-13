@@ -116,7 +116,8 @@ class AttentionDecoder(DecoderBase):
         attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
 
   def create_next_input(self, time_, initial_call, output):
-    next_input = self.input_fn(time_, initial_call, output.predicted_ids)
+    next_input, elements_finished = self.input_fn(
+        time_, initial_call, output.predicted_ids)
     if initial_call:
       attention_context = tf.zeros([
           tf.shape(next_input)[0],
@@ -124,7 +125,9 @@ class AttentionDecoder(DecoderBase):
       ])
     else:
       attention_context = output.attention_context
-    return tf.concat_v2([next_input, attention_context], 1)
+
+    next_input = tf.concat_v2([next_input, attention_context], 1)
+    return next_input, elements_finished
 
   def _pad_att_scores(self, scores):
     """Pads attention scores to fixed length. This is a hack because raw_rnn

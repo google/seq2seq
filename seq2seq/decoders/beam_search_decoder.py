@@ -120,10 +120,13 @@ class BeamSearchDecoder(DecoderBase):
 
   def create_next_input(self, time_, initial_call, output):
     if initial_call:
-      next_input = self.decoder.create_next_input(
+      next_input, elements_finished = self.decoder.create_next_input(
           time_, initial_call, output.original_outputs)
       # The first time we tile the initial input [beam_width] time
-      return tf.tile(next_input, [self.config.beam_width, 1])
+      next_input_beam = tf.tile(next_input, [self.config.beam_width, 1])
+      elements_finished_beam = tf.tile(
+          elements_finished, [self.config.beam_width])
+      return next_input_beam, elements_finished_beam
 
     # Shuffle the original output according to our beam search result
     original_values_shuffled = []
@@ -137,9 +140,9 @@ class BeamSearchDecoder(DecoderBase):
     original_outputs_shuffled = original_outputs_shuffled._replace(
         predicted_ids=output.predicted_ids)
 
-    next_input = self.decoder.create_next_input(
+    next_input, elements_finished = self.decoder.create_next_input(
         time_, initial_call, original_outputs_shuffled)
-    return next_input
+    return next_input, elements_finished
 
   def step(self, time_, cell_output, cell_state, loop_state):
     initial_call = (cell_output is None)

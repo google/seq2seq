@@ -105,7 +105,11 @@ def main(_argv):
             predicted_tokens=predicted_tokens,
             attention_scores=attention_scores)
 
-      sent = " ".join(predicted_tokens).split("SEQUENCE_END")[0].strip()
+      sent = " ".join(predicted_tokens).split("SEQUENCE_END")[0]
+      # Replace special BPE tokens
+      sent = sent.replace("@@ ", "")
+      sent = sent.strip()
+
       print(sent)
 
 if __name__ == "__main__":

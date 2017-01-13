@@ -44,18 +44,18 @@ class AttentionSeq2Seq(Seq2SeqBase):
         "attention.dim": 128,
         "attention.score_type": "dot",
         "encoder.type": "UnidirectionalRNNEncoder",
-        "encoder.rnn_cell.type": "BasicLSTMCell",
-        "encoder.rnn_cell.num_units": 128,
+        "encoder.rnn_cell.cell_spec": """
+            { "class": "BasicLSTMCell", "num_units": 128 }""",
         "encoder.rnn_cell.dropout_input_keep_prob": 1.0,
         "encoder.rnn_cell.dropout_output_keep_prob": 1.0,
         "encoder.rnn_cell.num_layers": 1,
         "encoder.rnn_cell.residual_connections": False,
-        "decoder.rnn_cell.type": "BasicLSTMCell",
-        "decoder.rnn_cell.num_units": 128,
+        "decoder.rnn_cell.cell_spec": """
+            { "class": "BasicLSTMCell", "num_units": 128 }""",
         "decoder.rnn_cell.dropout_input_keep_prob": 1.0,
         "decoder.rnn_cell.dropout_output_keep_prob": 1.0,
         "decoder.rnn_cell.num_layers": 1,
-        "decoder.rnn_cell.residual_connections": False
+        "decoder.rnn_cell.residual_connections": False,
     })
     return params
 
@@ -63,12 +63,10 @@ class AttentionSeq2Seq(Seq2SeqBase):
                     source,
                     source_len,
                     decoder_input_fn,
-                    target_len,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
     encoder_cell = training_utils.get_rnn_cell(
-        cell_type=self.params["encoder.rnn_cell.type"],
-        num_units=self.params["encoder.rnn_cell.num_units"],
+        cell_spec=self.params["encoder.rnn_cell.cell_spec"],
         num_layers=self.params["encoder.rnn_cell.num_layers"],
         dropout_input_keep_prob=(
             self.params["encoder.rnn_cell.dropout_input_keep_prob"]
@@ -82,8 +80,7 @@ class AttentionSeq2Seq(Seq2SeqBase):
     encoder_output = encoder_fn(source, source_len)
 
     decoder_cell = training_utils.get_rnn_cell(
-        cell_type=self.params["decoder.rnn_cell.type"],
-        num_units=self.params["decoder.rnn_cell.num_units"],
+        cell_spec=self.params["decoder.rnn_cell.cell_spec"],
         num_layers=self.params["decoder.rnn_cell.num_layers"],
         dropout_input_keep_prob=(
             self.params["decoder.rnn_cell.dropout_input_keep_prob"]
@@ -113,7 +110,7 @@ class AttentionSeq2Seq(Seq2SeqBase):
         attention_inputs=encoder_output.outputs,
         attention_fn=attention_layer,
         reverse_scores_lengths=reverse_scores_lengths,
-        max_decode_length=self.params["target.max_seq_len"])
+        max_decode_length=self.params["inference.max_decode_length"])
 
     if self.use_beam_search:
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
@@ -121,7 +118,6 @@ class AttentionSeq2Seq(Seq2SeqBase):
 
     decoder_output, _, _ = decoder_fn(
         initial_state=decoder_cell.zero_state(
-            tf.shape(source_len)[0], dtype=tf.float32),
-        sequence_length=target_len)
+            tf.shape(source_len)[0], dtype=tf.float32))
 
     return decoder_output

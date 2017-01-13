@@ -39,12 +39,12 @@ class BasicSeq2Seq(Seq2SeqBase):
   def default_params():
     params = Seq2SeqBase.default_params().copy()
     params.update({
-        "rnn_cell.type": "BasicLSTMCell",
-        "rnn_cell.num_units": 128,
+        "rnn_cell.cell_spec": """
+            { "class": "BasicLSTMCell", "num_units": 128}""",
         "rnn_cell.dropout_input_keep_prob": 1.0,
         "rnn_cell.dropout_output_keep_prob": 1.0,
         "rnn_cell.num_layers": 1,
-        "rnn_cell.residual_connections": False
+        "rnn_cell.residual_connections": False,
     })
     return params
 
@@ -52,13 +52,11 @@ class BasicSeq2Seq(Seq2SeqBase):
                     source,
                     source_len,
                     decoder_input_fn,
-                    target_len,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     # Create Encoder
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
     encoder_cell = training.utils.get_rnn_cell(
-        cell_type=self.params["rnn_cell.type"],
-        num_units=self.params["rnn_cell.num_units"],
+        cell_spec=self.params["rnn_cell.cell_spec"],
         num_layers=self.params["rnn_cell.num_layers"],
         dropout_input_keep_prob=(self.params["rnn_cell.dropout_input_keep_prob"]
                                  if enable_dropout else 1.0),
@@ -77,14 +75,13 @@ class BasicSeq2Seq(Seq2SeqBase):
         cell=decoder_cell,
         input_fn=decoder_input_fn,
         vocab_size=self.target_vocab_info.total_size,
-        max_decode_length=self.params["target.max_seq_len"])
+        max_decode_length=self.params["inference.max_decode_length"])
 
     if self.use_beam_search:
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
           decoder_fn)
 
     decoder_output, _, _ = decoder_fn(
-        initial_state=encoder_output.final_state,
-        sequence_length=target_len)
+        initial_state=encoder_output.final_state)
 
     return decoder_output
