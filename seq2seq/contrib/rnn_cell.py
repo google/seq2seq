@@ -12,6 +12,10 @@ from tensorflow.python.util import nest
 
 from tensorflow.contrib.rnn import MultiRNNCell
 
+from seq2seq.contrib.external.supercell import LSTMCell as SuperLSTMCell
+from seq2seq.contrib.external.supercell import HyperLSTMCell
+
+
 class ExtendedMultiRNNCell(MultiRNNCell):
   """Extends the Tensorflow MultiRNNCell with residual connections"""
 
