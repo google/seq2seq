@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Results and Pre-Trained Models - seq2seq</title>
+  <title>Benchmarks - seq2seq</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -18,7 +18,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Results and Pre-Trained Models";
+    var mkdocs_page_name = "Benchmarks";
     var mkdocs_page_input_path = "benchmarks.md";
     var mkdocs_page_url = "/benchmarks/";
   </script>
@@ -98,11 +98,26 @@
           
             <li>
     <li class="toctree-l1 current">
-        <a class="current" href="./">Results and Pre-Trained Models</a>
+        <a class="current" href="./">Benchmarks</a>
         
             <ul>
             
                 <li class="toctree-l3"><a href="#machine-translation-wmt16-english-german">Machine Translation: WMT'16 English-German</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#machine-translation-wmt16-german-english">Machine Translation: WMT'16 German-English</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#machine-translation-wmt16-english-french">Machine Translation: WMT'16 English-French</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#machine-translation-wmt16-french-english">Machine Translation: WMT'16 French-English</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#text-summarization">Text Summarization</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#conversational-modeling">Conversational Modeling</a></li>
                 
             
             </ul>
@@ -139,7 +154,7 @@
     
       
     
-    <li>Results and Pre-Trained Models</li>
+    <li>Benchmarks</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -150,13 +165,14 @@
             <div class="section">
               
                 <h2 id="machine-translation-wmt16-english-german">Machine Translation: WMT'16 English-German</h2>
+<p>Single models only, no ensembles.</p>
 <table>
 <thead>
 <tr>
 <th>Description</th>
-<th>Setttings</th>
+<th>Settings / Notes</th>
 <th>Training Time</th>
-<th>Evaluation</th>
+<th>Test Set BLEU</th>
 <th>Downloads</th>
 </tr>
 </thead>
@@ -164,12 +180,64 @@
 <tr>
 <td>2-Layer LSTM Attention Model + BPE</td>
 <td><a href="">Hyperparameters</a></td>
-<td>N/A</td>
-<td>0.00 PPL <br/> 0.00 BLEU</td>
+<td>---</td>
+<td>newstest2014: - </br> newstest2015: -</td>
 <td><a href="">Model</a> <br/> <a href="">Data</a></td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/1609.08144">We et al. (2016) - GNMT</a></td>
+<td>8 encoder/decoder layers, 1024 units, 32k shared wordpieces. newstest2012 and newstest2013 as validation sets. Paper mentions 5M training examples, how if WMT only has ~4.5M?</td>
+<td>---</td>
+<td>newstest2014:&nbsp;<strong>24.61</strong> <br/>newstest2015: -</td>
+<td>---</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/1603.06147v4">Chung, et al. (2016) - BPE-Char</a></td>
+<td>Bidir encoder 512 hidden units, 2-layer (?) 1024 unit decoder, GRU cells</td>
+<td>---</td>
+<td>newstest2014: <strong>21.3</strong> </br> newstest2015: <strong>23.9</strong></td>
+<td>---</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/1611.02344">Gehring, et al. (2016) - Convolutional</a></td>
+<td>Deep Convolutional Encoder 15/5</td>
+<td>---</td>
+<td>newstest2014: - <br/> newstest2015: <strong>24.3</strong></td>
+<td>---</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/1508.07909">Sennrich et al. (2016) - BPE</a></td>
+<td>1000 units, 620d word embedding, 1000 attention units, using <a href="https://github.com/sebastien-j/LV_groundhog">Groundhog</a>, 90k shared BPE</td>
+<td></td>
+<td>newstest2014: - <br/>newstest2015: <strong>22.8</strong></td>
+<td>---</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/1508.04025">Jean et al. (2015)</a></td>
+<td>4 layers, 1028 units, 1028d embeddings</td>
+<td>---</td>
+<td>newstest2014: <strong>20.9</strong> <br/> newstest2015: -</td>
+<td>---</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/abs/1508.04025">Luong et al. (2015)</a></td>
+<td>4 layers, 1028 units, 1028d embeddings</td>
+<td>---</td>
+<td>newstest2014: <strong>20.9</strong> <br/> newstest2015: -</td>
+<td>---</td>
 </tr>
 </tbody>
 </table>
+<h2 id="machine-translation-wmt16-german-english">Machine Translation: WMT'16 German-English</h2>
+<p>Coming soon.</p>
+<h2 id="machine-translation-wmt16-english-french">Machine Translation: WMT'16 English-French</h2>
+<p>Coming soon.</p>
+<h2 id="machine-translation-wmt16-french-english">Machine Translation: WMT'16 French-English</h2>
+<p>Coming soon.</p>
+<h2 id="text-summarization">Text Summarization</h2>
+<p>Coming soon.</p>
+<h2 id="conversational-modeling">Conversational Modeling</h2>
+<p>Coming soon.</p>
               
             </div>
           </div>
