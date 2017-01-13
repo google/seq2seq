@@ -139,7 +139,7 @@ def hyper_norm(layer, hyper_output, embedding_size, num_units,
       weight_start=0.00, use_bias=True, bias_start=1.0, scope="zw")
     alpha = super_linear(zw, num_units, init_w="constant",
       weight_start=init_gamma / embedding_size, use_bias=False, scope="alpha")
-    result = tf.mul(alpha, layer)
+    result = tf.multiply(alpha, layer)
   return result
 
 def hyper_bias(layer, hyper_output, embedding_size, num_units,
