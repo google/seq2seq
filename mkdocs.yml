@@ -9,5 +9,5 @@ pages:
     - Training: training.md
     - Inference: inference.md
     - Tools: tools.md
-    - Results and Pre-Trained Models: benchmarks.md
+    - Benchmarks: benchmarks.md
     - Contributing: contributing.md
