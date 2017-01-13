@@ -256,6 +256,7 @@ class Seq2SeqBase(ModelBase):
         return tf.nn.embedding_lookup(target_embedding, predictions)
 
       def elements_finished_fn(_time_, predictions):
+        """Returns true when a prediction is finished"""
         return tf.equal(
             predictions,
             tf.cast(self.target_vocab_info.special_vocab.SEQUENCE_END,
