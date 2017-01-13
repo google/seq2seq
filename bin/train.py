@@ -133,9 +133,9 @@ def create_experiment(output_dir):
      # Copy vocabulary to output directory
     gfile.MakeDirs(output_dir)
     source_vocab_path = os.path.join(output_dir, "vocab_source")
-    gfile.Copy(FLAGS.vocab_source, source_vocab_path)
+    gfile.Copy(FLAGS.vocab_source, source_vocab_path, overwrite=True)
     target_vocab_path = os.path.join(output_dir, "vocab_target")
-    gfile.Copy(FLAGS.vocab_target, target_vocab_path)
+    gfile.Copy(FLAGS.vocab_target, target_vocab_path, overwrite=True)
     # Save train options
     train_options = training_utils.TrainOptions(
         hparams=hparams,
