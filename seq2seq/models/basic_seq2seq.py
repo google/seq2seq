@@ -52,7 +52,6 @@ class BasicSeq2Seq(Seq2SeqBase):
                     source,
                     source_len,
                     decoder_input_fn,
-                    target_len,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     # Create Encoder
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
@@ -76,14 +75,13 @@ class BasicSeq2Seq(Seq2SeqBase):
         cell=decoder_cell,
         input_fn=decoder_input_fn,
         vocab_size=self.target_vocab_info.total_size,
-        max_decode_length=self.params["target.max_seq_len"])
+        max_decode_length=self.params["inference.max_decode_length"])
 
     if self.use_beam_search:
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
           decoder_fn)
 
     decoder_output, _, _ = decoder_fn(
-        initial_state=encoder_output.final_state,
-        sequence_length=target_len)
+        initial_state=encoder_output.final_state)
 
     return decoder_output

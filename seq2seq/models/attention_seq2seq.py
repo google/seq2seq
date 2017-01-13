@@ -63,7 +63,6 @@ class AttentionSeq2Seq(Seq2SeqBase):
                     source,
                     source_len,
                     decoder_input_fn,
-                    target_len,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
     encoder_cell = training_utils.get_rnn_cell(
@@ -111,7 +110,7 @@ class AttentionSeq2Seq(Seq2SeqBase):
         attention_inputs=encoder_output.outputs,
         attention_fn=attention_layer,
         reverse_scores_lengths=reverse_scores_lengths,
-        max_decode_length=self.params["target.max_seq_len"])
+        max_decode_length=self.params["inference.max_decode_length"])
 
     if self.use_beam_search:
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
@@ -119,7 +118,6 @@ class AttentionSeq2Seq(Seq2SeqBase):
 
     decoder_output, _, _ = decoder_fn(
         initial_state=decoder_cell.zero_state(
-            tf.shape(source_len)[0], dtype=tf.float32),
-        sequence_length=target_len)
+            tf.shape(source_len)[0], dtype=tf.float32))
 
     return decoder_output
