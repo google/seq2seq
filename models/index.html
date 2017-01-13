@@ -155,9 +155,9 @@
           <div role="main">
             <div class="section">
               
-                <p>When calling the training script you can specify a model class using the <code>--model</code> flags and model-specific hyperparameters using the <code>--hparams</code> flag. This page list all support models and hyperparameters.</p>
+                <p>When calling the training script, you can specify a model class using the <code>--model</code> flags and model-specific hyperparameters using the <code>--hparams</code> flag. This page lists all supported models and hyperparameters.</p>
 <h2 id="common-hyperparameters">Common Hyperparameters</h2>
-<p>The following hyperparameters are sahred by all models, unless explicitly stated in the model section.</p>
+<p>The following hyperparameters are shared by all models, unless explicitly stated otherwise in the model section.</p>
 <table>
 <thead>
 <tr>
@@ -190,17 +190,17 @@
 <tr>
 <td><code>optimizer.name</code></td>
 <td><code>Adam</code></td>
-<td>Type of Optimizer to use, e.g. <code>Adam</code>, <code>SGD</code> or <code>Momentum</code>. The name is fed to Tensorflow's <a href="https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss">optimize_loss</a> function. See Tensorflow documentation for more details and all available options.</td>
+<td>Type of Optimizer to use, e.g. <code>Adam</code>, <code>SGD</code> or <code>Momentum</code>. The name is fed to TensorFlow's <a href="https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss">optimize_loss</a> function. See TensorFlow documentation for more details and all available options.</td>
 </tr>
 <tr>
 <td><code>optimizer.learning_rate</code></td>
 <td><code>1e-4</code></td>
-<td>Initial learning rate for the optimizer. This is fed to Tensorflow's <a href="https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss">optimize_loss</a> function.</td>
+<td>Initial learning rate for the optimizer. This is fed to TensorFlow's <a href="https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss">optimize_loss</a> function.</td>
 </tr>
 <tr>
 <td><code>optimizer.lr_decay_type</code></td>
 <td></td>
-<td>The name of one of Tensorflow's <a href="https://www.tensorflow.org/api_docs/python/#training--decaying-the-learning-rate">learning rate decay function</a> defined in <code>tf.train</code>, e.g. <code>exponential_decay</code>. If this is an empty string (default) then no learning rate decay is used.</td>
+<td>The name of one of TensorFlow's <a href="https://www.tensorflow.org/api_docs/python/#training--decaying-the-learning-rate">learning rate decay functions</a> defined in <code>tf.train</code>, e.g. <code>exponential_decay</code>. If this is an empty string (default) then no learning rate decay is used.</td>
 </tr>
 <tr>
 <td><code>optimizer.lr_decay_steps</code></td>
@@ -210,7 +210,7 @@
 <tr>
 <td><code>optimizer.lr_decay_rate</code></td>
 <td><code>0.99</code></td>
-<td>The decay rate. This is fed as the <code>decay_rate</code> argument to the decay function defined above. See Tensorfow documentation for more details.</td>
+<td>The decay rate. This is fed as the <code>decay_rate</code> argument to the decay function defined above. See TensorFlow documentation for more details.</td>
 </tr>
 <tr>
 <td><code>optimizer.lr_start_decay_at</code></td>
@@ -230,7 +230,7 @@
 <tr>
 <td><code>optimizer.lr_staircase</code></td>
 <td><code>False</code></td>
-<td>If <code>True</code> decay the learning rate at discrete intervals. This is fed as the <code>staircase</code> argument to the decay function defined above. See Tensorfow documentation for more details.</td>
+<td>If <code>True</code>, decay the learning rate at discrete intervals. This is fed as the <code>staircase</code> argument to the decay function defined above. See TensorFlow documentation for more details.</td>
 </tr>
 <tr>
 <td><code>optimizer.clip_gradients</code></td>
@@ -240,8 +240,8 @@
 </tbody>
 </table>
 <h2 id="basicseq2seq">BasicSeq2Seq</h2>
-<p>The <code>BasicSeq2Seq</code> model uses a unidirectional encoder and decoder without attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.</p>
-<p>This model suports the following additional hyperparameters.</p>
+<p>The <code>BasicSeq2Seq</code> model uses a unidirectional encoder and decoder with no attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.</p>
+<p>This model supports the following additional hyperparameters.</p>
 <table>
 <thead>
 <tr>
@@ -279,7 +279,7 @@
 </tbody>
 </table>
 <h2 id="attentionseq2seq">AttentionSeq2seq</h2>
-<p><code>AttentionSeq2seq</code> is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>.</p>
+<p><code>AttentionSeq2seq</code> is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with an attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>.</p>
 <table>
 <thead>
 <tr>

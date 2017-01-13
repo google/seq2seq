@@ -159,7 +159,7 @@
             <div class="section">
               
                 <h2 id="performing-inference">Performing Inference</h2>
-<p>After you have trained a model you can use the <code>bin/infer.py</code> script to make predictions. For example, from the <a href="../getting_started/">Getting Started Guide</a>:</p>
+<p>After you have trained a model, you can use the <code>bin/infer.py</code> script to make predictions. For example, from the <a href="../getting_started/">Getting Started Guide</a>:</p>
 <pre><code class="bash">./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
   --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
@@ -173,11 +173,10 @@
 you do not need to pass them explicitly. By default, the latest model checkpoint found in <code>model_dir</code> is used, but you can also pass a specific checkpoint (e.g. <code>${TMPDIR}/nmt_toy_reverse/model.ckpt-1562</code>) via
 the <code>checkpoint_path</code> flag.</p>
 <h2 id="beam-search">Beam Search</h2>
-<p><strong>Beam Search is currently experimental.</strong> To perform beam search you can pass the <code>beam_width</code> flag to specify the number of beams to use. When using beam search
-your batch size will be set to 1 and the <code>beam_width</code> will be used as an implicit batch size. Beam search can thus become very expensive with large beam widths.</p>
+<p><strong>Beam Search is currently experimental.</strong> To perform beam search you can pass the <code>beam_width</code> flag to specify the number of beams to use. When using beam search, your batch size will be set to 1 and the <code>beam_width</code> will be used as an implicit batch size. Beam search can thus become very expensive with large beam widths.</p>
 <h2 id="unk-token-replacement-using-a-copy-mechanism">UNK token replacement using a Copy Mechanism</h2>
-<p>Rare words (such as place and people names) are often not included in the target vocabulary and result in <code>UNK</code> tokens in the output predictions. An easy strategy to improve predictions is to replace each <code>UNK</code> token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces <code>[source_length]</code> alignment scores for each target token.</p>
-<p>If you trained a model, such as <code>AttentionSeq2Seq</code>, that generates such attention scores you can use them to perform UNK token replacement by passing the <code>unk_replace</code> flag to the inference script.</p>
+<p>Rare words (such as place and people names) are often absent from the target vocabulary and result in <code>UNK</code> tokens in the output predictions. An easy strategy to improve predictions is to replace each <code>UNK</code> token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces <code>[source_length]</code> alignment scores for each target token.</p>
+<p>If you trained a model that generates such attention scores (e.g. <code>AttentionSeq2Seq</code>), you can use them to perform UNK token replacement by passing the <code>unk_replace</code> flag to the inference script.</p>
 <pre><code class="bash">./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
   --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
@@ -190,14 +189,13 @@ your batch size will be set to 1 and the <code>beam_width</code> will be used as
 
 <h2 id="unk-token-replacement-using-a-mapping">UNK token replacement using a mapping</h2>
 <p>A slightly more sophisticated approach to UNK token replacement is to use a mapping instead of copying words from the source. For example, "Munich" is always translated as "München" in German, so that simply copying "Munich" from the source you would never result in the right translation even if the words are perfectly aligned using attention scores.</p>
-<p>One strategy is to use <a href="https://github.com/clab/fast_align">fast_align</a> to generate a mapping based on the
-conditional probabilities of target given source.</p>
+<p>One strategy is to use <a href="https://github.com/clab/fast_align">fast_align</a> to generate a mapping based on the conditional probabilities of target given source.</p>
 <pre><code class="bash"># Download and build fast_align
 git clone https://github.com/clab/fast_align.git
 mkdir fast_align/build &amp;&amp; cd fast_align/build
 cmake ../ &amp;&amp; make
 
-# Bring you data into a format that fast_align understands:
+# Convert your data into a format that fast_align understands:
 # &lt;source&gt; ||| &lt;target&gt;
 paste \
   $HOME/nmt_data/toy_reverse/train/sources.txt \
@@ -217,9 +215,7 @@ sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
 
 </code></pre>
 
-<p>The output file specified by the <code>-p</code> argument will contain conditional probabilities
-for <code>p(target | source)</code> in the format of <code>&lt;source&gt;\t&lt;target&gt;\t&lt;prob&gt;</code>. These can
-be used to do smarter UNK token replacement by passing the <code>unk_mapping</code> flag.</p>
+<p>The output file specified by the <code>-p</code> argument will contain conditional probabilities for <code>p(target | source)</code> in the form of <code>&lt;source&gt;\t&lt;target&gt;\t&lt;prob&gt;</code>. These can be used to do smarter UNK token replacement by passing the <code>unk_mapping</code> flag.</p>
 <pre><code class="bash">./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
   --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \

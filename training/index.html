@@ -159,7 +159,7 @@
             <div class="section">
               
                 <h3 id="input-files">Input Files</h3>
-<p>To train a model you need to follow files. Refer to <a href="https://github.com/dennybritz/seq2seq/wiki/Data">Data</a> for more details on each of these.</p>
+<p>In order to train a model, you need the following files. Refer to <a href="https://github.com/dennybritz/seq2seq/wiki/Data">Data</a> for more details on each of these.</p>
 <ul>
 <li>Training data: Two parallel (aligned line by line) tokenized text files with tokens separated by spaces.</li>
 <li>Development data: Same format as the training data, but used for validation.</li>
@@ -167,7 +167,7 @@
 <li>Target vocabulary: Defines the target vocabulary. A raw text file that contains one word per line.</li>
 </ul>
 <h3 id="training-script-parameters">Training Script &amp; Parameters</h3>
-<p>To train a new model, run the training script as follows (also see <a href="../getting_started/">Getting Started</a>:</p>
+<p>To train a new model, run the training script below (also see <a href="../getting_started/">Getting Started</a>:</p>
 <pre><code class="shell">./bin/train.py \
   --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
   --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
@@ -181,8 +181,7 @@
   --output_dir ${TMPDIR}/nmt_toy_reverse
 </code></pre>
 
-<p>The <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/train.py">train.py</a> has many more options. Bold arguments
-are requied.</p>
+<p>The <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/train.py">train.py</a> script has many more options. Bold arguments are required.</p>
 <table>
 <thead>
 <tr>
@@ -195,12 +194,12 @@ are requied.</p>
 <tr>
 <td><strong>train_source</strong></td>
 <td>---</td>
-<td>Path to the training data source sentences. A raw text files with tokens separated by spaces.</td>
+<td>Path to the training data source sentences. A raw text file with tokens separated by spaces.</td>
 </tr>
 <tr>
 <td><strong>train_target</strong></td>
 <td>---</td>
-<td>Path to the training data target sentences. A raw text files with tokens separated by spaces.</td>
+<td>Path to the training data target sentences. A raw text file with tokens separated by spaces.</td>
 </tr>
 <tr>
 <td><strong>dev_source</strong></td>
@@ -210,7 +209,7 @@ are requied.</p>
 <tr>
 <td><strong>dev_target</strong></td>
 <td>---</td>
-<td>Path to the development data source sentences. Same format as training data.</td>
+<td>Path to the development data target sentences. Same format as training data.</td>
 </tr>
 <tr>
 <td><strong>vocab_source</strong></td>
@@ -240,7 +239,7 @@ are requied.</p>
 <tr>
 <td>hparams</td>
 <td><code>None</code></td>
-<td>A comma-separated list of hyeperparameter values that overwrite the model defaults, e.g. <code>"optimizer.name=Adam,optimizer.learning_rate=0.1"</code>. Refer to the documentation for a detailed list of available hyperparameters.</td>
+<td>A comma-separated list of hyeperparameter values that overwrite the model defaults, e.g. <code>"optimizer.name=Adam,optimizer.learning_rate=0.1"</code>. Refer to the Models section and the TensorFlow documentation for a detailed list of available hyperparameters.</td>
 </tr>
 <tr>
 <td>output_dir</td>
@@ -275,12 +274,12 @@ are requied.</p>
 <tr>
 <td>save_checkpoints_secs</td>
 <td><code>600</code></td>
-<td>Save checkpoints every this many seconds. Can not be specified with <code>save_checkpoints_steps</code>.</td>
+<td>Save checkpoints every N seconds. Can not be specified with <code>save_checkpoints_steps</code>.</td>
 </tr>
 <tr>
 <td>save_checkpoints_steps</td>
 <td><code>None</code></td>
-<td>Save checkpoints every this many steps. Can not be specified with <code>save_checkpoints_secs</code>.</td>
+<td>Save checkpoints every N steps. Can not be specified with <code>save_checkpoints_secs</code>.</td>
 </tr>
 <tr>
 <td>keep_checkpoint_max</td>
@@ -295,8 +294,7 @@ are requied.</p>
 </tbody>
 </table>
 <h3 id="distributed-training">Distributed Training</h3>
-<p>Distributed Training is supported out of the box using <code>tf.learn</code>. Cluster Configurations can be specified using
-the <code>TF_CONFIG</code> environment variable, which is parsed by the <a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py"><code>RunConfig</code></a>. Refer to the <a href="https://www.tensorflow.org/how_tos/distributed/">Distributed Tensorflow</a> Guide for more information.</p>
+<p>Distributed Training is supported out of the box using <code>tf.learn</code>. Cluster Configurations can be specified using the <code>TF_CONFIG</code> environment variable, which is parsed by the <a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py"><code>RunConfig</code></a>. Refer to the <a href="https://www.tensorflow.org/how_tos/distributed/">Distributed Tensorflow</a> Guide for more information.</p>
 <h3 id="monitoring-training">Monitoring Training</h3>
 <p>In addition to looking at the output of the training script, Tensorflow write summaries and training logs into the specified <code>output_dir</code>. Use <a href="https://www.tensorflow.org/how_tos/summaries_and_tensorboard/">Tensorboard</a> to visualize training progress.</p>
 <pre><code class="shell">tensorboard --logdir=/path/to/model/dir

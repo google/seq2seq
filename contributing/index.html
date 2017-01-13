@@ -164,11 +164,11 @@
               
                 <h2 id="development-setup">Development Setup</h2>
 <p>1. Install Python3. If you're on a Mac the easiest way to do this is probably using <a href="http://brew.sh/">Homebrew</a>. Then,</p>
-<pre><code class="bash"># Clone this repository
+<pre><code class="bash"># Clone this repository.
 git clone https://github.com/dennybritz/seq2seq.git
 cd seq2seq
 
-# Create a new virtual environment and activate it
+# Create a new virtual environment and activate it.
 python3 -m venv ~/tf-venv
 source ~/tf-venv/bin/activate
 
@@ -184,55 +184,53 @@ nosetests
 
 <h2 id="github-workflow">Github Workflow</h2>
 <p>Pushing directly to the master branch is disabled and you must create feature branches and submit them via pull request. To make things easier you can also use the <a href="https://desktop.github.com/">Github Desktop app</a>. A typical workflow looks as follows:</p>
-<pre><code># Make sure you are in the seq2seq root directory
-# Start from the master branch
+<pre><code># Make sure you are in the seq2seq root directory.
+# Start from the master branch.
 git checkout master
 
-# Pull latest changes from github
+# Pull latest changes from Github.
 git pull
 
-# Create a new feature branch
+# Create a new feature branch.
 git checkout -b feature/my-new-feature
 
 # Make changes and commits
 echo &quot;blabla&quot; &gt;&gt; test
 git commit -am &quot;Test commit&quot;
 
-# Push the branch upstream
+# Push the branch upstream.
 git push -u origin/my-new-feature
 
-# Submit a pull request on Github
+# Submit a pull request on Github.
 </code></pre>
 
-<p>After you submit a Pull Request one person must review the change and
+<p>After you submit a Pull Request, one person must review the change and
 CircleCI integration tests must be passing before you can merge into the
 master branch.</p>
 <h2 id="python-style">Python Style</h2>
-<p>We use <a href="https://www.pylint.org/">pylint</a> and <a href="https://github.com/google/yapf">yapf</a>
-for automated code formatting. Before submitting a pull request, make sure you
-run them:</p>
-<pre><code class="bash"># Run this and fix all errors
+<p>We use <a href="https://www.pylint.org/">pylint</a> and <a href="https://github.com/google/yapf">yapf</a> for automated code formatting. Before submitting a pull request, make sure you run them:</p>
+<pre><code class="bash"># Run this and fix all errors.
 pylint ./seq2seq
 
-# Optional, run this to auto-format all code
+# Optional, run this to auto-format all code.
 yapf -ir ./seq2seq
 </code></pre>
 
-<p>Note that CirlceCI integrations test will fail if pylint reports any critical
+<p>Note that CircleCI integration test will fail if pylint reports any critical
 errors, preventing you from merging your changes.</p>
 <h2 id="tensorflow-style">Tensorflow Style</h2>
 <h3 id="graphmodule">GraphModule</h3>
-<p>All classes that modify the Graph should inherit from <code>seq2seq.graph_module.GraphModule</code>, which is a wrapper around Tensorflow's <a href="https://www.tensorflow.org/versions/r0.12/api_docs/python/state_ops.html#make_template"><code>tf.make_template</code></a> function that allows for easy variable sharing. Basically, it allows you to do something like this:</p>
+<p>All classes that modify the Graph should inherit from <code>seq2seq.graph_module.GraphModule</code>, which is a wrapper around TensorFlow's <a href="https://www.tensorflow.org/versions/r0.12/api_docs/python/state_ops.html#make_template"><code>tf.make_template</code></a> function that enables easy variable sharing. Basically, it allows you to do something like this:</p>
 <pre><code class="python">encode_fn = SomeEncoderModule(...)
 
 # New variables are created in this call.
 output1 = encode_fn(input1)
 
 # No new variables are created here. The variables from the above call are re-used.
-# Note how this is different from normal Tensorflow where you would need to use variable scopes.
+# Note how this is different from normal TensorFlow where you would need to use variable scopes.
 output2 = encode_fn(input2)
 
-# Because this is a new instance a second set of variables is created
+# Because this is a new instance a second set of variables is created.
 encode_fn2 = SomeEncoderModule(...)
 output3 = encode_fn2(input3)
 </code></pre>
