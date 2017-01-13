@@ -1,8 +1,8 @@
-When calling the training script you can specify a model class using the `--model` flags and model-specific hyperparameters using the `--hparams` flag. This page list all support models and hyperparameters.
+When calling the training script, you can specify a model class using the `--model` flags and model-specific hyperparameters using the `--hparams` flag. This page lists all supported models and hyperparameters.
 
 ## Common Hyperparameters
 
-The following hyperparameters are sahred by all models, unless explicitly stated in the model section.
+The following hyperparameters are shared by all models, unless explicitly stated otherwise in the model section.
 
 | Name | Default | Description |
 | --- | --- | --- |
@@ -10,27 +10,27 @@ The following hyperparameters are sahred by all models, unless explicitly stated
 | `source.reverse` | `True` | If set to true, reverse the source sequence before feeding it into the encoder.|
 | `target.max_seq_len` | `40` | Maximum length of target sequences. An example is sliced to this length before being fed to the decoder. |
 | `embedding.dim` | `100` | Dimensionality of the embedding layer. |
-| `optimizer.name` | `Adam` | Type of Optimizer to use, e.g. `Adam`, `SGD` or `Momentum`. The name is fed to Tensorflow's [optimize_loss](https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss) function. See Tensorflow documentation for more details and all available options. |
-| `optimizer.learning_rate` | `1e-4` | Initial learning rate for the optimizer. This is fed to Tensorflow's [optimize_loss](https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss) function. |
-| `optimizer.lr_decay_type` |  | The name of one of Tensorflow's [learning rate decay function](https://www.tensorflow.org/api_docs/python/#training--decaying-the-learning-rate) defined in `tf.train`, e.g. `exponential_decay`. If this is an empty string (default) then no learning rate decay is used. |
+| `optimizer.name` | `Adam` | Type of Optimizer to use, e.g. `Adam`, `SGD` or `Momentum`. The name is fed to TensorFlow's [optimize_loss](https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss) function. See TensorFlow documentation for more details and all available options. |
+| `optimizer.learning_rate` | `1e-4` | Initial learning rate for the optimizer. This is fed to TensorFlow's [optimize_loss](https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss) function. |
+| `optimizer.lr_decay_type` |  | The name of one of TensorFlow's [learning rate decay functions](https://www.tensorflow.org/api_docs/python/#training--decaying-the-learning-rate) defined in `tf.train`, e.g. `exponential_decay`. If this is an empty string (default) then no learning rate decay is used. |
 | `optimizer.lr_decay_steps` | `100` | How often to apply decay. This is fed as the `decay_steps` argument to the decay function defined above. See Tensoflow documentation for more details. |
-| `optimizer.lr_decay_rate` | `0.99` | The decay rate. This is fed as the `decay_rate` argument to the decay function defined above. See Tensorfow documentation for more details. |
+| `optimizer.lr_decay_rate` | `0.99` | The decay rate. This is fed as the `decay_rate` argument to the decay function defined above. See TensorFlow documentation for more details. |
 | `optimizer.lr_start_decay_at` | `0` | Start learning rate decay at this step. |
 | `optimizer.lr_stop_decay_at` | `1e9` | Stop learning rate decay at this step.  |
 | `optimizer.lr_min_learning_rate` | `1e-12` | Never decay below this learning rate. |
-| `optimizer.lr_staircase` | `False` | If `True` decay the learning rate at discrete intervals. This is fed as the `staircase` argument to the decay function defined above. See Tensorfow documentation for more details. |
+| `optimizer.lr_staircase` | `False` | If `True`, decay the learning rate at discrete intervals. This is fed as the `staircase` argument to the decay function defined above. See TensorFlow documentation for more details. |
 | `optimizer.clip_gradients` | `5.0` | Clip gradients by their global norm. |
 
 ## BasicSeq2Seq
 
-The `BasicSeq2Seq` model uses a unidirectional encoder and decoder without attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.
+The `BasicSeq2Seq` model uses a unidirectional encoder and decoder with no attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.
 
-This model suports the following additional hyperparameters.
+This model supports the following additional hyperparameters.
 
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `rnn_cell.type` | `BasicLSTMCell` | The class name of a RNN Cell defined in `tf.contrib.rnn`. The most common values are `BasicLSTMCell`, `LSTMCell` or `GRUCell`. Applies to both encoder and decoder. |
+| `rnn_cell.type` | `BasicLSTMCell` | The class name of an RNN Cell defined in `tf.contrib.rnn`. The most common values are `BasicLSTMCell`, `LSTMCell` or `GRUCell`. Applies to both encoder and decoder. |
 | `rnn_cell.num_units` | `128` | The number of units to use for the RNN Cell. Applies to both encoder and decoder. |
 | `rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
 | `rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. Applies to both encoder and decoder. |
@@ -41,7 +41,7 @@ This model suports the following additional hyperparameters.
 
 ## AttentionSeq2seq
 
-`AttentionSeq2seq` is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473).
+`AttentionSeq2seq` is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with an attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473).
 
 | Name | Default | Description |
 | --- | --- | --- |
