@@ -115,7 +115,7 @@ def cell_from_spec(cell_spec):
   cell_class = getattr(rnn_cell, cell_class_name)
 
   # Make sure additional arguments are valid
-  cell_args = set(inspect.getargspec(cell_class).args[1:])
+  cell_args = set(inspect.getargspec(cell_class.__init__).args[1:])
   for key in cell_spec_dict.keys():
     if key not in cell_args:
       raise ValueError(
