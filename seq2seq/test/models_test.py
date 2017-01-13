@@ -286,13 +286,15 @@ class EncoderDecoderTests(tf.test.TestCase):
   def test_pipeline_inference(self):
     model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.INFER)
     predictions_, = fetches_
+    pred_len = predictions_["predicted_ids"].shape[1]
+
     np.testing.assert_array_equal(
         predictions_["logits"].shape,
-        [self.batch_size, model.params["inference.max_decode_length"],
+        [self.batch_size, pred_len,
          model.target_vocab_info.total_size])
     np.testing.assert_array_equal(
         predictions_["predicted_ids"].shape,
-        [self.batch_size, model.params["inference.max_decode_length"]])
+        [self.batch_size, pred_len])
 
   def test_pipeline_beam_search_infer(self):
     self.batch_size = 1
@@ -301,27 +303,28 @@ class EncoderDecoderTests(tf.test.TestCase):
         mode=tf.contrib.learn.ModeKeys.INFER,
         params={"inference.beam_search.beam_width": 10})
     predictions_, = fetches_
+    pred_len = predictions_["predicted_ids"].shape[1]
 
     seq_length = model.params["inference.max_decode_length"]
     vocab_size = model.target_vocab_info.total_size
     np.testing.assert_array_equal(
         predictions_["logits"].shape,
-        [1, seq_length, beam_width, vocab_size])
+        [1, pred_len, beam_width, vocab_size])
     np.testing.assert_array_equal(
         predictions_["predicted_ids"].shape,
-        [1, seq_length, beam_width])
+        [1, pred_len, beam_width])
     np.testing.assert_array_equal(
         predictions_["beam_parent_ids"].shape,
-        [1, seq_length, beam_width])
+        [1, pred_len, beam_width])
     np.testing.assert_array_equal(
         predictions_["scores"].shape,
-        [1, seq_length, beam_width])
+        [1, pred_len, beam_width])
     np.testing.assert_array_equal(
         predictions_["original_outputs.predicted_ids"].shape,
-        [1, seq_length, beam_width])
+        [1, pred_len, beam_width])
     np.testing.assert_array_equal(
         predictions_["original_outputs.logits"].shape,
-        [1, seq_length, beam_width, vocab_size])
+        [1, pred_len, beam_width, vocab_size])
 
 
 class TestBasicSeq2Seq(EncoderDecoderTests):
