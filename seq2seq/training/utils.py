@@ -9,6 +9,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from collections import defaultdict
+import inspect
 import os
 import re
 import subprocess
@@ -91,9 +92,41 @@ class TrainOptions(object):
         source_vocab_path=options_dict["source_vocab_path"],
         target_vocab_path=options_dict["target_vocab_path"])
 
+def cell_from_spec(cell_spec):
+  """Create a RNN Cell instance from a JSON string.
 
-def get_rnn_cell(cell_type,
-                 num_units,
+  Args:
+    cell_spec: A JSON string of the form
+      { "class": "BasicLSTMCell", "num_units": 16, ... }
+      The "class" property is treated in a special way and used
+      to look up the class object in `seq2seq.contrib.rnn_cell`. All other
+      items in the JSON object are passed as parameters to the cell
+      constructor.
+
+  Returns:
+    A RNNCell instance.
+  """
+  cell_spec_dict = json.loads(cell_spec)
+  if "class" not in cell_spec_dict:
+    raise ValueError("cell_spec must specify \"class\".")
+
+  # Find the cell class
+  cell_class_name = cell_spec_dict.pop("class")
+  cell_class = getattr(rnn_cell, cell_class_name)
+
+  # Make sure additional arguments are valid
+  cell_args = set(inspect.getargspec(cell_class.__init__).args[1:])
+  for key in cell_spec_dict.keys():
+    if key not in cell_args:
+      raise ValueError(
+          """{} is not a valid argument for {} class. Available arguments
+          are: {}""".format(key, cell_class.__name__, cell_args))
+
+  # Create cell
+  return cell_class(**cell_spec_dict)
+
+
+def get_rnn_cell(cell_spec,
                  num_layers=1,
                  dropout_input_keep_prob=1.0,
                  dropout_output_keep_prob=1.0,
@@ -101,9 +134,8 @@ def get_rnn_cell(cell_type,
   """Creates a new RNN Cell.
 
   Args:
-    cell_type: A cell lass name defined in `tf.contrib.rnn`,
-      e.g. `LSTMCell` or `GRUCell`
-    num_units: Number of cell units
+    cell_spec: A JSON string that defines how to create a cell instance.
+      See `cell_from_spec` for more details.
     num_layers: Number of layers. The cell will be wrapped with
       `tf.contrib.rnn.MultiRNNCell`
     dropout_input_keep_prob: Dropout keep probability applied
@@ -117,8 +149,7 @@ def get_rnn_cell(cell_type,
     An instance of `tf.contrib.rnn.RNNCell`.
   """
   #pylint: disable=redefined-variable-type
-  cell_class = getattr(tf.contrib.rnn, cell_type)
-  cell = cell_class(num_units)
+  cell = cell_from_spec(cell_spec)
 
   if dropout_input_keep_prob < 1.0 or dropout_output_keep_prob < 1.0:
     cell = tf.contrib.rnn.DropoutWrapper(
