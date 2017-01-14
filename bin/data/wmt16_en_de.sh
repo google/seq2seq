@@ -134,9 +134,6 @@ for merge_ops in 8000 16000 32000 64000; do
   cat "${OUTPUT_DIR}/train.tok.clean.de" "${OUTPUT_DIR}/train.tok.clean.en" | \
     ${OUTPUT_DIR}/subword-nmt/learn_bpe.py -s $merge_ops > "${OUTPUT_DIR}/bpe.${merge_ops}"
 
-  # Create vocabulary for BPE
-  ${OUTPUT_DIR}/subword-nmt/get_vocab.py < "${OUTPUT_DIR}/bpe.${merge_ops}" | cut -f1 -d ' ' > "${OUTPUT_DIR}/vocab.bpe.${merge_ops}"
-
   echo "Apply BPE with merge_ops=${merge_ops} to tokenized files..."
   for lang in en de; do
     for f in ${OUTPUT_DIR}/*.tok.${lang} ${OUTPUT_DIR}/*.tok.clean.${lang}; do
@@ -145,6 +142,11 @@ for merge_ops in 8000 16000 32000 64000; do
       echo ${outfile}
     done
   done
+
+  # Create vocabulary file for BPE
+  cat "${OUTPUT_DIR}/train.tok.clean.bpe.${merge_ops}.en" "${OUTPUT_DIR}/train.tok.clean.bpe.${merge_ops}.de" | \
+    ${OUTPUT_DIR}/subword-nmt/get_vocab.py | cut -f1 -d ' ' > "${OUTPUT_DIR}/vocab.bpe.${merge_ops}"
+
 done
 
 echo "All done."
