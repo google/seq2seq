@@ -1,18 +1,15 @@
 ## Visualizing Attention
 
-If you train an `AttentionSeq2Seq` model, you can use the `bin/print_attention.py` script to dump the raw attention scores and generate alignment visualizations. The usage is similar to the inference script and uses the same input data. For example:
+If you train an `AttentionSeq2Seq` model, you can dump the raw attention scores and generate alignment visualizations during inference:
 
 ```
-./bin/print_attention.py \
+./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
-  --output_dir ${TMPDIR}/attention_plots
+  --dump_atention_dir ${TMPDIR}/attention_plots > /dev/null
 ```
 
-By default, the script generates an `attention_score.npy` array file and one attention plot per example. The array file can be [loaded used numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html) and will contain a list of arrays with shape `[target_length, source_length]`. If you only want the raw attention score data without the plots you can pass the `--no_plot` flag. For more details and additional options, see the [`print_attention.py`](https://github.com/dennybritz/seq2seq/blob/master/bin/print_attention.py) script.
+By default, this script generates an `attention_score.npy` array file and one attention plot per example. The array file can be [loaded used numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html) and will contain a list of arrays with shape `[target_length, source_length]`. If you only want the raw attention score data without the plots you can pass the `--dump_atention_no_plot` flag. For more details and additional options, see the [`infer.py`](https://github.com/dennybritz/seq2seq/blob/master/bin/infer.py) script.
 
 
 ## Visualizing Beam Search

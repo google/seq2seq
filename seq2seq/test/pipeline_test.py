@@ -88,36 +88,18 @@ class PipelineTest(tf.test.TestCase):
         "seq2seq.test.infer_bin", os.path.join(BIN_FOLDER, "infer.py"))
 
     # Set inference flags
+    attention_dir = os.path.join(self.output_dir, "att")
     tf.app.flags.FLAGS.model_dir = self.output_dir
     tf.app.flags.FLAGS.source = sources_dev.name
     tf.app.flags.FLAGS.batch_size = 2
     tf.app.flags.FLAGS.checkpoint_path = os.path.join(
         self.output_dir, "model.ckpt-50")
+    tf.app.flags.FLAGS.dump_attention_dir = attention_dir
 
     # Make sure inference runs successfully
     infer_script.main([])
 
-    # Visualize attention scores
-    _clear_flags()
-    tf.reset_default_graph()
-    print_attention_script = imp.load_source(
-        "seq2seq.test.print_attention_bin",
-        os.path.join(BIN_FOLDER, "print_attention.py"))
-
-    attention_dir = os.path.join(self.output_dir, "att")
-
-    # Set flags
-    tf.app.flags.FLAGS.output_dir = attention_dir
-    tf.app.flags.FLAGS.model_dir = self.output_dir
-    tf.app.flags.FLAGS.source = sources_dev.name
-    tf.app.flags.FLAGS.batch_size = 2
-    tf.app.flags.FLAGS.checkpoint_path = os.path.join(
-        self.output_dir, "model.ckpt-50")
-
-    # Run the print_attention script
-    print_attention_script.main([])
-
-    # Make sure scores and visualizations exist
+    # Make sure attention scores and visualizations exist
     self.assertTrue(os.path.exists(os.path.join(
         attention_dir, "attention_scores.npz")))
     self.assertTrue(os.path.exists(os.path.join(
