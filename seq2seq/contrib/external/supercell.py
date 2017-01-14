@@ -206,7 +206,7 @@ class LSTMCell(tf.contrib.rnn.RNNCell):
 
       h_size = self.num_units
       
-      batch_size =  x.get_shape().as_list()[0]
+      batch_size =  tf.shape(x)[0]
       x_size = x.get_shape().as_list()[-1]
       
       w_init=None # uniform
@@ -315,7 +315,7 @@ class HyperLSTMCell(tf.contrib.rnn.RNNCell):
       x_size = x.get_shape().as_list()[-1]
       embedding_size = self.hyper_embedding_size
       num_units = self.num_units
-      batch_size = x.get_shape().as_list()[0]
+      batch_size = tf.shape(x)[0]
 
       W_xh = tf.get_variable('W_xh',
         [x_size, 4*num_units], initializer=w_init)

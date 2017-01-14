@@ -41,7 +41,8 @@ class HyperLSTMCellTest(tf.test.TestCase):
   def test_cell(self):
     inputs = tf.constant(np.random.randn(1, 2), dtype=tf.float32)
     with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
-      cell = rnn_cell.HyperLSTMCell(2, use_layer_norm=True, hyper_num_units=2)
+      cell = rnn_cell.HyperLSTMCell(2, use_layer_norm=True, hyper_num_units=2,
+                                    use_recurrent_dropout=True)
       state = cell.zero_state(1, dtype=tf.float32)
       res = cell(inputs, state)
 
