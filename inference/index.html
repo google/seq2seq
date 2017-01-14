@@ -162,9 +162,6 @@
 <p>After you have trained a model, you can use the <code>bin/infer.py</code> script to make predictions. For example, from the <a href="../getting_started/">Getting Started Guide</a>:</p>
 <pre><code class="bash">./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   &gt; ${TMPDIR}/nmt_toy_reverse/predictions.txt
 </code></pre>
@@ -179,9 +176,6 @@ the <code>checkpoint_path</code> flag.</p>
 <p>If you trained a model that generates such attention scores (e.g. <code>AttentionSeq2Seq</code>), you can use them to perform UNK token replacement by passing the <code>unk_replace</code> flag to the inference script.</p>
 <pre><code class="bash">./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   --unk_replace \
   &gt; ${TMPDIR}/nmt_toy_reverse/predictions.txt
@@ -218,9 +212,6 @@ sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
 <p>The output file specified by the <code>-p</code> argument will contain conditional probabilities for <code>p(target | source)</code> in the form of <code>&lt;source&gt;\t&lt;target&gt;\t&lt;prob&gt;</code>. These can be used to do smarter UNK token replacement by passing the <code>unk_mapping</code> flag.</p>
 <pre><code class="bash">./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   --unk_replace \
   --unk_mapping $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict \
