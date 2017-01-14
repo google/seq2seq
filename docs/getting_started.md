@@ -87,9 +87,6 @@ On a CPU, the training may take up to 15 minutes. With the trained model you can
 ```bash
 ./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   > ${TMPDIR}/nmt_toy_reverse/predictions.txt
 

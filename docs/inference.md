@@ -5,9 +5,6 @@ After you have trained a model, you can use the `bin/infer.py` script to make pr
 ```bash
 ./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   > ${TMPDIR}/nmt_toy_reverse/predictions.txt
 ```
@@ -31,9 +28,6 @@ If you trained a model that generates such attention scores (e.g. `AttentionSeq2
 ```bash
 ./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   --unk_replace \
   > ${TMPDIR}/nmt_toy_reverse/predictions.txt
@@ -77,9 +71,6 @@ The output file specified by the `-p` argument will contain conditional probabil
 ```bash
 ./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
   --unk_replace \
   --unk_mapping $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict \
