@@ -159,14 +159,14 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
       If set, `every_n_steps` must be None.
     every_n_steps: Sample predictions every N steps.
       If set, `every_n_secs` must be None.
-    file: Optional, a filename to write samples to.
+    sample_dir: Optional, a directory to write samples to.
   """
 
   #pylint: disable=missing-docstring
 
-  def __init__(self, every_n_secs=None, every_n_steps=None, file=None):
+  def __init__(self, every_n_secs=None, every_n_steps=None, sample_dir=None):
     super(TrainSampleHook, self).__init__()
-    self.file = file
+    self._sample_dir = sample_dir
     self._timer = SecondOrStepTimer(
         every_secs=every_n_secs, every_steps=every_n_steps)
     self._pred_dict = {}
@@ -178,6 +178,9 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     self._iter_count = 0
     self._global_step = training_util.get_global_step()
     self._pred_dict = graph_utils.get_dict_from_collection("predictions")
+    # Create the sample directory
+    if self._sample_dir is not None:
+      gfile.MakeDirs(self._sample_dir)
 
   def before_run(self, _run_context):
     self._should_trigger = self._timer.should_trigger_for_step(self._iter_count)
@@ -218,8 +221,10 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
       result_str += " ".join(target_slice) + "\n\n"
     result_str += ("=" * 100) + "\n\n"
     tf.logging.info(result_str)
-    if self.file:
-      with gfile.GFile(self.file, "a") as file:
+    if self._sample_dir:
+      filepath = os.path.join(
+          self._sample_dir, "samples_{:06d}.txt".format(step))
+      with gfile.GFile(filepath, "w") as file:
         file.write(result_str)
     self._timer.update_last_triggered_step(self._iter_count - 1)
 

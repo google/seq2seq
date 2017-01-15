@@ -296,7 +296,7 @@ def create_default_training_hooks(estimator, sample_frequency=500):
 
   train_sample_hook = hooks.TrainSampleHook(
       every_n_steps=sample_frequency,
-      file=os.path.join(output_dir, "samples.txt"))
+      sample_dir=os.path.join(output_dir, "samples"))
   training_hooks.append(train_sample_hook)
 
   metadata_hook = hooks.MetadataCaptureHook(
