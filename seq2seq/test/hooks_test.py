@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os
 import tempfile
 import shutil
 import time
@@ -40,6 +41,7 @@ class TestTrainSampleHook(tf.test.TestCase):
 
   def setUp(self):
     super(TestTrainSampleHook, self).setUp()
+    self.sample_dir = tempfile.mkdtemp()
 
     # The hook expects these collections to be in the graph
     pred_dict = {}
@@ -50,10 +52,12 @@ class TestTrainSampleHook(tf.test.TestCase):
 
   def tearDown(self):
     super(TestTrainSampleHook, self).tearDown()
+    shutil.rmtree(self.sample_dir)
 
   def test_sampling(self):
-    outfile = tempfile.NamedTemporaryFile()
-    hook = hooks.TrainSampleHook(every_n_steps=10, file=outfile.name)
+    hook = hooks.TrainSampleHook(
+        every_n_steps=10,
+        sample_dir=self.sample_dir)
 
     global_step = tf.contrib.framework.get_or_create_global_step()
     no_op = tf.no_op()
@@ -69,21 +73,22 @@ class TestTrainSampleHook(tf.test.TestCase):
       sess.run(tf.assign(global_step, 0))
       mon_sess.run(no_op)
 
-      with open(outfile.name, "rb") as readfile:
+      outfile = os.path.join(self.sample_dir, "samples_000000.txt")
+      with open(outfile, "rb") as readfile:
         self.assertIn("Prediction followed by Target @ Step 0",
                       readfile.read().decode("utf-8"))
 
       # Should not trigger for step 9
       sess.run(tf.assign(global_step, 9))
       mon_sess.run(no_op)
-      with open(outfile.name, "rb") as readfile:
-        self.assertNotIn("Prediction followed by Target @ Step 9",
-                         readfile.read().decode("utf-8"))
+      outfile = os.path.join(self.sample_dir, "samples_000009.txt")
+      self.assertFalse(os.path.exists(outfile))
 
       # Should trigger for step 10
       sess.run(tf.assign(global_step, 10))
       mon_sess.run(no_op)
-      with open(outfile.name, "rb") as readfile:
+      outfile = os.path.join(self.sample_dir, "samples_000010.txt")
+      with open(outfile, "rb") as readfile:
         self.assertIn("Prediction followed by Target @ Step 10",
                       readfile.read().decode("utf-8"))
 
