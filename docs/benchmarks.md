@@ -15,8 +15,6 @@ Single models only, no ensembles. Results are listed in chronological order.
 
 
 
-
-
 ## Machine Translation: WMT'16 German-English
 
 Coming soon.
