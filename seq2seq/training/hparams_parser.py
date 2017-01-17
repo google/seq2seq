@@ -41,7 +41,7 @@ class HParamsParser(object):
       if value_type == int:
         value = int(float(value))
       elif value_type == bool:
-        value = (value == "True")
+        value = (value.lower() == "true")
       else:
         value = value_type(value)
       final_params.update({key: value})
