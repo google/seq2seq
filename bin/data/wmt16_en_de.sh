@@ -104,11 +104,27 @@ for f in ${OUTPUT_DIR}/*.en; do
 done
 
 # Clean all corpora
-for f in ${OUTPUT_DIR}/*.tok.en; do
+for f in ${OUTPUT_DIR}/*.en; do
   fbase=${f%.*}
   echo "Cleaning ${fbase}..."
   ${OUTPUT_DIR}/mosesdecoder/scripts/training/clean-corpus-n.perl $fbase de en "${fbase}.clean" 1 80
 done
+
+# Create character vocabulary (on tokenized data)
+${BASE_DIR}/bin/tools/generate_char_vocab.py \
+  < ${OUTPUT_DIR}/train.tok.clean.en \
+  > ${OUTPUT_DIR}/vocab.tok.char.en
+${BASE_DIR}/bin/tools/generate_char_vocab.py \
+  < ${OUTPUT_DIR}/train.tok.clean.de \
+  > ${OUTPUT_DIR}/vocab.tok.char.de
+
+# Create character vocabulary (on non-tokenized data)
+${BASE_DIR}/bin/tools/generate_char_vocab.py \
+  < ${OUTPUT_DIR}/train.clean.en \
+  > ${OUTPUT_DIR}/vocab.char.en
+${BASE_DIR}/bin/tools/generate_char_vocab.py \
+  < ${OUTPUT_DIR}/train.clean.de \
+  > ${OUTPUT_DIR}/vocab.char.de
 
 # Create vocabulary for EN data
 $BASE_DIR/bin/tools/generate_vocab.py \

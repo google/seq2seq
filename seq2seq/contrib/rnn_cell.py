@@ -14,9 +14,6 @@ from tensorflow.python.ops import array_ops
 from tensorflow.python.util import nest
 from tensorflow.contrib.rnn import MultiRNNCell
 
-from seq2seq.contrib.external.supercell import LSTMCell as SuperLSTMCell
-from seq2seq.contrib.external.supercell import HyperLSTMCell
-
 # Import all cell classes from Tensorflow
 TF_CELL_CLASSES = [x for x in tf.contrib.rnn.__dict__.values() if
                    inspect.isclass(x) and issubclass(x, tf.contrib.rnn.RNNCell)]

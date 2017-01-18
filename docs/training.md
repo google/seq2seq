@@ -35,6 +35,7 @@ The [train.py](https://github.com/dennybritz/seq2seq/blob/master/bin/train.py) s
 | **dev_target** | --- | Path to the development data target sentences. Same format as training data.|
 | **vocab_source** | --- | Path to the source vocabulary. A raw text file with one word per line. |
 | **vocab_target** | --- | Path to the target vocabulary. A raw text file with one word per line. |
+| **delimiter** | `" "` | Split input files into tokens on this delimiter. Defaults to `" "` (space). |
 | model | `AttentionSeq2Seq` | The model class to use. Refer to the documentation for all available models. |
 | buckets | `None` | Buckets input sequences according to these length. A comma-separated list of sequence length buckets, e.g. `"10,20,30"` would result in 4 buckets: `<10, 10-20, 20-30, >30`. `None` disables bucketing. |
 | batch_size | `16` | Batch size used for training and evaluation. |

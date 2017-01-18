@@ -88,3 +88,15 @@ The resulting BPE-processed files can be used as-is in place of the raw text fil
 In the BPE-processed file the original words are split using a special `"@@ "` string. To recover the original tokenization you can simply perform a `sed "s/@@ //g"` operation on the BPE files and the model output. For more details, refer to the paper and [subword-nmt](https://github.com/rsennrich/subword-nmt) Github repository.
 
 
+### Character Vocabulary
+
+Sometimes you want to run training on characters instead of words or subword units. The [`bin/tools/generate_char_vocab.py`](https://github.com/dennybritz/seq2seq/blob/master/bin/tools/generate_char_vocab.py) can generate a vocabulary file that contains the unique set of characters found in the text:
+
+```shell
+./bin/tools/generate_char_vocab.py \
+  < /data/source.txt \
+  > /data/source_vocab.char.txt
+```
+
+To run training on characters you must pass the `--delimiter=""` flag to the training script to avoid splitting words on spaces. See the [Training documentation](training.md) for more details.
+

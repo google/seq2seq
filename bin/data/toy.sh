@@ -46,6 +46,14 @@ ${BASE_DIR}/bin/tools/generate_vocab.py \
   --input_file ${OUTPUT_DIR_TRAIN}/targets.txt \
   --output_file ${OUTPUT_DIR_TRAIN}/vocab.targets.txt
 
+# Create character vocabulary
+${BASE_DIR}/bin/tools/generate_char_vocab.py \
+  < ${OUTPUT_DIR_TRAIN}/sources.txt \
+  > ${OUTPUT_DIR_TRAIN}/vocab.sources.char.txt
+${BASE_DIR}/bin/tools/generate_char_vocab.py \
+  < ${OUTPUT_DIR_TRAIN}/targets.txt \
+  > ${OUTPUT_DIR_TRAIN}/vocab.targets.char.txt
+
 # Creating zip file
 ARCHIVE_PATH="${OUTPUT_DIR}/toy_copy.tar.gz"
 tar -cvzf ${ARCHIVE_PATH} \

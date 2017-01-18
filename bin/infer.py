@@ -19,6 +19,9 @@ tf.flags.DEFINE_string("model_dir", None, "directory to load model from")
 tf.flags.DEFINE_string("checkpoint_path", None,
                        """Full path to the checkpoint to be loaded. If None,
                        the latest checkpoint in the model dir is used.""")
+tf.flags.DEFINE_string("delimiter", " ",
+                       """Join predicted tokens on this delimiter.
+                       Defaults to " " (space).""")
 tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
 tf.flags.DEFINE_integer("beam_width", None,
                         "Use beam search with this beam width for decoding")
@@ -176,7 +179,7 @@ def main(_argv):
           tf.logging.info("Wrote %s", output_path)
         attention_scores_accum.append(get_scores(predictions_dict))
 
-      sent = " ".join(predicted_tokens).split("SEQUENCE_END")[0]
+      sent = FLAGS.delimiter.join(predicted_tokens).split("SEQUENCE_END")[0]
       # Replace special BPE tokens
       sent = sent.replace("@@ ", "")
       sent = sent.strip()
