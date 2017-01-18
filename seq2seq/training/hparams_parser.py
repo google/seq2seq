@@ -5,6 +5,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import re
+
 class HParamsParser(object):
   """Pases a comma-separated string of hyperaprameters
   """
