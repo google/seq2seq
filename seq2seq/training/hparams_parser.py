@@ -29,7 +29,7 @@ class HParamsParser(object):
       final_params.update(self.default_params.copy())
 
     # Split paraeters
-    params = params_str.split(",")
+    params = re.split(r",(?!\s\")", params_str)
     params = [param.split("=") for param in params]
     params = dict([(k.strip(), v.strip()) for k, v in params])
 
