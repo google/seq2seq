@@ -190,25 +190,36 @@ class TestMosesBleu(tf.test.TestCase):
 
   def test_multi_bleu(self):
     self._test_multi_bleu(
-        hypotheses=np.array(["The brown fox jumps over the dog 笑"]),
-        references=np.array(["The quick brown fox jumps over the lazy dog 笑"]),
+        hypotheses=np.array([
+            "The brown fox jumps over the dog 笑",
+            "The brown fox jumps over the dog 2 笑"]),
+        references=np.array([
+            "The quick brown fox jumps over the lazy dog 笑",
+            "The quick brown fox jumps over the lazy dog 笑"]),
         lowercase=False,
-        expected_bleu=47.88)
+        expected_bleu=46.51)
 
   def test_multi_bleu_lowercase(self):
     self._test_multi_bleu(
-        hypotheses=np.array(["The brown fox jumps over The Dog 笑"]),
-        references=np.array(["The quick brown fox jumps over the lazy dog 笑"]),
+        hypotheses=np.array([
+            "The brown fox jumps over The Dog 笑",
+            "The brown fox jumps over The Dog 2 笑"]),
+        references=np.array([
+            "The quick brown fox jumps over the lazy dog 笑",
+            "The quick brown fox jumps over the lazy dog 笑"]),
         lowercase=True,
-        expected_bleu=47.88)
+        expected_bleu=46.51)
 
   def test_multi_bleu_with_eos(self):
     self._test_multi_bleu(
         hypotheses=np.array([
-            "The brown fox jumps over the dog 笑 SEQUENCE_END 2 x x x"]),
-        references=np.array(["The quick brown fox jumps over the lazy dog 笑"]),
+            "The brown fox jumps over the dog 笑 SEQUENCE_END 2 x x x",
+            "The brown fox jumps over the dog 2 笑 SEQUENCE_END 2 x x x"]),
+        references=np.array([
+            "The quick brown fox jumps over the lazy dog 笑",
+            "The quick brown fox jumps over the lazy dog 笑"]),
         lowercase=False,
-        expected_bleu=47.88)
+        expected_bleu=46.51)
 
 
 class TestLRDecay(tf.test.TestCase):
