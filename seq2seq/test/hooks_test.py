@@ -47,7 +47,7 @@ class TestTrainSampleHook(tf.test.TestCase):
     pred_dict = {}
     pred_dict["predicted_tokens"] = tf.constant([["Hello", "World", "笑w"]])
     pred_dict["labels.target_tokens"] = tf.constant([["Hello", "World", "笑w"]])
-    pred_dict["labels.target_len"] = tf.constant([2]),
+    pred_dict["labels.target_len"] = tf.constant(2),
     graph_utils.add_dict_to_collection(pred_dict, "predictions")
 
   def tearDown(self):

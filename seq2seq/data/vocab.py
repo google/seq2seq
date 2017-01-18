@@ -65,7 +65,7 @@ def create_vocabulary_lookup_table(filename, default_value=None):
 
   # Load vocabulary into memory
   with gfile.GFile(filename) as file:
-    vocab = list(line.strip() for line in file)
+    vocab = list(line.strip("\n") for line in file)
   vocab_size = len(vocab)
 
   # Add special vocabulary items

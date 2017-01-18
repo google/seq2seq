@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Test Cases for Training utils.
 """
@@ -5,6 +7,7 @@ Test Cases for Training utils.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import shutil
 import tempfile
@@ -167,27 +170,45 @@ class TestDefaultHooks(tf.test.TestCase):
 
 class TestMosesBleu(tf.test.TestCase):
   """Tests using the Moses multi-bleu script to calcualte BLEU score"""
-  def test_multi_bleu(self):
+
+  def _test_multi_bleu(self, hypotheses, references, lowercase, expected_bleu):
+    # Test with unicode
     result = training_utils.moses_multi_bleu(
-        hypotheses=np.array(["The brown fox jumps over the dog"]),
-        references=np.array(["The quick brown fox jumps over the lazy dog"]),
-        lowercase=False)
-    self.assertEqual(result, 50.25)
+        hypotheses=hypotheses,
+        references=references,
+        lowercase=lowercase)
+    np.testing.assert_almost_equal(result, expected_bleu, decimal=2)
+
+    # Test with byte string
+    hypotheses_b = np.array([_.encode("utf-8") for _ in hypotheses]).astype("O")
+    references_b = np.array([_.encode("utf-8") for _ in references]).astype("O")
+    result = training_utils.moses_multi_bleu(
+        hypotheses=hypotheses_b,
+        references=references_b,
+        lowercase=lowercase)
+    np.testing.assert_almost_equal(result, expected_bleu, decimal=2)
+
+  def test_multi_bleu(self):
+    self._test_multi_bleu(
+        hypotheses=np.array(["The brown fox jumps over the dog 笑"]),
+        references=np.array(["The quick brown fox jumps over the lazy dog 笑"]),
+        lowercase=False,
+        expected_bleu=47.88)
 
   def test_multi_bleu_lowercase(self):
-    result = training_utils.moses_multi_bleu(
-        hypotheses=np.array(["The brown fox jumps over The Dog"]),
-        references=np.array(["The quick brown fox jumps over the lazy dog"]),
-        lowercase=True)
-    self.assertEqual(result, 50.25)
+    self._test_multi_bleu(
+        hypotheses=np.array(["The brown fox jumps over The Dog 笑"]),
+        references=np.array(["The quick brown fox jumps over the lazy dog 笑"]),
+        lowercase=True,
+        expected_bleu=47.88)
 
   def test_multi_bleu_with_eos(self):
-    result = training_utils.moses_multi_bleu(
+    self._test_multi_bleu(
         hypotheses=np.array([
-            "The brown fox jumps over the dog SEQUENCE_END 2 x x x"]),
-        references=np.array(["The quick brown fox jumps over the lazy dog"]),
-        lowercase=False)
-    self.assertEqual(result, 50.25)
+            "The brown fox jumps over the dog 笑 SEQUENCE_END 2 x x x"]),
+        references=np.array(["The quick brown fox jumps over the lazy dog 笑"]),
+        lowercase=False,
+        expected_bleu=47.88)
 
 
 class TestLRDecay(tf.test.TestCase):

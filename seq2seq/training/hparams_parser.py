@@ -5,6 +5,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import re
+
 class HParamsParser(object):
   """Pases a comma-separated string of hyperaprameters
   """
@@ -28,8 +30,8 @@ class HParamsParser(object):
     if with_defaults:
       final_params.update(self.default_params.copy())
 
-    # Split paraeters
-    params = params_str.split(",")
+    # Split parameters
+    params = re.split(r",(?!\s\")", params_str)
     params = [param.split("=") for param in params]
     params = dict([(k.strip(), v.strip()) for k, v in params])
 
