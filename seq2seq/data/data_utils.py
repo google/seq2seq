@@ -14,6 +14,7 @@ def make_parallel_data_provider(data_sources_source,
                                 data_sources_target,
                                 reader=tf.TextLineReader,
                                 num_samples=None,
+                                delimiter=" ",
                                 **kwargs):
   """Creates a DataProvider that reads parallel text data.
 
@@ -22,6 +23,7 @@ def make_parallel_data_provider(data_sources_source,
     data_sources_target: A list of data sources for the target text files.
       Can be None for inference mode.
     num_samples: Optional, number of records in the dataset
+    delimiter: Split tokens in the data on this delimiter. Defaults to space.
     kwargs: Additional arguments (shuffle, num_epochs, etc) that are passed
       to the data provider
 
@@ -32,7 +34,8 @@ def make_parallel_data_provider(data_sources_source,
   decoder_source = split_tokens_decoder.SplitTokensDecoder(
       tokens_feature_name="source_tokens",
       length_feature_name="source_len",
-      append_token="SEQUENCE_END")
+      append_token="SEQUENCE_END",
+      delimiter=delimiter)
 
   dataset_source = tf.contrib.slim.dataset.Dataset(
       data_sources=data_sources_source,
@@ -47,7 +50,9 @@ def make_parallel_data_provider(data_sources_source,
         tokens_feature_name="target_tokens",
         length_feature_name="target_len",
         prepend_token="SEQUENCE_START",
-        append_token="SEQUENCE_END")
+        append_token="SEQUENCE_END",
+        delimiter=delimiter)
+
     dataset_target = tf.contrib.slim.dataset.Dataset(
         data_sources=data_sources_target,
         reader=reader,

@@ -277,7 +277,8 @@ def create_input_fn(data_provider_fn,
   return input_fn
 
 
-def create_default_training_hooks(estimator, sample_frequency=500):
+def create_default_training_hooks(estimator, sample_frequency=500,
+                                  delimiter=" "):
   """Creates common SessionRunHooks used for training.
 
   Args:
@@ -296,7 +297,8 @@ def create_default_training_hooks(estimator, sample_frequency=500):
 
   train_sample_hook = hooks.TrainSampleHook(
       every_n_steps=sample_frequency,
-      sample_dir=os.path.join(output_dir, "samples"))
+      sample_dir=os.path.join(output_dir, "samples"),
+      delimiter=delimiter)
   training_hooks.append(train_sample_hook)
 
   metadata_hook = hooks.MetadataCaptureHook(

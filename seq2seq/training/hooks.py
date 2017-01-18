@@ -160,11 +160,13 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     every_n_steps: Sample predictions every N steps.
       If set, `every_n_secs` must be None.
     sample_dir: Optional, a directory to write samples to.
+    delimiter: Join tokens on this delimiter. Defaults to space.
   """
 
   #pylint: disable=missing-docstring
 
-  def __init__(self, every_n_secs=None, every_n_steps=None, sample_dir=None):
+  def __init__(self, every_n_secs=None, every_n_steps=None, sample_dir=None,
+               delimiter=" "):
     super(TrainSampleHook, self).__init__()
     self._sample_dir = sample_dir
     self._timer = SecondOrStepTimer(
@@ -173,6 +175,7 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     self._should_trigger = False
     self._iter_count = 0
     self._global_step = None
+    self.delimiter = delimiter
 
   def begin(self):
     self._iter_count = 0
@@ -211,14 +214,12 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     result_str += ("=" * 100) + "\n"
     for result in result_dicts:
       target_len = result["target_len"]
-      result["predicted_tokens"] = np.char.decode(
-          result["predicted_tokens"].astype("S"), "utf-8")
-      result["target_words"] = np.char.decode(
-          result["target_words"].astype("S"), "utf-8")
       predicted_slice = result["predicted_tokens"][:target_len - 1]
       target_slice = result["target_words"][1:target_len]
-      result_str += " ".join(predicted_slice) + "\n"
-      result_str += " ".join(target_slice) + "\n\n"
+      result_str += self.delimiter.encode("utf-8").join(
+          predicted_slice).decode("utf-8") + "\n"
+      result_str += self.delimiter.encode("utf-8").join(
+          target_slice).decode("utf-8") + "\n\n"
     result_str += ("=" * 100) + "\n\n"
     tf.logging.info(result_str)
     if self._sample_dir:
