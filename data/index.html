@@ -80,6 +80,8 @@
                 
                     <li><a class="toctree-l4" href="#subword-units-bpe">Subword Units (BPE)</a></li>
                 
+                    <li><a class="toctree-l4" href="#character-vocabulary">Character Vocabulary</a></li>
+                
             
             </ul>
         
@@ -258,6 +260,14 @@ cd subword-nmt
 
 <p>The resulting BPE-processed files can be used as-is in place of the raw text files for training the NMT model. Note that you must now use the BPE vocabulary as your vocabulary file. You can do this by generating a vocabulary based on the BPE-processed files.</p>
 <p>In the BPE-processed file the original words are split using a special <code>"@@ "</code> string. To recover the original tokenization you can simply perform a <code>sed "s/@@ //g"</code> operation on the BPE files and the model output. For more details, refer to the paper and <a href="https://github.com/rsennrich/subword-nmt">subword-nmt</a> Github repository.</p>
+<h3 id="character-vocabulary">Character Vocabulary</h3>
+<p>Sometimes you want to run training on characters instead of words or subword units. The <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/tools/generate_char_vocab.py"><code>bin/tools/generate_char_vocab.py</code></a> can generate a vocabulary file that contains the unique set of characters found in the text:</p>
+<pre><code class="shell">./bin/tools/generate_char_vocab.py \
+  &lt; /data/source.txt \
+  &gt; /data/source_vocab.char.txt
+</code></pre>
+
+<p>To run training on characters you must pass the <code>--delimiter=""</code> flag to the training script to avoid splitting words on spaces. See the <a href="../training/">Training documentation</a> for more details.</p>
               
             </div>
           </div>
