@@ -43,8 +43,9 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
     self.assertAllClose(res_standard_[1][0], res_test_[1][0])
     self.assertAllClose(res_standard_[1][1], res_test_[1][1])
 
-  def test_with_residuals(self):
-    inputs = tf.constant(np.random.randn(1, 2))
+  def _test_with_residuals(self, inputs, **kwargs):
+    """Runs the cell in a session"""
+    inputs = tf.convert_to_tensor(inputs)
     state = (
         tf.constant(np.random.randn(1, 2)),
         tf.constant(np.random.randn(1, 2)))
@@ -52,38 +53,76 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
     with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
       test_cell = rnn_cell.ExtendedMultiRNNCell(
           [tf.contrib.rnn.GRUCell(2)] * 2,
-          residual_connections=True)
+          residual_connections=True, **kwargs)
       res_test = test_cell(inputs, state, scope="test")
 
     with self.test_session() as sess:
       sess.run([tf.global_variables_initializer()])
-      res_test_ = sess.run(res_test)
+      return sess.run(res_test)
 
-    # Just a smoke test, these numbers are not calculated by hand
-    self.assertAllClose([[-2.10551531, -1.03866035]], res_test_[0])
-    self.assertAllClose([[-0.7694797, -0.1046757]], res_test_[1][0])
-    self.assertAllClose([[-0.89064711, -0.61222793]], res_test_[1][1])
+  def test_residuals_add(self):
+    inputs = np.random.randn(1, 2)
+    with tf.variable_scope("same_input_size"):
+      res_ = self._test_with_residuals(inputs, residual_combiner="add")
+      self.assertEqual(res_[0].shape, (1, 2))
+      self.assertEqual(res_[1][0].shape, (1, 2))
+      self.assertEqual(res_[1][1].shape, (1, 2))
 
-  def test_with_residuals_transform(self):
-    inputs = tf.constant(np.random.randn(1, 5))
-    state = (
-        tf.constant(np.random.randn(1, 2)),
-        tf.constant(np.random.randn(1, 2)))
+    inputs = np.random.randn(1, 5)
+    with tf.variable_scope("diff_input_size"):
+      res_ = self._test_with_residuals(inputs, residual_combiner="add")
+      self.assertEqual(res_[0].shape, (1, 2))
+      self.assertEqual(res_[1][0].shape, (1, 2))
+      self.assertEqual(res_[1][1].shape, (1, 2))
 
-    with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
-      test_cell = rnn_cell.ExtendedMultiRNNCell(
-          [tf.contrib.rnn.GRUCell(2)] * 2,
-          residual_connections=True)
-      res_test = test_cell(inputs, state, scope="test")
+    with tf.variable_scope("same_input_size_dense"):
+      res_ = self._test_with_residuals(
+          inputs, residual_combiner="add", residual_dense=True)
+      self.assertEqual(res_[0].shape, (1, 2))
+      self.assertEqual(res_[1][0].shape, (1, 2))
+      self.assertEqual(res_[1][1].shape, (1, 2))
 
-    with self.test_session() as sess:
-      sess.run([tf.global_variables_initializer()])
-      res_test_ = sess.run(res_test)
+    inputs = np.random.randn(1, 5)
+    with tf.variable_scope("diff_input_size_dense"):
+      res_ = self._test_with_residuals(
+          inputs, residual_combiner="add", residual_dense=True)
+      self.assertEqual(res_[0].shape, (1, 2))
+      self.assertEqual(res_[1][0].shape, (1, 2))
+      self.assertEqual(res_[1][1].shape, (1, 2))
 
-    # Just a smoke test, these numbers are not calculated by hand
-    self.assertAllClose([[-0.18053266, -0.45155333]], res_test_[0])
-    self.assertAllClose([[-0.3921121, -0.56264944]], res_test_[1][0])
-    self.assertAllClose([[0.58282027, 0.29629828]], res_test_[1][1])
+  def test_residuals_concat(self):
+    inputs = np.random.randn(1, 2)
+    with tf.variable_scope("same_input_size"):
+      res_ = self._test_with_residuals(inputs, residual_combiner="concat")
+      self.assertEqual(res_[0].shape, (1, 6))
+      self.assertEqual(res_[1][0].shape, (1, 2))
+      self.assertEqual(res_[1][1].shape, (1, 2))
+
+    inputs = np.random.randn(1, 5)
+    with tf.variable_scope("diff_input_size"):
+      res_ = self._test_with_residuals(inputs, residual_combiner="concat")
+      self.assertEqual(res_[0].shape, (1, 5 + 2 + 2))
+      self.assertEqual(res_[1][0].shape, (1, 2))
+      self.assertEqual(res_[1][1].shape, (1, 2))
+
+    inputs = np.random.randn(1, 2)
+    with tf.variable_scope("same_input_size_dense"):
+      res_ = self._test_with_residuals(
+          inputs, residual_combiner="concat",residual_dense=True)
+      self.assertEqual(res_[0].shape, (1, 2 + 4 + 2))
+      self.assertEqual(res_[1][0].shape, (1, 2))
+      self.assertEqual(res_[1][1].shape, (1, 2))
+
+    inputs = np.random.randn(1, 5)
+    with tf.variable_scope("diff_input_size_dense"):
+      res_ = self._test_with_residuals(
+          inputs, residual_combiner="concat", residual_dense=True)
+      self.assertEqual(res_[0].shape, (1, 2 + (5 + 2) + 5))
+      self.assertEqual(res_[1][0].shape, (1, 2))
+      self.assertEqual(res_[1][1].shape, (1, 2))
+
+
+
 
 
 if __name__ == "__main__":

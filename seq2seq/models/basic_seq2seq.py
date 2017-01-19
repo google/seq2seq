@@ -47,6 +47,8 @@ class BasicSeq2Seq(Seq2SeqBase):
         "rnn_cell.dropout_output_keep_prob": 1.0,
         "rnn_cell.num_layers": 1,
         "rnn_cell.residual_connections": False,
+        "rnn_cell.residual_combiner": "add",
+        "rnn_cell.residual_dense": False
     })
     return params
 
@@ -65,7 +67,9 @@ class BasicSeq2Seq(Seq2SeqBase):
         dropout_output_keep_prob=(
             self.params["rnn_cell.dropout_output_keep_prob"]
             if enable_dropout else 1.0),
-        residual_connections=self.params["rnn_cell.residual_connections"])
+        residual_connections=self.params["rnn_cell.residual_connections"],
+        residual_combiner=self.params["rnn_cell.residual_combiner"],
+        residual_dense=self.params["rnn_cell.residual_dense"])
     encoder_fn = encoders.UnidirectionalRNNEncoder(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 
