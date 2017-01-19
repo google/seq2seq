@@ -6,6 +6,7 @@ setup(
     install_requires=[
         "numpy",
         "tensorflow",
-        "matplotlib"
+        "matplotlib",
+        "pyyaml"
     ]
 )
