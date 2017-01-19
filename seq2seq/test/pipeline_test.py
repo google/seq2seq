@@ -14,9 +14,11 @@ import imp
 import os
 import shutil
 import tempfile
+import yaml
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.platform import gfile
 
 from seq2seq.test import utils as test_utils
 
@@ -64,13 +66,28 @@ class PipelineTest(tf.test.TestCase):
     tf.app.flags.FLAGS.output_dir = self.output_dir
     tf.app.flags.FLAGS.train_source = sources_train.name
     tf.app.flags.FLAGS.train_target = targets_train.name
-    tf.app.flags.FLAGS.dev_source = sources_dev.name
-    tf.app.flags.FLAGS.dev_target = targets_dev.name
     tf.app.flags.FLAGS.vocab_source = vocab_source.name
     tf.app.flags.FLAGS.vocab_target = vocab_target.name
     tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
     tf.app.flags.FLAGS.batch_size = 2
-    tf.app.flags.FLAGS.train_steps = 50
+
+    # We pass a few flags via a config file
+    config_path = os.path.join(self.output_dir, "train_config.yml")
+    with gfile.GFile(config_path, "w") as config_file:
+      yaml.dump({
+          "dev_source":  sources_dev.name,
+          "dev_target":  targets_dev.name,
+          "train_steps": 50,
+          "hparams": {
+              "embedding.dim": 64,
+              "attention.dim": 16,
+              "decoder.rnn_cell.cell_spec": {
+                  "class": "GRUCell",
+                  "num_units": 32
+              }
+          }}, config_file)
+
+    tf.app.flags.FLAGS.config_path = config_path
 
     # Run training
     tf.logging.set_verbosity(tf.logging.INFO)

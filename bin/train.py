@@ -6,6 +6,7 @@
 import functools
 import os
 import tempfile
+import yaml
 
 from seq2seq import models
 from seq2seq.data import data_utils, vocab
@@ -41,6 +42,10 @@ tf.flags.DEFINE_string("vocab_target", None,
 tf.flags.DEFINE_string("delimiter", " ",
                        """Split input files into tokens on this delimiter.
                       Defaults to " " (space).""")
+tf.flags.DEFINE_string("config_path", None,
+                       """Path to a YAML configuration file defining FLAG
+                       values and hyperparameters. Refer to the documentation
+                       for more details.""")
 
 # Model Configuration
 tf.flags.DEFINE_string("model", "AttentionSeq2Seq",
@@ -108,6 +113,12 @@ def create_experiment(output_dir):
     output_dir: Output directory for model checkpoints and summaries.
   """
 
+  # Load flags from config file
+  if FLAGS.config_path:
+    with gfile.GFile(FLAGS.config_path) as config_file:
+      config_flags = yaml.load(config_file)
+    FLAGS.__dict__["__flags"].update(config_flags)
+
   config = run_config.RunConfig(
       tf_random_seed=FLAGS.tf_random_seed,
       save_checkpoints_secs=FLAGS.save_checkpoints_secs,
@@ -125,8 +136,10 @@ def create_experiment(output_dir):
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()
-  if FLAGS.hparams is not None:
+  if FLAGS.hparams is not None and isinstance(FLAGS.hparams, str):
     hparams = HParamsParser(hparams).parse(FLAGS.hparams)
+  elif isinstance(FLAGS.hparams, dict):
+    hparams.update(FLAGS.hparams)
 
   # Print hparams
   training_utils.print_hparams(hparams)

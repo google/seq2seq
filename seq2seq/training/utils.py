@@ -106,24 +106,26 @@ def cell_from_spec(cell_spec):
   Returns:
     A RNNCell instance.
   """
-  cell_spec_dict = json.loads(cell_spec)
-  if "class" not in cell_spec_dict:
+
+  cell_spec = cell_spec.copy()
+
+  if "class" not in cell_spec:
     raise ValueError("cell_spec must specify \"class\".")
 
   # Find the cell class
-  cell_class_name = cell_spec_dict.pop("class")
+  cell_class_name = cell_spec.pop("class")
   cell_class = getattr(rnn_cell, cell_class_name)
 
   # Make sure additional arguments are valid
   cell_args = set(inspect.getargspec(cell_class.__init__).args[1:])
-  for key in cell_spec_dict.keys():
+  for key in cell_spec.keys():
     if key not in cell_args:
       raise ValueError(
           """{} is not a valid argument for {} class. Available arguments
           are: {}""".format(key, cell_class.__name__, cell_args))
 
   # Create cell
-  return cell_class(**cell_spec_dict)
+  return cell_class(**cell_spec)
 
 
 def get_rnn_cell(cell_spec,

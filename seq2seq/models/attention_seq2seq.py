@@ -44,14 +44,18 @@ class AttentionSeq2Seq(Seq2SeqBase):
         "attention.dim": 128,
         "attention.score_type": "dot",
         "encoder.type": "UnidirectionalRNNEncoder",
-        "encoder.rnn_cell.cell_spec": """
-            { "class": "BasicLSTMCell", "num_units": 128 }""",
+        "encoder.rnn_cell.cell_spec": {
+            "class": "BasicLSTMCell",
+            "num_units": 128
+        },
         "encoder.rnn_cell.dropout_input_keep_prob": 1.0,
         "encoder.rnn_cell.dropout_output_keep_prob": 1.0,
         "encoder.rnn_cell.num_layers": 1,
         "encoder.rnn_cell.residual_connections": False,
-        "decoder.rnn_cell.cell_spec": """
-            { "class": "BasicLSTMCell", "num_units": 128 }""",
+        "decoder.rnn_cell.cell_spec": {
+            "class": "BasicLSTMCell",
+            "num_units": 128
+        },
         "decoder.rnn_cell.dropout_input_keep_prob": 1.0,
         "decoder.rnn_cell.dropout_output_keep_prob": 1.0,
         "decoder.rnn_cell.num_layers": 1,
