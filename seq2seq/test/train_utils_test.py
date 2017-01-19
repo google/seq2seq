@@ -25,21 +25,21 @@ class TestGetRNNCell(tf.test.TestCase):
   """
   def test_single_layer(self):
     cell = training_utils.get_rnn_cell(
-        cell_spec="""{ "class": "BasicLSTMCell", "num_units": 16 }""",
+        cell_spec={ "class": "BasicLSTMCell", "num_units": 16 },
         num_layers=1)
     self.assertIsInstance(cell, tf.contrib.rnn.BasicLSTMCell)
     self.assertEqual(cell.output_size, 16)
 
   def test_multi_layer(self):
     cell = training_utils.get_rnn_cell(
-        cell_spec="""{ "class": "BasicLSTMCell", "num_units": 16 }""",
+        cell_spec={ "class": "BasicLSTMCell", "num_units": 16 },
         num_layers=2)
     self.assertIsInstance(cell, rnn_cell.ExtendedMultiRNNCell)
     self.assertEqual(cell.output_size, 16)
 
   def test_dropout(self):
     cell = training_utils.get_rnn_cell(
-        cell_spec="""{ "class": "BasicLSTMCell", "num_units": 16 }""",
+        cell_spec={ "class": "BasicLSTMCell", "num_units": 16 },
         num_layers=1,
         dropout_input_keep_prob=0.5)
     self.assertIsInstance(cell, tf.contrib.rnn.DropoutWrapper)
@@ -50,13 +50,13 @@ class TestGetRNNCell(tf.test.TestCase):
     # Invalid args should raise a ValueError
     with self.assertRaises(ValueError):
       training_utils.get_rnn_cell(
-          cell_spec="""{ "class": "LSTMCell", "num_units": 16,
-            "use_peepholesERROR": true }""",
+          cell_spec={ "class": "LSTMCell", "num_units": 16,
+            "use_peepholesERROR": True },
           num_layers=1)
 
     cell = training_utils.get_rnn_cell(
-        cell_spec="""{ "class": "LSTMCell", "num_units": 16,
-            "use_peepholes": true, "forget_bias": 0.5 }""",
+        cell_spec={ "class": "LSTMCell", "num_units": 16,
+            "use_peepholes": True, "forget_bias": 0.5 },
         num_layers=1)
     self.assertIsInstance(cell, tf.contrib.rnn.LSTMCell)
     #pylint: disable=E1101,W0212

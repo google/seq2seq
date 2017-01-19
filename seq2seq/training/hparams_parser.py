@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import json
 import re
 
 class HParamsParser(object):
@@ -42,6 +43,9 @@ class HParamsParser(object):
       # need to cast to float first.
       if value_type == int:
         value = int(float(value))
+      elif value_type == dict and isinstance(value, str):
+        # If we expect a dict but get a string we try to parse JSON
+          value = json.loads(value)
       elif value_type == bool:
         value = (value.lower() == "true")
       else:

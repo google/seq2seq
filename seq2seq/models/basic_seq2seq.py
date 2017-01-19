@@ -39,8 +39,10 @@ class BasicSeq2Seq(Seq2SeqBase):
   def default_params():
     params = Seq2SeqBase.default_params().copy()
     params.update({
-        "rnn_cell.cell_spec": """
-            { "class": "BasicLSTMCell", "num_units": 128}""",
+        "rnn_cell.cell_spec": {
+            "class": "BasicLSTMCell",
+            "num_units": 128
+        },
         "rnn_cell.dropout_input_keep_prob": 1.0,
         "rnn_cell.dropout_output_keep_prob": 1.0,
         "rnn_cell.num_layers": 1,

@@ -81,6 +81,10 @@ class PipelineTest(tf.test.TestCase):
           "hparams": {
               "embedding.dim": 64,
               "attention.dim": 16,
+              "decoder.rnn_cell.cell_spec": {
+                  "class": "GRUCell",
+                  "num_units": 32
+              }
           }}, config_file)
 
     tf.app.flags.FLAGS.config_path = config_path
