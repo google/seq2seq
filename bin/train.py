@@ -113,12 +113,6 @@ def create_experiment(output_dir):
     output_dir: Output directory for model checkpoints and summaries.
   """
 
-  # Load flags from config file
-  if FLAGS.config_path:
-    with gfile.GFile(FLAGS.config_path) as config_file:
-      config_flags = yaml.load(config_file)
-    FLAGS.__dict__["__flags"].update(config_flags)
-
   config = run_config.RunConfig(
       tf_random_seed=FLAGS.tf_random_seed,
       save_checkpoints_secs=FLAGS.save_checkpoints_secs,
@@ -227,6 +221,14 @@ def create_experiment(output_dir):
 
 def main(_argv):
   """The entrypoint for the script"""
+
+  # Load flags from config file
+  if FLAGS.config_path:
+    with gfile.GFile(FLAGS.config_path) as config_file:
+      config_flags = yaml.load(config_file)
+      for flag_key, flag_value in config_flags.items():
+        setattr(FLAGS, flag_key, flag_value)
+
   if not FLAGS.output_dir:
     FLAGS.output_dir = tempfile.mkdtemp()
 
