@@ -106,7 +106,13 @@ def cell_from_spec(cell_spec):
   Returns:
     A RNNCell instance.
   """
-  cell_spec_dict = json.loads(cell_spec)
+  if isinstance(cell_spec, str):
+    cell_spec_dict = json.loads(cell_spec)
+  elif isinstance(cell_spec, dict):
+    cell_spec_dict = cell_spec
+  else:
+    raise ValueError("cell_spec must be a dict or a JSON string")
+
   if "class" not in cell_spec_dict:
     raise ValueError("cell_spec must specify \"class\".")
 
