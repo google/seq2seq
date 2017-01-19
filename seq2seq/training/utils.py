@@ -132,7 +132,9 @@ def get_rnn_cell(cell_spec,
                  num_layers=1,
                  dropout_input_keep_prob=1.0,
                  dropout_output_keep_prob=1.0,
-                 residual_connections=False):
+                 residual_connections=False,
+                 residual_combiner="add",
+                 residual_dense=False):
   """Creates a new RNN Cell.
 
   Args:
@@ -162,7 +164,9 @@ def get_rnn_cell(cell_spec,
   if num_layers > 1:
     cell = rnn_cell.ExtendedMultiRNNCell(
         cells=[cell] * num_layers,
-        residual_connections=residual_connections)
+        residual_connections=residual_connections,
+        residual_combiner=residual_combiner,
+        residual_dense=residual_dense)
 
   return cell
 

@@ -23,7 +23,8 @@ for cell_class in TF_CELL_CLASSES:
 class ExtendedMultiRNNCell(MultiRNNCell):
   """Extends the Tensorflow MultiRNNCell with residual connections"""
 
-  def __init__(self, cells, residual_connections=False):
+  def __init__(self, cells, residual_connections=False,
+              residual_combiner="add", residual_dense=False):
     """Create a RNN cell composed sequentially of a number of RNNCells.
 
     Args:
@@ -36,13 +37,20 @@ class ExtendedMultiRNNCell(MultiRNNCell):
         This requires all cells to have the same output_size. Also, iff the
         input size is not equal to the cell output size, a linear transform
         is added before the first layer.
+      residual_combiner: One of "add" or "concat". To create inputs for layer
+        t+1 either "add" the inputs from the prev layer or concat them.
+      residual_dense: Densely connect each layer to all other layers
 
     Raises:
       ValueError: if cells is empty (not allowed), or at least one of the cells
         returns a state tuple but the flag `state_is_tuple` is `False`.
     """
     super(ExtendedMultiRNNCell, self).__init__(cells, state_is_tuple=True)
+    assert residual_combiner in ["add", "concat"]
+
     self._residual_connections = residual_connections
+    self._residual_combiner = residual_combiner
+    self._residual_dense = residual_dense
 
   def __call__(self, inputs, state, scope=None):
     """Run this multi-layer cell on inputs, starting from state."""
@@ -51,10 +59,11 @@ class ExtendedMultiRNNCell(MultiRNNCell):
           inputs, state, (scope or "extended_multi_rnn_cell"))
 
     with tf.variable_scope(scope or "extended_multi_rnn_cell"):
-      # Residual connections are only possible when input and output
+      # Adding Residual connections are only possible when input and output
       # sizes are equal. Optionally transform the initial inputs to
       # `cell[0].output_size`
-      if self._cells[0].output_size != inputs.get_shape().as_list()[0]:
+      if self._cells[0].output_size != inputs.get_shape().as_list()[0] and \
+          self._residual_combiner == "add":
         inputs = tf.contrib.layers.fully_connected(
             inputs=inputs,
             num_outputs=self._cells[0].output_size,
@@ -63,6 +72,7 @@ class ExtendedMultiRNNCell(MultiRNNCell):
 
       # Iterate through all layers (code from MultiRNNCell)
       cur_inp = inputs
+      prev_inputs = [cur_inp]
       new_states = []
       for i, cell in enumerate(self._cells):
         with tf.variable_scope("cell_%d" % i):
@@ -73,9 +83,18 @@ class ExtendedMultiRNNCell(MultiRNNCell):
           cur_state = state[i]
           next_input, new_state = cell(cur_inp, cur_state)
 
+          # Either combine all previous inputs or only the current input
+          input_to_combine = prev_inputs[-1:]
+          if self._residual_dense:
+            input_to_combine = prev_inputs
+
           # Add Residual connection
-          next_input = next_input + cur_inp
+          if self._residual_combiner == "add":
+            next_input = next_input + sum(input_to_combine)
+          elif self._residual_combiner == "concat":
+            next_input = tf.concat_v2([next_input] + input_to_combine , 1)
           cur_inp = next_input
+          prev_inputs.append(cur_inp)
 
           new_states.append(new_state)
     new_states = (tuple(new_states) if self._state_is_tuple else
