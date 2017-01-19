@@ -95,7 +95,7 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
 
 class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
   """
-  Tests the BidirectionalRNNEncoder class.
+  Tests the StackBidirectionalRNNEncoder class.
   """
 
   def setUp(self):
