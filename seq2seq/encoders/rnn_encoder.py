@@ -66,3 +66,38 @@ class BidirectionalRNNEncoder(GraphModule):
     outputs_concat = tf.concat_v2(outputs, 2)
 
     return RNNEncoderOutput(outputs=outputs_concat, final_state=states)
+
+
+class StackBidirectionalRNNEncoder(GraphModule):
+  """
+  A stacked bidirectional RNN encoder. Uses the same cell for both the
+  forward and backward RNN. Stacking should be performed as part of
+  the cell.
+
+  Args:
+    cell: An instance of tf.contrib.rnn.RNNCell
+    name: A name for the encoder
+  """
+
+  def __init__(self, cell, name="stacked_bidi_rnn_encoder"):
+    super(StackBidirectionalRNNEncoder, self).__init__(name)
+    self.cell = cell
+
+  def _build(self, inputs, sequence_length, **kwargs):
+    # "Unpack" the cells because the stack_bidirectional_dynamic_rnn
+    # expects a list of cells, one per layer.
+    if isinstance(self.cell, tf.contrib.rnn.MultiRNNCell):
+      cells = self.cell._cells #pylint: disable=W0212
+    else:
+      cells = [self.cell]
+
+    result = tf.contrib.rnn.stack_bidirectional_dynamic_rnn(
+        cells_fw=cells,
+        cells_bw=cells,
+        inputs=inputs,
+        dtype=tf.float32,
+        sequence_length=sequence_length,
+        **kwargs)
+    outputs_concat, _output_state_fw, _output_state_bw = result
+    final_state = (_output_state_fw, _output_state_bw)
+    return RNNEncoderOutput(outputs=outputs_concat, final_state=final_state)
