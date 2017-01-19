@@ -188,6 +188,11 @@
 <td>Dimensionality of the embedding layer.</td>
 </tr>
 <tr>
+<td><code>inference.max_decode_length</code></td>
+<td><code>100</code></td>
+<td>During inference mode, decode up to this length or until a <code>SEQUENCE_END</code> token is encountered, whichever happens first.</td>
+</tr>
+<tr>
 <td><code>optimizer.name</code></td>
 <td><code>Adam</code></td>
 <td>Type of Optimizer to use, e.g. <code>Adam</code>, <code>SGD</code> or <code>Momentum</code>. The name is fed to TensorFlow's <a href="https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss">optimize_loss</a> function. See TensorFlow documentation for more details and all available options.</td>

@@ -84,13 +84,22 @@
                 <li class="toctree-l3"><a href="#input-files">Input Files</a></li>
                 
             
-                <li class="toctree-l3"><a href="#training-script-parameters">Training Script &amp; Parameters</a></li>
+                <li class="toctree-l3"><a href="#running-training">Running Training</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#passing-hyperparameters">Passing Hyperparameters</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#passing-a-configuration-file">Passing a configuration file</a></li>
                 
             
                 <li class="toctree-l3"><a href="#distributed-training">Distributed Training</a></li>
                 
             
                 <li class="toctree-l3"><a href="#monitoring-training">Monitoring Training</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#training-script-arguments">Training script arguments</a></li>
                 
             
             </ul>
@@ -166,8 +175,8 @@
 <li>Source vocabulary: Defines the source vocabulary. A raw text file that contains one word per line.</li>
 <li>Target vocabulary: Defines the target vocabulary. A raw text file that contains one word per line.</li>
 </ul>
-<h3 id="training-script-parameters">Training Script &amp; Parameters</h3>
-<p>To train a new model, run the training script below (also see <a href="../getting_started/">Getting Started</a>:</p>
+<h3 id="running-training">Running Training</h3>
+<p>To train a new model, run the training script below (also see <a href="../getting_started/">Getting Started</a>):</p>
 <pre><code class="shell">./bin/train.py \
   --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
   --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
@@ -178,9 +187,39 @@
   --model AttentionSeq2Seq \
   --batch_size 32 \
   --train_epochs 5 \
+  --hparams &quot;embedding.dim=512,optimizer.name=Adam&quot; \
   --output_dir ${TMPDIR}/nmt_toy_reverse
 </code></pre>
 
+<h3 id="passing-hyperparameters">Passing Hyperparameters</h3>
+<p><a href="../models/">Model hyperparameters</a> can be passed via the <code>hparams</code> flags. This flag is a string of the form
+<code>"param1=value1,param2=value2,..."</code>. Whitespace between parameters pairs is ignored and you can have line breaks in your string. For complex parameters specifications, like cell specificatons, we recommend using a separate configuration file (see below).</p>
+<h3 id="passing-a-configuration-file">Passing a configuration file</h3>
+<p>An alternative to passing arguments to the training script is to define a configuration file in YAML format and pass it via the <code>config_path</code> flags. For example, the trian command above would be expressed as follows in a configuration file:</p>
+<pre><code class="yaml">train_source: /home/nmt_data/toy_reverse/train/sources.txt
+train_target: /home/nmt_data/toy_reverse/train/targets.txt
+dev_source: /home/nmt_data/toy_reverse/dev/sources.txt
+dev_target: /home/nmt_data/toy_reverse/dev/targets.txt
+vocab_source: /home/nmt_data/toy_reverse/train/vocab.sources.txt
+vocab_target: /home/nmt_data/toy_reverse/train/vocab.targets.txt
+model: AttentionSeq2Seq
+batch_size: 32
+train_epochs: 5
+hparams:
+  embedding.dim: 512
+  optimizer.name: Adam
+output_dir: /tmp/nmt_toy_reverse
+</code></pre>
+
+<p>Note that environment variables in configuration files are not yet supported. Flags defined as both command line arguments and configuration file values are overwritten by configuration file values. Command line flags not present in the configuration file will be merged. Parameters that   as JSON objects on the command like (e.g. <code>cell_spec</code>) can be defined as key-value pairs directly in the YAML file.</p>
+<h3 id="distributed-training">Distributed Training</h3>
+<p>Distributed Training is supported out of the box using <code>tf.learn</code>. Cluster Configurations can be specified using the <code>TF_CONFIG</code> environment variable, which is parsed by the <a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py"><code>RunConfig</code></a>. Refer to the <a href="https://www.tensorflow.org/how_tos/distributed/">Distributed Tensorflow</a> Guide for more information.</p>
+<h3 id="monitoring-training">Monitoring Training</h3>
+<p>In addition to looking at the output of the training script, Tensorflow write summaries and training logs into the specified <code>output_dir</code>. Use <a href="https://www.tensorflow.org/how_tos/summaries_and_tensorboard/">Tensorboard</a> to visualize training progress.</p>
+<pre><code class="shell">tensorboard --logdir=/path/to/model/dir
+</code></pre>
+
+<h3 id="training-script-arguments">Training script arguments</h3>
 <p>The <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/train.py">train.py</a> script has many more options. Bold arguments are required.</p>
 <table>
 <thead>
@@ -225,6 +264,11 @@
 <td><strong>delimiter</strong></td>
 <td><code>" "</code></td>
 <td>Split input files into tokens on this delimiter. Defaults to <code>" "</code> (space).</td>
+</tr>
+<tr>
+<td>config_path</td>
+<td>---</td>
+<td>Path to a YAML configuration file defining FLAG values and hyperparameters. See below.</td>
 </tr>
 <tr>
 <td>model</td>
@@ -298,12 +342,6 @@
 </tr>
 </tbody>
 </table>
-<h3 id="distributed-training">Distributed Training</h3>
-<p>Distributed Training is supported out of the box using <code>tf.learn</code>. Cluster Configurations can be specified using the <code>TF_CONFIG</code> environment variable, which is parsed by the <a href="https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py"><code>RunConfig</code></a>. Refer to the <a href="https://www.tensorflow.org/how_tos/distributed/">Distributed Tensorflow</a> Guide for more information.</p>
-<h3 id="monitoring-training">Monitoring Training</h3>
-<p>In addition to looking at the output of the training script, Tensorflow write summaries and training logs into the specified <code>output_dir</code>. Use <a href="https://www.tensorflow.org/how_tos/summaries_and_tensorboard/">Tensorboard</a> to visualize training progress.</p>
-<pre><code class="shell">tensorboard --logdir=/path/to/model/dir
-</code></pre>
               
             </div>
           </div>
