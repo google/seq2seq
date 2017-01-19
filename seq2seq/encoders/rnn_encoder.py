@@ -84,6 +84,8 @@ class StackBidirectionalRNNEncoder(GraphModule):
     self.cell = cell
 
   def _build(self, inputs, sequence_length, **kwargs):
+    # "Unpack" the cells because the stack_bidirectional_dynamic_rnn
+    # expects a list of cells, one per layer.
     if isinstance(self.cell, tf.contrib.rnn.MultiRNNCell):
       cells = self.cell._cells #pylint: disable=W0212
     else:
