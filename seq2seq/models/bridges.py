@@ -20,8 +20,8 @@ def _total_tensor_depth(tensor):
 @six.add_metaclass(abc.ABCMeta)
 class Bridge(object):
   """An abstract bridge class. A bridge defines how state is passed
-  between encoder and decoder. This can be done in two ways -  by modyfing
-  the decoder inputs, or by create an initial decoder state.
+  between encoder and decoder. This can be done in two ways -  by modifying
+  the decoder inputs, or by creating an initial decoder state.
 
   All logic is contained in the `_create` method, which returns a new
   input function and initial state for the decoder.
