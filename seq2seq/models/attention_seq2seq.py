@@ -8,13 +8,11 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from seq2seq import encoders
 from seq2seq import decoders
-from seq2seq.training import utils as training_utils
-from seq2seq.models.model_base import Seq2SeqBase
+from seq2seq.models.basic_seq2seq import BasicSeq2Seq
 
 
-class AttentionSeq2Seq(Seq2SeqBase):
+class AttentionSeq2Seq(BasicSeq2Seq):
   """Sequence2Sequence model with attention mechanism.
 
   Args:
@@ -30,40 +28,18 @@ class AttentionSeq2Seq(Seq2SeqBase):
                target_vocab_info,
                params,
                name="att_seq2seq"):
-    super(AttentionSeq2Seq, self).__init__(source_vocab_info, target_vocab_info,
-                                           params, name)
-
-    assert hasattr(encoders, params["encoder.type"]), (
-        "Invalid encoder type: {}".format(params["encoder.type"]))
-    self.encoder_class = getattr(encoders, params["encoder.type"])
+    super(AttentionSeq2Seq, self).__init__(
+        source_vocab_info, target_vocab_info, params, name)
 
   @staticmethod
   def default_params():
-    params = Seq2SeqBase.default_params().copy()
+    params = BasicSeq2Seq.default_params().copy()
     params.update({
         "attention.dim": 128,
         "attention.score_type": "dot",
-        "encoder.type": "UnidirectionalRNNEncoder",
-        "encoder.rnn_cell.cell_spec": {
-            "class": "BasicLSTMCell",
-            "num_units": 128
+        "bridge_spec": {
+            "class": "ZeroBridge",
         },
-        "encoder.rnn_cell.dropout_input_keep_prob": 1.0,
-        "encoder.rnn_cell.dropout_output_keep_prob": 1.0,
-        "encoder.rnn_cell.num_layers": 1,
-        "encoder.rnn_cell.residual_connections": False,
-        "encoder.rnn_cell.residual_combiner": "add",
-        "encoder.rnn_cell.residual_dense": False,
-        "decoder.rnn_cell.cell_spec": {
-            "class": "BasicLSTMCell",
-            "num_units": 128
-        },
-        "decoder.rnn_cell.dropout_input_keep_prob": 1.0,
-        "decoder.rnn_cell.dropout_output_keep_prob": 1.0,
-        "decoder.rnn_cell.num_layers": 1,
-        "decoder.rnn_cell.residual_connections": False,
-        "decoder.rnn_cell.residual_combiner": "add",
-        "decoder.rnn_cell.residual_dense": False
     })
     return params
 
@@ -73,36 +49,16 @@ class AttentionSeq2Seq(Seq2SeqBase):
                     decoder_input_fn,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
-    encoder_cell = training_utils.get_rnn_cell(
-        cell_spec=self.params["encoder.rnn_cell.cell_spec"],
-        num_layers=self.params["encoder.rnn_cell.num_layers"],
-        dropout_input_keep_prob=(
-            self.params["encoder.rnn_cell.dropout_input_keep_prob"]
-            if enable_dropout else 1.0),
-        dropout_output_keep_prob=(
-            self.params["encoder.rnn_cell.dropout_output_keep_prob"]
-            if enable_dropout else 1.0),
-        residual_connections=self.params[
-            "encoder.rnn_cell.residual_connections"],
-        residual_combiner=self.params["encoder.rnn_cell.residual_combiner"],
-        residual_dense=self.params["encoder.rnn_cell.residual_dense"])
+    encoder_cell = self._create_encoder_cell(enable_dropout)
     encoder_fn = self.encoder_class(encoder_cell)
     encoder_output = encoder_fn(source, source_len)
 
-    decoder_cell = training_utils.get_rnn_cell(
-        cell_spec=self.params["decoder.rnn_cell.cell_spec"],
-        num_layers=self.params["decoder.rnn_cell.num_layers"],
-        dropout_input_keep_prob=(
-            self.params["decoder.rnn_cell.dropout_input_keep_prob"]
-            if enable_dropout else 1.0),
-        dropout_output_keep_prob=(
-            self.params["decoder.rnn_cell.dropout_output_keep_prob"]
-            if enable_dropout else 1.0),
-        residual_connections=self.params[
-            "decoder.rnn_cell.residual_connections"],
-        residual_combiner=self.params["decoder.rnn_cell.residual_combiner"],
-        residual_dense=self.params["decoder.rnn_cell.residual_dense"])
-
+    decoder_cell = self._create_decoder_cell(enable_dropout)
+    bridge = self._create_bridge(
+        encoder_outputs=encoder_output,
+        decoder_cell=decoder_cell,
+        input_fn=decoder_input_fn)
+    new_decoder_input_fn, decoder_initial_state = bridge()
     attention_layer = decoders.AttentionLayer(
         num_units=self.params["attention.dim"],
         score_type=self.params["attention.score_type"])
@@ -117,7 +73,7 @@ class AttentionSeq2Seq(Seq2SeqBase):
 
     decoder_fn = decoders.AttentionDecoder(
         cell=decoder_cell,
-        input_fn=decoder_input_fn,
+        input_fn=new_decoder_input_fn,
         vocab_size=self.target_vocab_info.total_size,
         attention_inputs=encoder_output.outputs,
         attention_fn=attention_layer,
@@ -129,7 +85,6 @@ class AttentionSeq2Seq(Seq2SeqBase):
           decoder_fn)
 
     decoder_output, _, _ = decoder_fn(
-        initial_state=decoder_cell.zero_state(
-            tf.shape(source_len)[0], dtype=tf.float32))
+        initial_state=decoder_initial_state)
 
     return decoder_output

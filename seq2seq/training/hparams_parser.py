@@ -45,7 +45,7 @@ class HParamsParser(object):
         value = int(float(value))
       elif value_type == dict and isinstance(value, str):
         # If we expect a dict but get a string we try to parse JSON
-          value = json.loads(value)
+        value = json.loads(value)
       elif value_type == bool:
         value = (value.lower() == "true")
       else:

@@ -6,7 +6,6 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.training import basic_session_run_hooks, session_run_hook

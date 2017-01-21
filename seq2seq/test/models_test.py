@@ -305,7 +305,6 @@ class EncoderDecoderTests(tf.test.TestCase):
     predictions_, = fetches_
     pred_len = predictions_["predicted_ids"].shape[1]
 
-    seq_length = model.params["inference.max_decode_length"]
     vocab_size = model.target_vocab_info.total_size
     np.testing.assert_array_equal(
         predictions_["logits"].shape,
@@ -337,10 +336,15 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
   def create_model(self, params=None):
     params_ = BasicSeq2Seq.default_params().copy()
     params_.update({
-        "rnn_cell.dropout_input_keep_prob": 0.8,
-        "rnn_cell.num_layers": 2,
-        "rnn_cell.residual_connections": True,
-        "rnn_cell.cell_spec":  { "class": "LSTMCell", "num_units": 128 }
+        "bridge_spec": {
+            "class": "PassThroughBridge",
+        },
+        "encoder.rnn_cell.dropout_input_keep_prob": 0.8,
+        "encoder.rnn_cell.num_layers": 2,
+        "encoder.rnn_cell.residual_connections": True,
+        "encoder.rnn_cell.cell_spec":  {"class": "LSTMCell", "num_units": 12},
+        "decoder.rnn_cell.num_layers": 2,
+        "decoder.rnn_cell.cell_spec":  {"class": "LSTMCell", "num_units": 12}
     })
     params_.update(params or {})
     return BasicSeq2Seq(
