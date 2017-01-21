@@ -65,7 +65,7 @@ class TestTrainSampleHook(tf.test.TestCase):
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       sess.run(tf.local_variables_initializer())
-      sess.run(tf.initialize_all_tables())
+      sess.run(tf.tables_initializer())
 
       #pylint: disable=W0212
       mon_sess = monitored_session._HookedSession(sess, [hook])

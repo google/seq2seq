@@ -108,7 +108,7 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
     inputs = np.random.randn(1, 2)
     with tf.variable_scope("same_input_size_dense"):
       res_ = self._test_with_residuals(
-          inputs, residual_combiner="concat",residual_dense=True)
+          inputs, residual_combiner="concat", residual_dense=True)
       self.assertEqual(res_[0].shape, (1, 2 + 4 + 2))
       self.assertEqual(res_[1][0].shape, (1, 2))
       self.assertEqual(res_[1][1].shape, (1, 2))
@@ -120,10 +120,6 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
       self.assertEqual(res_[0].shape, (1, 2 + (5 + 2) + 5))
       self.assertEqual(res_[1][0].shape, (1, 2))
       self.assertEqual(res_[1][1].shape, (1, 2))
-
-
-
-
 
 if __name__ == "__main__":
   tf.test.main()

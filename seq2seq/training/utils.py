@@ -260,7 +260,6 @@ def create_input_fn(data_provider_fn,
           capacity=5000 + 16 * batch_size,
           allow_smaller_final_batch=allow_smaller_final_batch,
           name="bucket_queue")
-      tf.summary.histogram("buckets", bucket_num)
     else:
       batch = tf.train.batch(
           tensors=features_and_labels,

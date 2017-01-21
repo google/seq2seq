@@ -24,7 +24,7 @@ class ExtendedMultiRNNCell(MultiRNNCell):
   """Extends the Tensorflow MultiRNNCell with residual connections"""
 
   def __init__(self, cells, residual_connections=False,
-              residual_combiner="add", residual_dense=False):
+               residual_combiner="add", residual_dense=False):
     """Create a RNN cell composed sequentially of a number of RNNCells.
 
     Args:
@@ -92,7 +92,7 @@ class ExtendedMultiRNNCell(MultiRNNCell):
           if self._residual_combiner == "add":
             next_input = next_input + sum(input_to_combine)
           elif self._residual_combiner == "concat":
-            next_input = tf.concat_v2([next_input] + input_to_combine , 1)
+            next_input = tf.concat_v2([next_input] + input_to_combine, 1)
           cur_inp = next_input
           prev_inputs.append(cur_inp)
 
