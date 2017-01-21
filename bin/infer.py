@@ -129,7 +129,7 @@ def main(_argv):
     # Initialize variables
     sess.run(tf.global_variables_initializer())
     sess.run(tf.local_variables_initializer())
-    sess.run(tf.initialize_all_tables())
+    sess.run(tf.tables_initializer())
 
     # Restore checkpoint
     saver.restore(sess, checkpoint_path)

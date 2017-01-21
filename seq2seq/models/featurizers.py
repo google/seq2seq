@@ -70,7 +70,7 @@ class Seq2SeqFeaturizer(GraphModule):
         "source_tokens"])
 
     features["source_len"] = tf.to_int32(features["source_len"])
-    tf.summary.histogram("source_len", features["source_len"])
+    tf.summary.histogram("source_len", tf.to_float(features["source_len"]))
 
     if labels is None:
       return features, None
@@ -88,6 +88,6 @@ class Seq2SeqFeaturizer(GraphModule):
     labels["target_ids"] = target_vocab_to_id.lookup(labels["target_tokens"])
 
     labels["target_len"] = tf.to_int32(labels["target_len"])
-    tf.summary.histogram("target_len", labels["target_len"])
+    tf.summary.histogram("target_len", tf.to_float(labels["target_len"]))
 
     return features, labels

@@ -64,7 +64,7 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       sess.run(tf.local_variables_initializer())
-      sess.run(tf.initialize_all_tables())
+      sess.run(tf.tables_initializer())
 
       ids = vocab_to_id_table.lookup(
           tf.convert_to_tensor(["Hello", ".", "笑", "??", "xxx"]))
