@@ -39,8 +39,11 @@ tf.flags.DEFINE_string("vocab_source", None,
 tf.flags.DEFINE_string("vocab_target", None,
                        """Path to the target vocabulary.
                        A raw text file with one word per line.""")
-tf.flags.DEFINE_string("delimiter", " ",
-                       """Split input files into tokens on this delimiter.
+tf.flags.DEFINE_string("source_delimiter", " ",
+                       """Split source files into tokens on this delimiter.
+                      Defaults to " " (space).""")
+tf.flags.DEFINE_string("target_delimiter", " ",
+                       """Split target files into tokens on this delimiter.
                       Defaults to " " (space).""")
 tf.flags.DEFINE_string("config_path", None,
                        """Path to a YAML configuration file defining FLAG
@@ -172,7 +175,8 @@ def create_experiment(output_dir):
           data_sources_target=FLAGS.train_target,
           shuffle=True,
           num_epochs=FLAGS.train_epochs,
-          delimiter=FLAGS.delimiter),
+          source_delimiter=FLAGS.source_delimiter,
+          target_delimiter=FLAGS.target_delimiter),
       batch_size=FLAGS.batch_size,
       bucket_boundaries=bucket_boundaries)
 
@@ -184,7 +188,8 @@ def create_experiment(output_dir):
           data_sources_target=FLAGS.dev_target,
           shuffle=False,
           num_epochs=1,
-          delimiter=FLAGS.delimiter),
+          source_delimiter=FLAGS.source_delimiter,
+          target_delimiter=FLAGS.target_delimiter),
       batch_size=FLAGS.batch_size)
 
   def model_fn(features, labels, params, mode):
@@ -199,7 +204,8 @@ def create_experiment(output_dir):
   train_hooks = training_utils.create_default_training_hooks(
       estimator=estimator,
       sample_frequency=FLAGS.sample_every_n_steps,
-      delimiter=FLAGS.delimiter)
+      source_delimiter=FLAGS.source_delimiter,
+      target_delimiter=FLAGS.target_delimiter)
 
   eval_metrics = {
       "log_perplexity": metrics.streaming_log_perplexity(),
