@@ -14,7 +14,8 @@ def make_parallel_data_provider(data_sources_source,
                                 data_sources_target,
                                 reader=tf.TextLineReader,
                                 num_samples=None,
-                                delimiter=" ",
+                                source_delimiter=" ",
+                                target_delimiter=" ",
                                 **kwargs):
   """Creates a DataProvider that reads parallel text data.
 
@@ -35,7 +36,7 @@ def make_parallel_data_provider(data_sources_source,
       tokens_feature_name="source_tokens",
       length_feature_name="source_len",
       append_token="SEQUENCE_END",
-      delimiter=delimiter)
+      delimiter=source_delimiter)
 
   dataset_source = tf.contrib.slim.dataset.Dataset(
       data_sources=data_sources_source,
@@ -51,7 +52,7 @@ def make_parallel_data_provider(data_sources_source,
         length_feature_name="target_len",
         prepend_token="SEQUENCE_START",
         append_token="SEQUENCE_END",
-        delimiter=delimiter)
+        delimiter=target_delimiter)
 
     dataset_target = tf.contrib.slim.dataset.Dataset(
         data_sources=data_sources_target,
