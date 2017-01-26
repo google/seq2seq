@@ -41,6 +41,8 @@ tf.flags.DEFINE_string("dump_attention_dir", None,
                        "Write all attention plots to this directory.")
 tf.flags.DEFINE_string("dump_attention_no_plot", None,
                        "If set, does not generate attention plots.")
+tf.flags.DEFINE_string("dump_beams", None,
+                       "Write beam search information to this file.")
 
 
 FLAGS = tf.flags.FLAGS
@@ -96,13 +98,19 @@ def main(_argv):
       model_dir=FLAGS.model_dir,
       input_file=FLAGS.source,
       batch_size=FLAGS.batch_size,
-      beam_width=FLAGS.beam_width
-  )
+      beam_width=FLAGS.beam_width)
 
   # Filter fetched predictions to save memory
   prediction_keys = set(
       ["predicted_tokens", "features.source_len", "features.source_tokens",
        "attention_scores"])
+
+  if FLAGS.beam_width > 1 and FLAGS.dump_beams is not None:
+    prediction_keys.update([
+        "beam_search_output.predicted_ids",
+        "beam_search_output.beam_parent_ids",
+        "beam_search_output.scores",
+        "beam_search_output.log_probs"])
 
   # Optional UNK token replacement
   unk_replace_fn = None
@@ -140,6 +148,14 @@ def main(_argv):
     attention_scores_accum = []
     if FLAGS.dump_attention_dir is not None:
       gfile.MakeDirs(FLAGS.dump_attention_dir)
+
+    # Accumulate beam search debug information in thse arrays
+    beam_accum = {
+        "predicted_ids": [],
+        "beam_parent_ids": [],
+        "scores": [],
+        "log_probs": []
+    }
 
     # Output predictions
     predictions_iter = create_predictions_iter(predictions, sess)
@@ -179,6 +195,17 @@ def main(_argv):
           tf.logging.info("Wrote %s", output_path)
         attention_scores_accum.append(get_scores(predictions_dict))
 
+      # Optionally dump beams
+      if FLAGS.dump_beams is not None:
+        beam_accum["predicted_ids"] += [predictions_dict[
+            "beam_search_output.predicted_ids"]]
+        beam_accum["beam_parent_ids"] += [predictions_dict[
+            "beam_search_output.beam_parent_ids"]]
+        beam_accum["scores"] += [predictions_dict[
+            "beam_search_output.scores"]]
+        beam_accum["log_probs"] += [predictions_dict[
+            "beam_search_output.log_probs"]]
+
       sent = FLAGS.delimiter.join(predicted_tokens).split("SEQUENCE_END")[0]
       # Replace special BPE tokens
       sent = sent.replace("@@ ", "")
@@ -191,6 +218,9 @@ def main(_argv):
       scores_path = os.path.join(
           FLAGS.dump_attention_dir, "attention_scores.npz")
       np.savez(scores_path, *attention_scores_accum)
+
+    if FLAGS.dump_beams is not None:
+      np.savez(FLAGS.dump_beams, **beam_accum)
 
 if __name__ == "__main__":
   tf.app.run()

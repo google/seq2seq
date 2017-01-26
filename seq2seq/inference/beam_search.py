@@ -6,6 +6,7 @@ from __future__ import division
 from __future__ import print_function
 
 from collections import namedtuple
+import numpy as np
 
 import tensorflow as tf
 from tensorflow.python.util import nest
@@ -51,6 +52,32 @@ class BeamSearchConfig(
       on their scores. Maps from (scores, config) => (chosen scores, chosen_ids)
   """
   pass
+
+
+def gather_tree_py(values, parents):
+  """Gathers path through a tree backwards from the leave nodes. Used
+  to reconstruct beams given their parents."""
+  beam_length = values.shape[0]
+  num_beams = values.shape[1]
+  res = np.zeros_like(values)
+  res[-1, :] = values[-1, :]
+  for beam_id in range(num_beams):
+    parent = parents[-1][beam_id]
+    for level in reversed(range(beam_length - 1)):
+      res[level, beam_id] = values[level][parent]
+      parent = parents[level][parent]
+  return np.array(res).astype(values.dtype)
+
+
+def gather_tree(values, parents):
+  """Tensor version of gather_tree_py"""
+  res = tf.py_func(
+      func=gather_tree_py,
+      inp=[values, parents],
+      Tout=values.dtype)
+  res.set_shape(values.get_shape().as_list())
+  return res
+
 
 def create_initial_beam_state(config, max_time):
   """Creates an instance of `BeamState` that can be used on the first

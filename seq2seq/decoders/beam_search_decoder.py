@@ -12,9 +12,14 @@ import tensorflow as tf
 from seq2seq.inference import beam_search
 from seq2seq.decoders.decoder_base import DecoderBase, DecoderStepOutput
 
+class FinalBeamDecoderOutput(
+    namedtuple("FinalBeamDecoderOutput", [
+        "predicted_ids", "beam_search_output"
+    ])):
+  pass
 
 class BeamDecoderOutput(
-    namedtuple("DecoderOutput", [
+    namedtuple("BeamDecoderOutput", [
         "logits", "predicted_ids", "log_probs", "scores", "beam_parent_ids",
         "original_outputs"
     ])):
@@ -98,13 +103,21 @@ class BeamSearchDecoder(DecoderBase):
         *[tf.expand_dims(_, 1) for _ in orignal_output]
     )
 
-    return BeamDecoderOutput(
+    beam_search_output = BeamDecoderOutput(
         logits=tf.expand_dims(logits, 1),
         predicted_ids=tf.expand_dims(predicted_ids, 1),
         log_probs=tf.expand_dims(log_probs, 1),
         scores=tf.expand_dims(scores, 1),
         beam_parent_ids=tf.expand_dims(beam_parent_ids, 1),
         original_outputs=orignal_output)
+
+    predicted_ids = beam_search.gather_tree(
+        predicted_ids,
+        beam_parent_ids)
+
+    return FinalBeamDecoderOutput(
+        predicted_ids=tf.expand_dims(predicted_ids, 1),
+        beam_search_output=beam_search_output)
 
   def compute_output(self, cell_output):
     raise ValueError("""Beam Search decoder does not support this method.""")
