@@ -12,6 +12,22 @@ import numpy as np
 from seq2seq.inference import beam_search
 
 
+class TestGatherTree(tf.test.TestCase):
+  """Tests the gather_tree function"""
+  def test_gather_tree(self):
+    predicted_ids = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    parent_ids = np.array([[0, 0, 0], [0, 1, 1], [2, 1, 2]])
+    expected_result = np.array([[2, 2, 2], [6, 5, 6], [7, 8, 9]])
+
+    res = beam_search.gather_tree(
+        tf.convert_to_tensor(predicted_ids),
+        tf.convert_to_tensor(parent_ids))
+    with self.test_session() as sess:
+      res_ = sess.run(res)
+
+    np.testing.assert_array_equal(expected_result, res_)
+
+
 class TestBeamStep(tf.test.TestCase):
   """Tests a single step of beam search
   """

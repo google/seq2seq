@@ -14,7 +14,29 @@ By default, this script generates an `attention_score.npy` array file and one at
 
 ## Visualizing Beam Search
 
-Not yet supported.
+To dump beam search debugging information you can pass the `--dump_beams` flag to the `infer.py script`. This will
+write a numpy npz with the raw beam search data.
+
+
+```
+./bin/infer.py \
+  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
+  --model_dir ${TMPDIR}/nmt_toy_reverse \
+  --beam_width 5 \
+  --dump_beams ${TMPDIR}/beams.npz > /dev/null
+```
+
+You can inspect the beam search data by loading the array using numpy, or generate beam search visualizations using the
+`generate_beam_viz.py` script:
+
+```
+bin/tools/generate_beam_viz.py  \
+  -o ${TMPDIR}/beam_visualizations \
+  -d ${TMPDIR}/beams.npz \
+  -v $HOME/nmt_data/toy_reverse//train/vocab.targets.txt
+```
+
+![Beam Search Visualization](http://i.imgur.com/kLec8l4l.png)
 
 
 ## Model Performance Profiling

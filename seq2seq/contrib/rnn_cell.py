@@ -62,7 +62,7 @@ class ExtendedMultiRNNCell(MultiRNNCell):
       # Adding Residual connections are only possible when input and output
       # sizes are equal. Optionally transform the initial inputs to
       # `cell[0].output_size`
-      if self._cells[0].output_size != inputs.get_shape().as_list()[0] and \
+      if self._cells[0].output_size != inputs.get_shape().as_list()[1] and \
           self._residual_combiner == "add":
         inputs = tf.contrib.layers.fully_connected(
             inputs=inputs,

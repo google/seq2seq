@@ -79,11 +79,15 @@ class PipelineTest(tf.test.TestCase):
           "dev_target":  targets_dev.name,
           "train_steps": 50,
           "hparams": {
-              "embedding.dim": 64,
+              "embedding.dim": 10,
               "attention.dim": 16,
               "decoder.rnn_cell.cell_spec": {
                   "class": "GRUCell",
-                  "num_units": 32
+                  "num_units": 8
+              },
+              "encoder.rnn_cell.cell_spec": {
+                  "class": "GRUCell",
+                  "num_units": 8
               }
           }}, config_file)
 
