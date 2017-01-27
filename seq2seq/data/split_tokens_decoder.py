@@ -41,11 +41,11 @@ class SplitTokensDecoder(data_decoder.DataDecoder):
 
     # Optionally prepend a special token
     if self.prepend_token is not None:
-      tokens = tf.concat_v2([[self.prepend_token], tokens], 0)
+      tokens = tf.concat([[self.prepend_token], tokens], 0)
 
     # Optionally append a special token
     if self.append_token is not None:
-      tokens = tf.concat_v2([tokens, [self.append_token]], 0)
+      tokens = tf.concat([tokens, [self.append_token]], 0)
 
     decoded_items[self.length_feature_name] = tf.size(tokens)
     decoded_items[self.tokens_feature_name] = tokens

@@ -94,7 +94,7 @@ class AttentionDecoder(DecoderBase):
     # between decoder state and attention context
     # see https://arxiv.org/abs/1508.04025v5
     softmax_input = tf.contrib.layers.fully_connected(
-        inputs=tf.concat_v2([cell_output, attention_context], 1),
+        inputs=tf.concat([cell_output, attention_context], 1),
         num_outputs=self.cell.output_size,
         activation_fn=tf.nn.tanh,
         scope="attention_mix")
@@ -126,7 +126,7 @@ class AttentionDecoder(DecoderBase):
     else:
       attention_context = output.attention_context
 
-    next_input = tf.concat_v2([next_input, attention_context], 1)
+    next_input = tf.concat([next_input, attention_context], 1)
     return next_input, elements_finished
 
   def _pad_att_scores(self, scores):
