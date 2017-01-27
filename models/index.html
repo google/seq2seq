@@ -245,8 +245,7 @@
 </tbody>
 </table>
 <h2 id="basicseq2seq">BasicSeq2Seq</h2>
-<p>The <code>BasicSeq2Seq</code> model uses a unidirectional encoder and decoder with no attention mechanism. The last encoder state is used to initialize the decoder. This is the "vanilla" implementation of the seq2seq architecture.</p>
-<p>This model supports the following additional hyperparameters.</p>
+<p>The <code>BasicSeq2Seq</code> model uses an encoder and decoder with no attention mechanism. The last encoder state is passed through a fully connected layer and used to initialize the decoder (this behavior can be changed using the <code>bridge_spec</code> hyperparameter). This is the "vanilla" implementation of the seq2seq architecture. The model supports the following additional hyperparameters.</p>
 <table>
 <thead>
 <tr>
@@ -257,62 +256,19 @@
 </thead>
 <tbody>
 <tr>
-<td><code>rnn_cell.cell_spec</code></td>
-<td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
-<td>A JSON string that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The JSON object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
-</tr>
-<tr>
-<td><code>rnn_cell.dropout_input_keep_prob</code></td>
-<td><code>1.0</code></td>
-<td>Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout. Applies to both encoder and decoder.</td>
-</tr>
-<tr>
-<td><code>rnn_cell.dropout_output_keep_prob</code></td>
-<td><code>1.0</code></td>
-<td>Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout. Applies to both encoder and decoder.</td>
-</tr>
-<tr>
-<td><code>rnn_cell.num_layers</code></td>
-<td><code>1</code></td>
-<td>Number of RNN layers. Applies to both encoder and decoder.</td>
-</tr>
-<tr>
-<td><code>rnn_cell.residual_connections</code></td>
-<td><code>False</code></td>
-<td>If true, add residual connections between all RNN layers.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="attentionseq2seq">AttentionSeq2seq</h2>
-<p><code>AttentionSeq2seq</code> is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with an attention mechanism. The last encoder state is not fed to the decoder. This implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>.</p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>attention.dim</code></td>
-<td><code>128</code></td>
-<td>Number of units in the attention layer.</td>
-</tr>
-<tr>
-<td><code>attention.score_type</code></td>
-<td><code>dot</code></td>
-<td>The formula used to calculate attention scores. Available values are <code>bahdanau</code> and <code>dot</code>. <code>bahdanau</code> is described in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>. <code>dot</code> is described in <a href="https://arxiv.org/abs/1508.04025">Effective Approaches to Attention-based Neural Machine Translation</a>.</td>
+<td><code>bridge_spec</code></td>
+<td><code>{ "class": "InitialStateBridge"}</code></td>
+<td>A dictionary that defines how state is passed between encoder and decoder. The <code>class</code> property corresponds to a name of bridge class defined in <code>seq2seq.models.bridges</code>. All additional properties in the dictinary are passed to the bridge class constructor, e.g. <code>{"class": "InitialStateBridge", "activation_fn": "tanh"}</code>.</td>
 </tr>
 <tr>
 <td><code>encoder.type</code></td>
 <td><code>UnidirectionalRNNEncoder</code></td>
-<td>Type of encoder to use. This is the class name of an encoder defined in <code>seq2seq.encoder</code>. Currently the supported value are <code>BidirectionalRNNEncoder</code> and <code>UnidirectionalRNNEncoder</code>.</td>
+<td>Type of encoder to use. This is the class name of an encoder defined in <code>seq2seq.encoder</code>. Currently the supported value are <code>BidirectionalRNNEncoder</code>, <code>UnidirectionalRNNEncoder</code> and <code>StackBidirectionalRNNEncoder</code>.</td>
 </tr>
 <tr>
 <td><code>encoder.rnn_cell.cell_spec</code></td>
 <td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
-<td>A JSON string that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The JSON object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
+<td>A dictioanry that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The dictionary object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
 </tr>
 <tr>
 <td><code>encoder.rnn_cell.dropout_input_keep_prob</code></td>
@@ -337,7 +293,7 @@
 <tr>
 <td><code>decoder.rnn_cell.cell_spec</code></td>
 <td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
-<td>A JSON string that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The JSON object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
+<td>Same as <code>encoder.rnn_cell.cell_spec</code>, but for the decoder cell.</td>
 </tr>
 <tr>
 <td><code>decoder.rnn_cell.dropout_input_keep_prob</code></td>
@@ -358,6 +314,29 @@
 <td><code>decoder.rnn_cell.residual_connections</code></td>
 <td><code>False</code></td>
 <td>If true, add residual connections between all RNN layers in the decoder.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="attentionseq2seq">AttentionSeq2seq</h2>
+<p><code>AttentionSeq2seq</code> is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with an attention mechanism. By default, the last encoder state is not fed to the decoder. This implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>. This model supports the same parameters as the <code>BasicSeq2Seq</code> model, plus the following:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>attention.dim</code></td>
+<td><code>128</code></td>
+<td>Number of units in the attention layer.</td>
+</tr>
+<tr>
+<td><code>attention.score_type</code></td>
+<td><code>dot</code></td>
+<td>The formula used to calculate attention scores. Available values are <code>bahdanau</code> and <code>dot</code>. <code>bahdanau</code> is described in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>. <code>dot</code> is described in <a href="https://arxiv.org/abs/1508.04025">Effective Approaches to Attention-based Neural Machine Translation</a>.</td>
 </tr>
 </tbody>
 </table>
