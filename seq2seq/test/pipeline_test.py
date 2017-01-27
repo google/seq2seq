@@ -77,7 +77,7 @@ class PipelineTest(tf.test.TestCase):
       yaml.dump({
           "dev_source":  sources_dev.name,
           "dev_target":  targets_dev.name,
-          "train_steps": 15,
+          "train_steps": 50,
           "hparams": {
               "embedding.dim": 10,
               "attention.dim": 16,

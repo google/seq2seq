@@ -105,7 +105,7 @@ def main(_argv):
       ["predicted_tokens", "features.source_len", "features.source_tokens",
        "attention_scores"])
 
-  if FLAGS.beam_width > 1 and FLAGS.dump_beams is not None:
+  if FLAGS.dump_beams is not None:
     prediction_keys.update([
         "beam_search_output.predicted_ids",
         "beam_search_output.beam_parent_ids",
