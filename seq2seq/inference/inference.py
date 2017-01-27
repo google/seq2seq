@@ -13,6 +13,7 @@ from seq2seq import models
 from seq2seq.data import data_utils
 from seq2seq.data import vocab
 from seq2seq.training import utils as training_utils
+from seq2seq.inference import beam_search
 
 def load_model(model_dir, params=None):
   """Loads a model class from a given directory
@@ -96,7 +97,7 @@ def create_inference_graph(
     batch_size = 1
     params_overrides["inference.beam_search.beam_width"] = beam_width
 
-  model = load_model(model_dir)
+  model = load_model(model_dir, params_overrides)
 
   data_provider = lambda: data_utils.make_parallel_data_provider(
       data_sources_source=[input_file],

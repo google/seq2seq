@@ -173,23 +173,19 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     # Assert shapes are correct
     np.testing.assert_array_equal(
-        decoder_output_.logits.shape,
-        [self.max_decode_length, 1, beam_width,
-         model.target_vocab_info.total_size])
-    np.testing.assert_array_equal(
         decoder_output_.predicted_ids.shape,
         [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
-        decoder_output_.beam_parent_ids.shape,
+        decoder_output_.beam_search_output.beam_parent_ids.shape,
         [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
-        decoder_output_.scores.shape,
+        decoder_output_.beam_search_output.scores.shape,
         [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
-        decoder_output_.original_outputs.predicted_ids.shape,
+        decoder_output_.beam_search_output.original_outputs.predicted_ids.shape,
         [self.max_decode_length, 1, beam_width])
     np.testing.assert_array_equal(
-        decoder_output_.original_outputs.logits.shape,
+        decoder_output_.beam_search_output.original_outputs.logits.shape,
         [self.max_decode_length, 1, beam_width,
          model.target_vocab_info.total_size])
 
@@ -307,22 +303,19 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     vocab_size = model.target_vocab_info.total_size
     np.testing.assert_array_equal(
-        predictions_["logits"].shape,
-        [1, pred_len, beam_width, vocab_size])
-    np.testing.assert_array_equal(
         predictions_["predicted_ids"].shape,
         [1, pred_len, beam_width])
     np.testing.assert_array_equal(
-        predictions_["beam_parent_ids"].shape,
+        predictions_["beam_search_output.beam_parent_ids"].shape,
         [1, pred_len, beam_width])
     np.testing.assert_array_equal(
-        predictions_["scores"].shape,
+        predictions_["beam_search_output.scores"].shape,
         [1, pred_len, beam_width])
     np.testing.assert_array_equal(
-        predictions_["original_outputs.predicted_ids"].shape,
+        predictions_["beam_search_output.original_outputs.predicted_ids"].shape,
         [1, pred_len, beam_width])
     np.testing.assert_array_equal(
-        predictions_["original_outputs.logits"].shape,
+        predictions_["beam_search_output.original_outputs.logits"].shape,
         [1, pred_len, beam_width, vocab_size])
 
 
