@@ -120,7 +120,7 @@ class InitialStateBridge(Bridge):
         lambda x: tf.reshape(x, [self.batch_size, _total_tensor_depth(x)]),
         self._bridge_input)
     bridge_input_flat = nest.flatten([bridge_input])
-    bridge_input_concat = tf.concat_v2(bridge_input_flat, 1)
+    bridge_input_concat = tf.concat(bridge_input_flat, 1)
 
     # Pass bridge inputs through a linear layer
     with tf.variable_scope("initial_state_bridge"):
@@ -182,7 +182,7 @@ class ConcatInputBridge(Bridge):
         lambda x: tf.reshape(x, [self.batch_size, _total_tensor_depth(x)]),
         self._bridge_input)
     bridge_input_flat = nest.flatten([bridge_input])
-    bridge_input_concat = tf.concat_v2(bridge_input_flat, 1)
+    bridge_input_concat = tf.concat(bridge_input_flat, 1)
 
     # Pass bridge inputs through a linear layer
     with tf.variable_scope("concat_input_bridge"):
@@ -196,6 +196,6 @@ class ConcatInputBridge(Bridge):
       """An input function that concatenes the transformed encoder outputs
       to the decoer inputs"""
       next_input, finished = self.input_fn(time_, initial_call, predicted_ids)
-      return tf.concat_v2([next_input, tenor_to_concat], 1), finished
+      return tf.concat([next_input, tenor_to_concat], 1), finished
 
     return  new_input_fn, zero_state

@@ -92,11 +92,11 @@ class ExtendedMultiRNNCell(MultiRNNCell):
           if self._residual_combiner == "add":
             next_input = next_input + sum(input_to_combine)
           elif self._residual_combiner == "concat":
-            next_input = tf.concat_v2([next_input] + input_to_combine, 1)
+            next_input = tf.concat([next_input] + input_to_combine, 1)
           cur_inp = next_input
           prev_inputs.append(cur_inp)
 
           new_states.append(new_state)
     new_states = (tuple(new_states) if self._state_is_tuple else
-                  array_ops.concat_v2(new_states, 1))
+                  array_ops.concat(new_states, 1))
     return cur_inp, new_states

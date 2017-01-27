@@ -251,7 +251,7 @@ def beam_search_step(logits, beam_state, config):
 
   # Append new ids to current predictions
   next_predictions = tf.gather(beam_state.predicted_ids, next_beam_ids)
-  next_predictions = tf.concat_v2([
+  next_predictions = tf.concat([
       next_predictions[:, 0:time_ - 1],
       tf.to_int32(tf.expand_dims(next_word_ids, 1)), next_predictions[:, time_:]
   ], 1)
