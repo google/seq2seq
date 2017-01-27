@@ -35,7 +35,7 @@ def accumulate_strings(values, name="strings"):
   value_tensor = tf.identity(strings)
   update_op = tf.assign(
       ref=strings,
-      value=tf.concat_v2([strings, values], 0),
+      value=tf.concat([strings, values], 0),
       validate_shape=False)
   return value_tensor, update_op
 
