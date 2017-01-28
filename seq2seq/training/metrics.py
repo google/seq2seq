@@ -114,18 +114,21 @@ def make_bleu_metric_spec():
       prediction_key="predicted_tokens")
 
 
+class LogPerplexityMetricSpec(metric_spec.MetricSpec):
+  """A MetricSpec to calculate straming log perplexity"""
+  def __init__(self):
+    """Initializer"""
+    pass
+
+  def create_metric_ops(self, _inputs, labels, predictions):
+    """Creates the metric op"""
+    loss_mask = tf.sequence_mask(
+        lengths=tf.to_int32(labels["target_len"] - 1),
+        maxlen=tf.to_int32(tf.shape(predictions["losses"])[1]))
+    return metrics.streaming_mean(predictions["losses"], loss_mask)
+
+
 def streaming_log_perplexity():
   """Creates a MetricSpec that calculates the log perplexity.
   """
-
-  def perplexity_metric(losses, target_len):
-    """Calculates the mean log perplexity based on losses and target_len"""
-    loss_mask = tf.sequence_mask(
-        lengths=tf.to_int32(target_len - 1),
-        maxlen=tf.to_int32(tf.shape(losses)[1]))
-    return metrics.streaming_mean(losses, loss_mask)
-
-  return metric_spec.MetricSpec(
-      metric_fn=perplexity_metric,
-      label_key="target_len",
-      prediction_key="losses")
+  return LogPerplexityMetricSpec()
