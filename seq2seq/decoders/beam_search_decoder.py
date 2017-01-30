@@ -77,8 +77,8 @@ class BeamSearchDecoder(DecoderBase):
   def _unwrap_loop_state(loop_state):
     """Unwraps the loop state to return (beam_decoder_state, original_state)
     """
-    if isinstance(loop_state, tuple) and isinstance(loop_state[0],
-                                                    beam_search.BeamState):
+    if isinstance(loop_state, tuple) and isinstance(
+        loop_state[0], beam_search.BeamSearchState):
       return loop_state
     else:
       return loop_state, None
@@ -174,8 +174,7 @@ class BeamSearchDecoder(DecoderBase):
 
       # Create an initial Beam State
       beam_state = beam_search.create_initial_beam_state(
-          config=self.config,
-          max_time=self.decoder.max_decode_length)
+          config=self.config)
 
       next_loop_state = self._wrap_loop_state(
           beam_state, original_outputs.next_loop_state)
@@ -190,26 +189,26 @@ class BeamSearchDecoder(DecoderBase):
           time_, cell_output, cell_state, original_loop_state)
 
       # Perform a step of beam search
-      beam_state = beam_search.beam_search_step(
+      bs_output, beam_state = beam_search.beam_search_step(
+          time_=time_ - 1,
           logits=original_outputs.outputs.logits,
           beam_state=prev_beam_state,
           config=self.config)
-      beam_state.predicted_ids.set_shape([None, self.decoder.max_decode_length])
       next_loop_state = self._wrap_loop_state(
           beam_state, original_outputs.next_loop_state)
 
       outputs = BeamDecoderOutput(
           logits=tf.zeros([self.config.beam_width, self.config.vocab_size]),
-          predicted_ids=tf.to_int64(beam_state.predicted_ids[:, time_ - 1]),
+          predicted_ids=tf.to_int64(bs_output.predicted_ids),
           log_probs=beam_state.log_probs,
-          scores=beam_state.scores,
-          beam_parent_ids=beam_state.beam_parent_ids,
+          scores=bs_output.scores,
+          beam_parent_ids=bs_output.beam_parent_ids,
           original_outputs=original_outputs.outputs)
 
       # Cell states are shuffled around by beam search
       next_cell_state = beam_search.nest_map(
           original_outputs.next_cell_state,
-          lambda x: tf.gather(x, beam_state.beam_parent_ids))
+          lambda x: tf.gather(x, bs_output.beam_parent_ids))
 
     # The final step output
     step_output = DecoderStepOutput(
