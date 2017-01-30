@@ -11,29 +11,32 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-
-class BeamState(
-    namedtuple("BeamState", [
-        "time", "log_probs", "scores", "predicted_ids", "beam_parent_ids"
+class BeamSearchState(
+    namedtuple("BeamSearchState", [
+        "log_probs", "finished", "lengths"
     ])):
-  """Dscribes the state at each step of a beam search.
+  """State for a single step of beam search.
 
   Args:
-    time: The current time step of the RNN, starting from 0. An int32.
-    log_probs: The *total* log probabilities of all beams at the current step.
-      This the sum of the all log probabilities over previous steps.
-      A float32 tensor of shape `[beam_width]`.
-    scores: The *total* scores of all beams at the current step. This is
-      different from the log probabilities in that the score may include
-      extra computation, e.g. length normalization.
-      A float32 tensor of shape `[beam_width]`.
-    predicted_ids: The chosen word ids at the current time step. An int32 tensor
-      of shape `[beam_width]`.
-    beam_parent_ids: The indices of the continued parent beams.
-      An int32 tensor of shape `[beam_width]`.
+    log_probs: The current log probabilities of all beams
+    finished: A boolean vector that specifies which beams are finished
+    lengths: Lengths of all beams
   """
   pass
 
+class BeamSearchStepOutput(
+    namedtuple("BeamSearchStepOutput", [
+        "scores", "predicted_ids", "beam_parent_ids"
+    ])):
+  """Outputs for a single step of beam search.
+
+  Args:
+    scores: Score for each beam, a float32 vector
+    predicted_ids: predictions for this step step, an int32 vector
+    beam_parent_ids: an int32 vector containing the beam indices of the
+      continued beams from the previous step
+  """
+  pass
 
 class BeamSearchConfig(
     namedtuple("BeamSearchConfig", [
@@ -79,24 +82,39 @@ def gather_tree(values, parents):
   return res
 
 
-def create_initial_beam_state(config, max_time):
+def create_initial_beam_state(config):
   """Creates an instance of `BeamState` that can be used on the first
   call to `beam_step`.
 
   Args:
     config: A BeamSearchConfig
-    max_time: Maximum number of beam search steps. This is used to define
-      the shape of the predictions: `[beam_width, max_time]`.
 
   Returns:
     An instance of `BeamState`.
   """
-  return BeamState(
-      time=tf.constant(0, dtype=tf.int32),
+  return BeamSearchState(
       log_probs=tf.zeros([config.beam_width]),
-      scores=tf.zeros([config.beam_width]),
-      predicted_ids=tf.ones([config.beam_width, max_time], dtype=tf.int32) * -1,
-      beam_parent_ids=tf.zeros([config.beam_width], dtype=tf.int32))
+      finished=tf.zeros([config.beam_width], dtype=tf.bool),
+      lengths=tf.zeros([config.beam_width], dtype=tf.int32))
+
+
+def length_normalized_score(log_probs, sequence_lengths, penalty_factor=0.6):
+  """Calculates a length-normalized score according to equation 14 in
+  https://arxiv.org/abs/1609.08144.
+
+  Args:
+    log_probs: Log probabilities of each hypothesis, a tensor of shape
+      `[beam_size, vocab_size]`
+    sequence_lengths: Hypotheses length, a vector of length `beam_size`
+    penalty_factor: An alpha penality factor used to normalize the scores,
+      a scalar between 0 and 1.
+  """
+  length_penalty = tf.div(
+      (5. + tf.to_float(sequence_lengths))**penalty_factor,
+      (5. + 1.)**penalty_factor)
+  scores = log_probs / length_penalty
+  return scores
+
 
 def logprob_score(log_probs, _sequence_lengths):
   """A scoring function where the beam score is equal to the log probability.
@@ -157,40 +175,13 @@ def mask_probs(probs, eos_token, finished):
   return finished_examples + non_finished_examples
 
 
-def sequence_length(sequence, eos_token, include_eos_in_length=False):
-  """Calculates the sequence length using an EOS token as the endpoint.
-
-  Args:
-    sequence: The input sequences. A tensor of shape `[B, T]`
-    eos_token: An element that marks the end of a sequence. Must be of the same
-      dtype as `sequence`.
-    include_eos_in_length: If true, the returned length includes the EOS token.
-      By default the EOS token is not included in the length.
-
-  Returns:
-    An int32 tensor of shape [B] where each element is the length of the
-    corresponding input sequence. If no EOS token is found in a sequence
-    its length is equal to T.
-  """
-
-  def single_sequence_length(sequence, eos_token, include_eos_in_length):
-    """Calculats the length for a single sequence"""
-    indices = tf.where(tf.equal(sequence, eos_token))
-    return tf.cond(
-        tf.size(indices) > 0,
-        lambda: tf.to_int32(tf.reduce_min(indices)) + \
-            tf.to_int32(include_eos_in_length),
-        lambda: tf.to_int32(tf.size(sequence)))
-
-  return tf.map_fn(
-      lambda s: single_sequence_length(s, eos_token, include_eos_in_length),
-      sequence)
-
-
-def beam_search_step(logits, beam_state, config):
+def beam_search_step(time_, logits, beam_state, config):
   """Performs a single step of Beam Search Decoding.
 
   Args:
+    time_: Beam search time step, should start at 0. At time 0 we assume
+      that all beams are equal and consider only the first beam for
+      continuations.
     logits: Logits at the current time step. A tensor of shape `[B, vocab_size]`
     beam_state: Current state of the beam search. An instance of `BeamState`
     config: An instance of `BeamSearchConfig`
@@ -199,16 +190,9 @@ def beam_search_step(logits, beam_state, config):
     A new beam state.
   """
 
-  # Time starts at 1 (with all predictions having length 0)
-  time_ = beam_state.time + 1
-
   # Calculate the current lengths of the predictions
-  prediction_lengths = sequence_length(
-      beam_state.predicted_ids, config.eos_token, False)
-  prediction_lengths = tf.to_int32(prediction_lengths)
-
-  # Find all beams that are "finished" (i.e. have an EOS token already)
-  previously_finished = (prediction_lengths < time_ - 1)
+  prediction_lengths = beam_state.lengths
+  previously_finished = beam_state.finished
 
   # Calculate the total log probs for the new hypotheses
   # Final Shape: [beam_width, vocab_size]
@@ -216,51 +200,61 @@ def beam_search_step(logits, beam_state, config):
   probs = mask_probs(probs, config.eos_token, previously_finished)
   total_probs = tf.expand_dims(beam_state.log_probs, 1) + probs
 
-  # Flatten tensors. Shape: [beam_size * vocab_size]
-  total_probs_flat = tf.reshape(total_probs, [-1], name="total_probs_flat")
-
-  # Calculate the new predictions lengths
-  # We add 1 to all continuations that are not EOS
-  lengths_to_add = tf.tile(
-      tf.expand_dims(
-          tf.one_hot(
-              config.eos_token, config.vocab_size, on_value=0, off_value=1),
-          0), [config.beam_width, 1])
+  # Calculate the continuation lengths
+  # We add 1 to all continuations that are not EOS and were not
+  # finished previously
+  lengths_to_add = tf.one_hot(
+      [config.eos_token] * config.beam_width, config.vocab_size, 0, 1)
+  add_mask = (1 - tf.to_int32(previously_finished))
+  lengths_to_add = tf.expand_dims(add_mask, 1) * lengths_to_add
   new_prediction_lengths = tf.expand_dims(
-      prediction_lengths, 1) + tf.expand_dims(
-          tf.to_int32(tf.logical_not(previously_finished)), 1) * lengths_to_add
+      prediction_lengths, 1) + lengths_to_add
 
   # Calculate the scores for each beam
   scores = config.score_fn(total_probs, new_prediction_lengths)
 
   scores_flat = tf.reshape(scores, [-1])
   # During the first time step we only consider the initial beam
-  scores_flat = tf.cond(time_ > 1, lambda: scores_flat, lambda: scores[0])
+  scores_flat = tf.cond(
+      tf.convert_to_tensor(time_) > 0,
+      lambda: scores_flat,
+      lambda: scores[0])
 
   # Pick the next beams according to the specified successors function
-  next_beam_scores, word_indices = config.choose_successors_fn(scores_flat,
-                                                               config)
+  next_beam_scores, word_indices = config.choose_successors_fn(
+      scores_flat, config)
   next_beam_scores.set_shape([config.beam_width])
   word_indices.set_shape([config.beam_width])
 
   # Pick out the probs, beam_ids, and states according to the chosen predictions
+  total_probs_flat = tf.reshape(total_probs, [-1], name="total_probs_flat")
   next_beam_probs = tf.gather(total_probs_flat, word_indices)
   next_beam_probs.set_shape([config.beam_width])
   next_word_ids = tf.mod(word_indices, config.vocab_size)
   next_beam_ids = tf.div(word_indices, config.vocab_size)
 
   # Append new ids to current predictions
-  next_predictions = tf.gather(beam_state.predicted_ids, next_beam_ids)
-  next_predictions = tf.concat([
-      next_predictions[:, 0:time_ - 1],
-      tf.to_int32(tf.expand_dims(next_word_ids, 1)), next_predictions[:, time_:]
-  ], 1)
+  next_finished = tf.logical_or(
+      tf.gather(beam_state.finished, next_beam_ids),
+      tf.equal(next_word_ids, config.eos_token))
 
-  next_beam_state = BeamState(
-      time=time_,
+  # Calculate the length of the next predictions.
+  # 1. Finished beams remain unchanged
+  # 2. Beams that are now finished (EOS predicted) remain unchanged
+  # 3. Beams that are not yet finished have their length increased by 1
+  lengths_to_add = tf.to_int32(tf.not_equal(next_word_ids, config.eos_token))
+  lengths_to_add = (1 - tf.to_int32(next_finished)) * lengths_to_add
+  next_prediction_len = tf.gather(beam_state.lengths, next_beam_ids)
+  next_prediction_len += lengths_to_add
+
+  next_state = BeamSearchState(
       log_probs=next_beam_probs,
+      lengths=next_prediction_len,
+      finished=next_finished)
+
+  output = BeamSearchStepOutput(
       scores=next_beam_scores,
-      predicted_ids=next_predictions,
+      predicted_ids=next_word_ids,
       beam_parent_ids=next_beam_ids)
 
-  return next_beam_state
+  return output, next_state

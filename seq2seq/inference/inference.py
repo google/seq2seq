@@ -75,6 +75,7 @@ def create_inference_graph(
     model_dir,
     input_file,
     batch_size=32,
+    params_overrides={},
     beam_width=None):
   """Creates a graph to perform inference.
 
@@ -91,7 +92,6 @@ def create_inference_graph(
     (predictions, loss, train_op).
   """
 
-  params_overrides = {}
   if beam_width is not None:
     tf.logging.info("Setting batch size to 1 for beam search.")
     batch_size = 1

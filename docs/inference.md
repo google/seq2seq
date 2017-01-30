@@ -13,9 +13,24 @@ The inference script reads the model hyperparameters from the `hparams.txt` file
 you do not need to pass them explicitly. By default, the latest model checkpoint found in `model_dir` is used, but you can also pass a specific checkpoint (e.g. `${TMPDIR}/nmt_toy_reverse/model.ckpt-1562`) via
 the `checkpoint_path` flag.
 
+
 ## Beam Search
 
-**Beam Search is currently experimental.** To perform beam search you can pass the `beam_width` flag to specify the number of beams to use. When using beam search, your batch size will be set to 1 and the `beam_width` will be used as an implicit batch size. Beam search can thus become very expensive with large beam widths.
+**Beam Search is currently experimental.** To perform beam search you can pass the `beam_width` flag to specify the number of beams to use. When using beam search, your batch size will be set to 1 and the `beam_width` will be used as an implicit batch size. Beam search can become very expensive with large beam widths.
+
+
+## Overwriting hyperparameyers
+
+To overwrite specific hyperparameters of a model, pass an hparams JSON object as the `hparams` flag to the inference script:
+
+```
+./bin/infer.py \
+  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
+  --model_dir ${TMPDIR}/nmt_toy_reverse \
+  --beam_width 5 \
+  --hparams '{ "inference.beam_search.score_fn": "length_normalized_score" }' \
+  > ${TMPDIR}/nmt_toy_reverse/predictions.txt
+```
 
 
 ## UNK token replacement using a Copy Mechanism

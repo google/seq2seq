@@ -5,6 +5,7 @@
 import functools
 
 import os
+import json
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -25,6 +26,10 @@ tf.flags.DEFINE_string("delimiter", " ",
 tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
 tf.flags.DEFINE_integer("beam_width", None,
                         "Use beam search with this beam width for decoding")
+tf.flags.DEFINE_string("hparams", None,
+                        """A JSON string to override hyperparameters values.
+                        For example, you can use this flag to override the
+                        beam search score function.""")
 tf.flags.DEFINE_boolean("unk_replace", False,
                         """UNK token replacement strategy. If None (default)
                         do no replacement. "copy" copies source words based on
@@ -94,10 +99,16 @@ def main(_argv):
   """Program entrypoint.
   """
 
+  params_overrides = {}
+  if FLAGS.hparams is not None:
+    params_overrides = json.loads(FLAGS.hparams)
+    tf.logging.info("Overwriting parameters: %s", params_overrides)
+
   predictions, _, _ = create_inference_graph(
       model_dir=FLAGS.model_dir,
       input_file=FLAGS.source,
       batch_size=FLAGS.batch_size,
+      params_overrides=params_overrides,
       beam_width=FLAGS.beam_width)
 
   # Filter fetched predictions to save memory
