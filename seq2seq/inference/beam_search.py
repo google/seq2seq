@@ -97,6 +97,25 @@ def create_initial_beam_state(config):
       finished=tf.zeros([config.beam_width], dtype=tf.bool),
       lengths=tf.zeros([config.beam_width], dtype=tf.int32))
 
+
+def length_normalized_score(log_probs, sequence_lengths, penalty_factor=0.6):
+  """Calculates a length-normalized score according to equation 14 in
+  https://arxiv.org/abs/1609.08144.
+
+  Args:
+    log_probs: Log probabilities of each hypothesis, a tensor of shape
+      `[beam_size, vocab_size]`
+    sequence_lengths: Hypotheses length, a vector of length `beam_size`
+    penalty_factor: An alpha penality factor used to normalize the scores,
+      a scalar between 0 and 1.
+  """
+  length_penalty = tf.div(
+      (5. + tf.to_float(sequence_lengths))**penalty_factor,
+      (5. + 1.)**penalty_factor)
+  scores = log_probs / length_penalty
+  return scores
+
+
 def logprob_score(log_probs, _sequence_lengths):
   """A scoring function where the beam score is equal to the log probability.
   """

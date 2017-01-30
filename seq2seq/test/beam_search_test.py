@@ -28,6 +28,25 @@ class TestGatherTree(tf.test.TestCase):
     np.testing.assert_array_equal(expected_result, res_)
 
 
+class TestLengthNormScore(tf.test.TestCase):
+  """Tests the length normalization score"""
+  def test_length_norm(self):
+    log_probs_ = np.ones([2, 3]) / 3.0
+    lengths_ = np.array([[1, 2, 3], [3, 3, 3]])
+    penalty_factor_ = 0.6
+    scores = beam_search.length_normalized_score(
+        log_probs=tf.convert_to_tensor(log_probs_, dtype=tf.float32),
+        sequence_lengths=tf.convert_to_tensor(lengths_),
+        penalty_factor=penalty_factor_)
+
+    with self.test_session() as sess:
+      scores_ = sess.run(scores)
+
+    np.testing.assert_almost_equal(scores_[0, 0], 1./3, decimal=5)
+    np.testing.assert_almost_equal(scores_[0, 1], 0.30388, decimal=4)
+    np.testing.assert_almost_equal(scores_[0, 2], 0.28048, decimal=4)
+
+
 class TestBeamStep(tf.test.TestCase):
   """Tests a single step of beam search
   """
