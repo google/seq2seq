@@ -190,7 +190,8 @@ def create_experiment(output_dir):
           num_epochs=1,
           source_delimiter=FLAGS.source_delimiter,
           target_delimiter=FLAGS.target_delimiter),
-      batch_size=FLAGS.batch_size)
+      batch_size=FLAGS.batch_size,
+      allow_smaller_final_batch=True)
 
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
@@ -209,7 +210,7 @@ def create_experiment(output_dir):
 
   eval_metrics = {
       "log_perplexity": metrics.streaming_log_perplexity(),
-      "bleu": metrics.make_bleu_metric_spec(),
+      "bleu": metrics.make_bleu_metric_spec(delimiter=FLAGS.target_delimiter),
   }
 
   experiment = tf.contrib.learn.experiment.Experiment(

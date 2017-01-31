@@ -83,7 +83,7 @@ With the above input files you can now train a new model:
   --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
   --model AttentionSeq2Seq \
   --batch_size 32 \
-  --train_epochs 5 \
+  --train_steps 1500 \
   --output_dir ${TMPDIR}/nmt_toy_reverse
 ```
 
