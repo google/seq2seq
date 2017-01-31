@@ -21,7 +21,7 @@ To train a new model, run the training script below (also see [Getting Started](
   --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
   --model AttentionSeq2Seq \
   --batch_size 32 \
-  --train_epochs 5 \
+  --train_steps 1500 \
   --hparams "embedding.dim=512,optimizer.name=Adam" \
   --output_dir ${TMPDIR}/nmt_toy_reverse
 ```
@@ -45,7 +45,7 @@ vocab_source: /home/nmt_data/toy_reverse/train/vocab.sources.txt
 vocab_target: /home/nmt_data/toy_reverse/train/vocab.targets.txt
 model: AttentionSeq2Seq
 batch_size: 32
-train_epochs: 5
+train_steps: 1500
 hparams:
   embedding.dim: 512
   optimizer.name: Adam

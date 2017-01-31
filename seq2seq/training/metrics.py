@@ -43,6 +43,7 @@ def accumulate_strings(values, name="strings"):
 def streaming_bleu(predictions,
                    labels,
                    eos_token="SEQUENCE_END",
+                   delimiter=" ",
                    lowercase=False,
                    metrics_collections=None,
                    updates_collections=None,
@@ -70,8 +71,8 @@ def streaming_bleu(predictions,
   """
   with variable_scope.variable_scope(name, "bleu_metric"):
     # Join tokens into single strings
-    predictions_flat = tf.reduce_join(predictions, 1, separator=" ")
-    labels_flat = tf.reduce_join(labels, 1, separator=" ")
+    predictions_flat = tf.reduce_join(predictions, 1, separator=delimiter)
+    labels_flat = tf.reduce_join(labels, 1, separator=delimiter)
 
     sources_value, sources_update = accumulate_strings(
         values=predictions_flat, name="sources")
@@ -99,7 +100,7 @@ def streaming_bleu(predictions,
     return bleu_value, update_op
 
 
-def make_bleu_metric_spec():
+def make_bleu_metric_spec(delimiter=" "):
   """Creates a `MetricSpec` instance to calculate the BLEU
   score based on model predicitons and labels.
   """
@@ -109,7 +110,9 @@ def make_bleu_metric_spec():
     return streaming_bleu(predictions, labels[:, 1:], **kwargs)
 
   return metric_spec.MetricSpec(
-      metric_fn=bleu_wrapper,
+      metric_fn=functools.partial(
+          bleu_wrapper,
+          delimiter=delimiter),
       label_key="target_tokens",
       prediction_key="predicted_tokens")
 
