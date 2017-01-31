@@ -46,7 +46,7 @@ class ExtendedMultiRNNCell(MultiRNNCell):
         returns a state tuple but the flag `state_is_tuple` is `False`.
     """
     super(ExtendedMultiRNNCell, self).__init__(cells, state_is_tuple=True)
-    assert residual_combiner in ["add", "concat"]
+    assert residual_combiner in ["add", "concat", "mean"]
 
     self._residual_connections = residual_connections
     self._residual_combiner = residual_combiner
@@ -63,7 +63,7 @@ class ExtendedMultiRNNCell(MultiRNNCell):
       # sizes are equal. Optionally transform the initial inputs to
       # `cell[0].output_size`
       if self._cells[0].output_size != inputs.get_shape().as_list()[1] and \
-          self._residual_combiner == "add":
+          (self._residual_combiner in ["add", "mean"]):
         inputs = tf.contrib.layers.fully_connected(
             inputs=inputs,
             num_outputs=self._cells[0].output_size,
@@ -91,6 +91,9 @@ class ExtendedMultiRNNCell(MultiRNNCell):
           # Add Residual connection
           if self._residual_combiner == "add":
             next_input = next_input + sum(input_to_combine)
+          if self._residual_combiner == "mean":
+            combined_mean = tf.reduce_mean(tf.stack(input_to_combine), 0)
+            next_input = next_input + combined_mean
           elif self._residual_combiner == "concat":
             next_input = tf.concat([next_input] + input_to_combine, 1)
           cur_inp = next_input
