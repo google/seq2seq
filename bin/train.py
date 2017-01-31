@@ -91,7 +91,7 @@ tf.flags.DEFINE_integer("sample_every_n_steps", 500,
 tf.flags.DEFINE_integer("tf_random_seed", None,
                         """Random seed for TensorFlow initializers. Setting
                         this value allows consistency between reruns.""")
-tf.flags.DEFINE_integer("save_checkpoints_secs", 600,
+tf.flags.DEFINE_integer("save_checkpoints_secs", None,
                         """Save checkpoints every this many seconds.
                         Can not be specified with save_checkpoints_steps.""")
 tf.flags.DEFINE_integer("save_checkpoints_steps", None,
@@ -235,6 +235,11 @@ def main(_argv):
       config_flags = yaml.load(config_file)
       for flag_key, flag_value in config_flags.items():
         setattr(FLAGS, flag_key, flag_value)
+
+  if not FLAGS.save_checkpoints_secs and not FLAGS.save_checkpoints_steps:
+    FLAGS.save_checkpoints_secs = 600
+    tf.logging.info("Setting save_checkpoints_secs to %d",
+                    FLAGS.save_checkpoints_secs)
 
   if not FLAGS.output_dir:
     FLAGS.output_dir = tempfile.mkdtemp()
