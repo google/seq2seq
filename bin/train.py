@@ -236,7 +236,8 @@ def main(_argv):
       for flag_key, flag_value in config_flags.items():
         setattr(FLAGS, flag_key, flag_value)
 
-  if not FLAGS.save_checkpoints_secs and not FLAGS.save_checkpoints_steps:
+  if FLAGS.save_checkpoints_secs is None \
+    and FLAGS.save_checkpoints_steps is None:
     FLAGS.save_checkpoints_secs = 600
     tf.logging.info("Setting save_checkpoints_secs to %d",
                     FLAGS.save_checkpoints_secs)
