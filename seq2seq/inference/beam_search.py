@@ -102,13 +102,13 @@ def create_initial_beam_state(config):
 
 
 def length_penalty(sequence_lengths, penalty_factor):
-  """Calculates the coverage penalty according to
+  """Calculates the length penalty according to
   https://arxiv.org/abs/1609.08144
 
    Args:
     sequence_lengths: The sequence length of all hypotheses, a tensor
       of shape [beam_size, vocab_size].
-    penalty_factor: A scalar that weight the length penalty.
+    penalty_factor: A scalar that weights the length penalty.
 
   Returns:
     The length penalty factor, a tensor fo shape [beam_size].
