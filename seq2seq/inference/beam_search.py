@@ -40,7 +40,10 @@ class BeamSearchStepOutput(
 
 class BeamSearchConfig(
     namedtuple("BeamSearchConfig", [
-        "beam_width", "vocab_size", "eos_token", "score_fn",
+        "beam_width",
+        "vocab_size",
+        "eos_token",
+        "length_penalty_weight",
         "choose_successors_fn"
     ])):
   """Configuration object for beam search.
@@ -49,8 +52,8 @@ class BeamSearchConfig(
     beam_width: Number of beams to use, an integer
     vocab_size: Output vocabulary size
     eos_token: The id of the EOS token, used to mark beams as "done"
-    score_fn: A function used to calculate the score for each beam.
-      Should map from (log_probs, sequence_lengths) => score.
+    length_penalty_weight: Weight for the length penalty factor. 0.0 disables
+      the penalty.
     choose_successors_fn: A function used to choose beam successors based
       on their scores. Maps from (scores, config) => (chosen scores, chosen_ids)
   """
@@ -98,28 +101,34 @@ def create_initial_beam_state(config):
       lengths=tf.zeros([config.beam_width], dtype=tf.int32))
 
 
-def length_normalized_score(log_probs, sequence_lengths, penalty_factor=0.6):
-  """Calculates a length-normalized score according to equation 14 in
-  https://arxiv.org/abs/1609.08144.
+def length_penalty(sequence_lengths, penalty_factor):
+  """Calculates the coverage penalty according to
+  https://arxiv.org/abs/1609.08144
 
-  Args:
-    log_probs: Log probabilities of each hypothesis, a tensor of shape
-      `[beam_size, vocab_size]`
-    sequence_lengths: Hypotheses length, a vector of length `beam_size`
-    penalty_factor: An alpha penality factor used to normalize the scores,
-      a scalar between 0 and 1.
-  """
-  length_penalty = tf.div(
+   Args:
+    sequence_lengths: The sequence length of all hypotheses, a tensor
+      of shape [beam_size, vocab_size].
+    penalty_factor: A scalar that weight the length penalty.
+
+  Returns:
+    The length penalty factor, a tensor fo shape [beam_size].
+   """
+  return tf.div(
       (5. + tf.to_float(sequence_lengths))**penalty_factor,
       (5. + 1.)**penalty_factor)
-  scores = log_probs / length_penalty
-  return scores
 
 
-def logprob_score(log_probs, _sequence_lengths):
-  """A scoring function where the beam score is equal to the log probability.
+def hyp_score(log_probs, sequence_lengths, config):
+  """Calculates scores for beam search hypotheses.
   """
-  return log_probs
+
+  # Calculate the length penality
+  length_penality_ = length_penalty(
+      sequence_lengths=sequence_lengths,
+      penalty_factor=config.length_penalty_weight)
+
+  score = log_probs/length_penality_
+  return score
 
 
 def choose_top_k(scores_flat, config):
@@ -211,7 +220,10 @@ def beam_search_step(time_, logits, beam_state, config):
       prediction_lengths, 1) + lengths_to_add
 
   # Calculate the scores for each beam
-  scores = config.score_fn(total_probs, new_prediction_lengths)
+  scores = hyp_score(
+      log_probs=total_probs,
+      sequence_lengths=new_prediction_lengths,
+      config=config)
 
   scores_flat = tf.reshape(scores, [-1])
   # During the first time step we only consider the initial beam

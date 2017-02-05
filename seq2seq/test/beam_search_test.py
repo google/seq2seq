@@ -28,23 +28,22 @@ class TestGatherTree(tf.test.TestCase):
     np.testing.assert_array_equal(expected_result, res_)
 
 
-class TestLengthNormScore(tf.test.TestCase):
+class TestLengthNorm(tf.test.TestCase):
   """Tests the length normalization score"""
   def test_length_norm(self):
-    log_probs_ = np.ones([2, 3]) / 3.0
+    #log_probs_ = np.ones([2, 3]) / 3.0
     lengths_ = np.array([[1, 2, 3], [3, 3, 3]])
     penalty_factor_ = 0.6
-    scores = beam_search.length_normalized_score(
-        log_probs=tf.convert_to_tensor(log_probs_, dtype=tf.float32),
+    length_pen = beam_search.length_penalty(
         sequence_lengths=tf.convert_to_tensor(lengths_),
         penalty_factor=penalty_factor_)
 
     with self.test_session() as sess:
-      scores_ = sess.run(scores)
+      length_pen_ = sess.run(length_pen)
 
-    np.testing.assert_almost_equal(scores_[0, 0], 1./3, decimal=5)
-    np.testing.assert_almost_equal(scores_[0, 1], 0.30388, decimal=4)
-    np.testing.assert_almost_equal(scores_[0, 2], 0.28048, decimal=4)
+    np.testing.assert_almost_equal(length_pen_[0, 0], 1.0, decimal=5)
+    np.testing.assert_almost_equal(length_pen_[0, 1], 1.0969027, decimal=4)
+    np.testing.assert_almost_equal(length_pen_[0, 2], 1.1884017, decimal=4)
 
 
 class TestBeamStep(tf.test.TestCase):
@@ -58,7 +57,7 @@ class TestBeamStep(tf.test.TestCase):
         beam_width=3,
         vocab_size=5,
         eos_token=0,
-        score_fn=beam_search.logprob_score,
+        length_penalty_weight=0.6,
         choose_successors_fn=beam_search.choose_top_k)
     self.config = config
 
