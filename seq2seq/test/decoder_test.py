@@ -158,7 +158,7 @@ class DecoderTests(object):
         beam_width=10,
         vocab_size=self.vocab_size,
         eos_token=self.vocab_size - 2,
-        score_fn=beam_search.logprob_score,
+        length_penalty_weight=0.6,
         choose_successors_fn=beam_search.choose_top_k)
 
     initial_input = tf.random_normal([self.batch_size, self.input_depth])
