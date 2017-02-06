@@ -92,7 +92,7 @@ def create_inference_graph(
     (predictions, loss, train_op).
   """
 
-  if beam_width is not None:
+  if beam_width is not None and beam_width > 1:
     tf.logging.info("Setting batch size to 1 for beam search.")
     batch_size = 1
     params_overrides["inference.beam_search.beam_width"] = beam_width
