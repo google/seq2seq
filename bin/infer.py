@@ -176,7 +176,7 @@ def main(_argv):
           predictions_dict["predicted_tokens"].astype("S"), "utf-8")
       predicted_tokens = predictions_dict["predicted_tokens"]
 
-      if FLAGS.beam_width is not None:
+      if FLAGS.beam_width is not None and FLAGS.beam_width > 1:
         # If we're using beam search we take the first beam
         predicted_tokens = predicted_tokens[:, 0]
 
