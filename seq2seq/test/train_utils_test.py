@@ -223,6 +223,17 @@ class TestMosesBleu(tf.test.TestCase):
         lowercase=False,
         expected_bleu=46.51)
 
+  def test_multi_empty_hyp(self):
+    self._test_multi_bleu(
+        hypotheses=np.array([
+            "",
+            ""]),
+        references=np.array([
+            "The quick brown fox jumps over the lazy dog 笑",
+            "The quick brown fox jumps over the lazy dog 笑"]),
+        lowercase=False,
+        expected_bleu=0.00)
+
 
 class TestLRDecay(tf.test.TestCase):
   """Tests learning rate decay function.
