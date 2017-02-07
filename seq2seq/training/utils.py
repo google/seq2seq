@@ -400,11 +400,17 @@ def moses_multi_bleu(hypotheses,
     if lowercase:
       bleu_cmd += ["-lc"]
     bleu_cmd += [reference_file.name]
-    bleu_out = subprocess.check_output(
-        bleu_cmd, stdin=read_pred, stderr=subprocess.STDOUT)
-    bleu_out = bleu_out.decode("utf-8")
-    bleu_score = re.search(r"BLEU = (.+?),", bleu_out).group(1)
-    bleu_score = float(bleu_score)
+    try:
+      bleu_out = subprocess.check_output(
+          bleu_cmd, stdin=read_pred, stderr=subprocess.STDOUT)
+      bleu_out = bleu_out.decode("utf-8")
+      bleu_score = re.search(r"BLEU = (.+?),", bleu_out).group(1)
+      bleu_score = float(bleu_score)
+    except subprocess.CalledProcessError as error:
+      if error.output is not None:
+        tf.logging.warning("multi-bleu.perl script returned non-zero exit code")
+        tf.logging.warning(error.output)
+      return 0.0
 
   # Close temp files
   hypothesis_file.close()
