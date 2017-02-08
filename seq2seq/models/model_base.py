@@ -149,6 +149,7 @@ class Seq2SeqBase(ModelBase):
         "source.reverse": True,
         "target.max_seq_len": 50,
         "embedding.dim": 100,
+        "embedding.share": False,
         "inference.max_decode_length": 100,
         "inference.beam_search.beam_width": 0,
         "inference.beam_search.length_penalty_weight": 0.0,
@@ -252,9 +253,13 @@ class Seq2SeqBase(ModelBase):
     source_embedding = tf.get_variable(
         "source_embedding",
         [self.source_vocab_info.total_size, self.params["embedding.dim"]])
-    target_embedding = tf.get_variable(
-        "target_embedding",
-        [self.target_vocab_info.total_size, self.params["embedding.dim"]])
+
+    if self.params["embedding.share"]:
+      target_embedding = source_embedding
+    else:
+      target_embedding = tf.get_variable(
+          "target_embedding",
+          [self.target_vocab_info.total_size, self.params["embedding.dim"]])
 
     # Embed source
     source_embedded = tf.nn.embedding_lookup(source_embedding, source_ids)
