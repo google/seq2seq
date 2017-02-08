@@ -10,7 +10,6 @@ import yaml
 
 from seq2seq import models
 from seq2seq.data import data_utils, vocab
-from seq2seq.training import HParamsParser
 from seq2seq.training import utils as training_utils
 from seq2seq.training import metrics
 
@@ -133,8 +132,8 @@ def create_experiment(output_dir):
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()
-  if FLAGS.hparams is not None and isinstance(FLAGS.hparams, str):
-    hparams = HParamsParser(hparams).parse(FLAGS.hparams)
+  if FLAGS.hparams:
+    hparams.update(yaml.load(FLAGS.hparams))
   elif isinstance(FLAGS.hparams, dict):
     hparams.update(FLAGS.hparams)
 
