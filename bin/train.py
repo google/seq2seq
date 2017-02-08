@@ -132,7 +132,7 @@ def create_experiment(output_dir):
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()
-  if FLAGS.hparams:
+  if isinstance(FLAGS.hparams, str):
     hparams.update(yaml.load(FLAGS.hparams))
   elif isinstance(FLAGS.hparams, dict):
     hparams.update(FLAGS.hparams)
