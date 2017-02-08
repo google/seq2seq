@@ -3,16 +3,15 @@
 After you have trained a model, you can use the `bin/infer.py` script to make predictions. For example, from the [Getting Started Guide](getting_started.md):
 
 ```bash
-./bin/infer.py \
+python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
-  > ${TMPDIR}/nmt_toy_reverse/predictions.txt
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
+  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 ```
 
-The inference script reads the model hyperparameters from the `hparams.txt` file in the model directory, so
-you do not need to pass them explicitly. By default, the latest model checkpoint found in `model_dir` is used, but you can also pass a specific checkpoint (e.g. `${TMPDIR}/nmt_toy_reverse/model.ckpt-1562`) via
+The inference script reads the model hyperparameters from the `train_options.json` file in the model directory, so
+you do not need to pass them explicitly. By default, the latest model checkpoint found in `model_dir` is used, but you can also pass a specific checkpoint (e.g. `${TMPDIR:-/tmp}/nmt_toy_reverse/model.ckpt-1562`) via
 the `checkpoint_path` flag.
-
 
 ## Beam Search
 
@@ -24,14 +23,13 @@ the `checkpoint_path` flag.
 To overwrite specific hyperparameters of a model, pass an hparams JSON object as the `hparams` flag to the inference script:
 
 ```
-./bin/infer.py \
+python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
-  --hparams '{
-      "inference.beam_search.score_fn": "length_normalized_score",
-      "inference.beam_search.beam_width": 5
-    }' \
-  > ${TMPDIR}/nmt_toy_reverse/predictions.txt
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
+  --hparams '
+      inference.beam_search.score_fn: length_normalized_score
+      inference.beam_search.beam_width: 5' \
+  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 ```
 
 
@@ -43,11 +41,11 @@ If you trained a model that generates such attention scores (e.g. `AttentionSeq2
 
 
 ```bash
-./bin/infer.py \
+python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
   --unk_replace \
-  > ${TMPDIR}/nmt_toy_reverse/predictions.txt
+  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 ```
 
 
@@ -86,12 +84,12 @@ sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
 The output file specified by the `-p` argument will contain conditional probabilities for `p(target | source)` in the form of `<source>\t<target>\t<prob>`. These can be used to do smarter UNK token replacement by passing the `unk_mapping` flag.
 
 ```bash
-./bin/infer.py \
+python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
   --unk_replace \
   --unk_mapping $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict \
-  > ${TMPDIR}/nmt_toy_reverse/predictions.txt
+  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 ```
 
 
