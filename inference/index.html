@@ -94,7 +94,7 @@
                 <li class="toctree-l3"><a href="#beam-search">Beam Search</a></li>
                 
             
-                <li class="toctree-l3"><a href="#overwriting-hyperparameyers">Overwriting hyperparameyers</a></li>
+                <li class="toctree-l3"><a href="#overwriting-hyperparameters">Overwriting hyperparameters</a></li>
                 
             
                 <li class="toctree-l3"><a href="#unk-token-replacement-using-a-copy-mechanism">UNK token replacement using a Copy Mechanism</a></li>
@@ -173,14 +173,16 @@
 you do not need to pass them explicitly. By default, the latest model checkpoint found in <code>model_dir</code> is used, but you can also pass a specific checkpoint (e.g. <code>${TMPDIR}/nmt_toy_reverse/model.ckpt-1562</code>) via
 the <code>checkpoint_path</code> flag.</p>
 <h2 id="beam-search">Beam Search</h2>
-<p><strong>Beam Search is currently experimental.</strong> To perform beam search you can pass the <code>beam_width</code> flag to specify the number of beams to use. When using beam search, your batch size will be set to 1 and the <code>beam_width</code> will be used as an implicit batch size. Beam search can become very expensive with large beam widths.</p>
-<h2 id="overwriting-hyperparameyers">Overwriting hyperparameyers</h2>
+<p><strong>Beam Search is currently experimental.</strong> To perform beam search you can can set the <code>inference.beam_search.beam_width</code> model parameter to a number greater than 1 (see below). When using beam search, your batch size will be set to 1 and the <code>beam_width</code> will be used as an implicit batch size. Beam search can become very expensive with large beam widths.</p>
+<h2 id="overwriting-hyperparameters">Overwriting hyperparameters</h2>
 <p>To overwrite specific hyperparameters of a model, pass an hparams JSON object as the <code>hparams</code> flag to the inference script:</p>
 <pre><code>./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
-  --beam_width 5 \
-  --hparams '{ &quot;inference.beam_search.score_fn&quot;: &quot;length_normalized_score&quot; }' \
+  --hparams '{
+      &quot;inference.beam_search.score_fn&quot;: &quot;length_normalized_score&quot;,
+      &quot;inference.beam_search.beam_width&quot;: 5
+    }' \
   &gt; ${TMPDIR}/nmt_toy_reverse/predictions.txt
 </code></pre>
 
