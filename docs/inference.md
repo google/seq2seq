@@ -16,10 +16,10 @@ the `checkpoint_path` flag.
 
 ## Beam Search
 
-**Beam Search is currently experimental.** To perform beam search you can pass the `beam_width` flag to specify the number of beams to use. When using beam search, your batch size will be set to 1 and the `beam_width` will be used as an implicit batch size. Beam search can become very expensive with large beam widths.
+**Beam Search is currently experimental.** To perform beam search you can can set the `inference.beam_search.beam_width` model parameter to a number greater than 1 (see below). When using beam search, your batch size will be set to 1 and the `beam_width` will be used as an implicit batch size. Beam search can become very expensive with large beam widths.
 
 
-## Overwriting hyperparameyers
+## Overwriting hyperparameters
 
 To overwrite specific hyperparameters of a model, pass an hparams JSON object as the `hparams` flag to the inference script:
 
@@ -27,8 +27,10 @@ To overwrite specific hyperparameters of a model, pass an hparams JSON object as
 ./bin/infer.py \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
   --model_dir ${TMPDIR}/nmt_toy_reverse \
-  --beam_width 5 \
-  --hparams '{ "inference.beam_search.score_fn": "length_normalized_score" }' \
+  --hparams '{
+      "inference.beam_search.score_fn": "length_normalized_score",
+      "inference.beam_search.beam_width": 5
+    }' \
   > ${TMPDIR}/nmt_toy_reverse/predictions.txt
 ```
 
