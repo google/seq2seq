@@ -87,10 +87,7 @@
                 <li class="toctree-l3"><a href="#running-training">Running Training</a></li>
                 
             
-                <li class="toctree-l3"><a href="#passing-hyperparameters">Passing Hyperparameters</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#passing-a-configuration-file">Passing a configuration file</a></li>
+                <li class="toctree-l3"><a href="#passing-hyperparameters-and-configuration-files">Passing Hyperparameters and Configuration Files</a></li>
                 
             
                 <li class="toctree-l3"><a href="#distributed-training">Distributed Training</a></li>
@@ -187,15 +184,15 @@
   --model AttentionSeq2Seq \
   --batch_size 32 \
   --train_steps 1500 \
-  --hparams &quot;embedding.dim=512,optimizer.name=Adam&quot; \
+  --hparams '
+      embedding.dim: 512
+      optimizer.name: Adam' \
   --output_dir ${TMPDIR}/nmt_toy_reverse
 </code></pre>
 
-<h3 id="passing-hyperparameters">Passing Hyperparameters</h3>
-<p><a href="../models/">Model hyperparameters</a> can be passed via the <code>hparams</code> flags. This flag is a string of the form
-<code>"param1=value1,param2=value2,..."</code>. Whitespace between parameters pairs is ignored and you can have line breaks in your string. For complex parameters specifications, like cell specificatons, we recommend using a separate configuration file (see below).</p>
-<h3 id="passing-a-configuration-file">Passing a configuration file</h3>
-<p>An alternative to passing arguments to the training script is to define a configuration file in YAML format and pass it via the <code>config_path</code> flags. For example, the trian command above would be expressed as follows in a configuration file:</p>
+<h3 id="passing-hyperparameters-and-configuration-files">Passing Hyperparameters and Configuration Files</h3>
+<p><a href="../models/">Model hyperparameters</a> can be passed via the <code>hparams</code> flags. This flag is a string in <a href="http://yaml.org/">YAML</a> or JSON format.</p>
+<p>An alternative to passing arguments to the training script is to define a configuration file in YAML format and pass it via the <code>config_path</code> flags. For example, the train command above would be expressed as follows in a configuration file:</p>
 <pre><code class="yaml">train_source: /home/nmt_data/toy_reverse/train/sources.txt
 train_target: /home/nmt_data/toy_reverse/train/targets.txt
 dev_source: /home/nmt_data/toy_reverse/dev/sources.txt
