@@ -12,7 +12,7 @@ from seq2seq import models
 from seq2seq.data import data_utils, vocab
 from seq2seq.training import HParamsParser
 from seq2seq.training import utils as training_utils
-from seq2seq.training import metrics
+from seq2seq.metrics import metric_specs
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
@@ -208,8 +208,8 @@ def create_experiment(output_dir):
       target_delimiter=FLAGS.target_delimiter)
 
   eval_metrics = {
-      "log_perplexity": metrics.streaming_log_perplexity(),
-      "bleu": metrics.make_bleu_metric_spec(),
+      "log_perplexity": metric_specs.LogPerplexityMetricSpec(),
+      "bleu": metric_specs.BleuMetricSpec()
   }
 
   experiment = tf.contrib.learn.experiment.Experiment(
