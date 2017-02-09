@@ -48,8 +48,9 @@ def gigaword_iter(path, n_sentences=2):
     sentences = doc.find_all("p")[:n_sentences]
     if not sentences:
       continue
-    sentences = [_.text.strip().replace("\n", "") for _ in sentences]
-    headline = doc.headline.text.replace("\n", "").strip()
+    sentences = [_.text.strip().replace("\n", " ") for _ in sentences]
+    sentences = [_.replace("  ", " ") for _ in sentences]
+    headline = doc.headline.text.replace("\n", " ").strip()
     # Returns sentencs and headline
     yield " ".join(sentences), headline
 
