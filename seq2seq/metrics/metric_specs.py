@@ -14,7 +14,6 @@ import six
 import tensorflow as tf
 from tensorflow.contrib import metrics
 from tensorflow.contrib.learn import metric_spec
-from tensorflow.python.ops import variable_scope
 
 from seq2seq.metrics import bleu
 
@@ -63,7 +62,7 @@ class TextMetricSpec(metric_spec.MetricSpec):
   def create_metric_ops(self, _inputs, labels, predictions):
     """Creates (value, update_op) tensors
     """
-    with variable_scope.variable_scope(self.name):
+    with tf.variable_scope(self.name):
       # Join tokens into single strings
       predictions_flat = tf.reduce_join(
           predictions["predicted_tokens"], 1, separator=self.separator)
