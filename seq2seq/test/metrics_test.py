@@ -12,6 +12,62 @@ import numpy as np
 
 import tensorflow as tf
 from seq2seq.training import metrics
+from seq2seq.metrics import bleu
+
+class TestMosesBleu(tf.test.TestCase):
+  """Tests using the Moses multi-bleu script to calcualte BLEU score"""
+
+  def _test_multi_bleu(self, hypotheses, references, lowercase, expected_bleu):
+    """Runs a multi-bleu test."""
+
+    # Test with unicode
+    result = bleu.moses_multi_bleu(
+        hypotheses=hypotheses,
+        references=references,
+        lowercase=lowercase)
+    np.testing.assert_almost_equal(result, expected_bleu, decimal=2)
+
+    # Test with byte string
+    hypotheses_b = np.array([_.encode("utf-8") for _ in hypotheses]).astype("O")
+    references_b = np.array([_.encode("utf-8") for _ in references]).astype("O")
+    result = bleu.moses_multi_bleu(
+        hypotheses=hypotheses_b,
+        references=references_b,
+        lowercase=lowercase)
+    np.testing.assert_almost_equal(result, expected_bleu, decimal=2)
+
+  def test_multi_bleu(self):
+    self._test_multi_bleu(
+        hypotheses=np.array([
+            "The brown fox jumps over the dog 笑",
+            "The brown fox jumps over the dog 2 笑"]),
+        references=np.array([
+            "The quick brown fox jumps over the lazy dog 笑",
+            "The quick brown fox jumps over the lazy dog 笑"]),
+        lowercase=False,
+        expected_bleu=46.51)
+
+  def test_multi_bleu_lowercase(self):
+    self._test_multi_bleu(
+        hypotheses=np.array([
+            "The brown fox jumps over The Dog 笑",
+            "The brown fox jumps over The Dog 2 笑"]),
+        references=np.array([
+            "The quick brown fox jumps over the lazy dog 笑",
+            "The quick brown fox jumps over the lazy dog 笑"]),
+        lowercase=True,
+        expected_bleu=46.51)
+
+  def test_multi_bleu_with_eos(self):
+    self._test_multi_bleu(
+        hypotheses=np.array([
+            "The brown fox jumps over the dog 笑 SEQUENCE_END 2 x x x",
+            "The brown fox jumps over the dog 2 笑 SEQUENCE_END 2 x x x"]),
+        references=np.array([
+            "The quick brown fox jumps over the lazy dog 笑",
+            "The quick brown fox jumps over the lazy dog 笑"]),
+        lowercase=False,
+        expected_bleu=46.51)
 
 
 class TestBleuMetric(tf.test.TestCase):

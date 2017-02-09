@@ -13,7 +13,7 @@ from tensorflow.contrib.learn import metric_spec
 from tensorflow.python.ops import variable_scope
 from tensorflow.python.framework import ops
 
-from seq2seq.training import utils as training_utils
+from seq2seq.metrics import bleu
 
 def accumulate_strings(values, name="strings"):
   """Accumulates strings into a vector.
@@ -80,7 +80,7 @@ def streaming_bleu(predictions,
 
     bleu_value = tf.py_func(
         func=functools.partial(
-            training_utils.moses_multi_bleu,
+            bleu.moses_multi_bleu,
             eos_token=eos_token,
             lowercase=lowercase),
         inp=[sources_value, targets_value],
