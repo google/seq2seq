@@ -39,7 +39,7 @@ ARGS = PARSER.parse_args()
 def gigaword_iter(path, n_sentences=2):
   """Creates an iterator that yields (source, target) tuples.
   """
-  soup = BeautifulSoup(open(path))
+  soup = BeautifulSoup(open(path), "html.parser")
   for doc in soup.find_all("doc"):
     # Skip docs without headline
     if doc.headline is None:
@@ -49,8 +49,9 @@ def gigaword_iter(path, n_sentences=2):
     if not sentences:
       continue
     sentences = [_.text.strip().replace("\n", "") for _ in sentences]
+    headline = doc.headline.text.replace("\n", "").strip()
     # Returns sentencs and headline
-    yield " ".join(sentences), doc.headline.text.strip()
+    yield " ".join(sentences), headline
 
 def main():
   """The entrypoint for the script"""
