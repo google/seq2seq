@@ -15,6 +15,7 @@ import tempfile
 import numpy as np
 
 from six.moves import urllib
+import tensorflow as tf
 
 def moses_multi_bleu(hypotheses,
                      references,
@@ -26,7 +27,6 @@ def moses_multi_bleu(hypotheses,
     hypotheses: A numpy array of strings where each string is a single example.
     references: A numpy array of strings where each string is a single example.
     lowercase: If true, pass the "-lc" flag to the multi-bleu script
-    eos_token: Slice hypotheses and references up to this token
 
   Returns:
     The BLEU score as a float32 value.
@@ -46,25 +46,6 @@ def moses_multi_bleu(hypotheses,
   # bin_dir = os.path.abspath(os.path.join(training_dir, "..", "..", "bin"))
   # multi_bleu_path = os.path.join(bin_dir, "tools/multi-bleu.perl")
 
-  # Deal with byte chars
-  # if hypotheses.dtype.kind == np.dtype("U"):
-  #   hypotheses = np.char.encode(hypotheses, "utf-8")
-  # if references.dtype.kind == np.dtype("U"):
-  #   references = np.char.encode(references, "utf-8")
-
-  # # Slice all hypotheses and references up to EOS
-  # sliced_hypotheses = [x.split(eos_token.encode("utf-8"))[0].strip()
-  #                      for x in hypotheses]
-  # sliced_references = [x.split(eos_token.encode("utf-8"))[0].strip()
-  #                      for x in references]
-
-  # # Strip special "@@ " tokens used for BPE
-  # # See https://github.com/rsennrich/subword-nmt
-  # # We hope this is rare enough that it will not have any adverse effects
-  # # on predicitons that do not use BPE
-  # sliced_hypotheses = [_.replace(b"@@ ", b"") for _ in sliced_hypotheses]
-  # sliced_references = [_.replace(b"@@ ", b"") for _ in sliced_references]
-
   # Dump hypotheses and references to tempfiles
   hypothesis_file = tempfile.NamedTemporaryFile()
   hypothesis_file.write("\n".join(hypotheses).encode("utf-8"))
@@ -81,11 +62,17 @@ def moses_multi_bleu(hypotheses,
     if lowercase:
       bleu_cmd += ["-lc"]
     bleu_cmd += [reference_file.name]
-    bleu_out = subprocess.check_output(
-        bleu_cmd, stdin=read_pred, stderr=subprocess.STDOUT)
-    bleu_out = bleu_out.decode("utf-8")
-    bleu_score = re.search(r"BLEU = (.+?),", bleu_out).group(1)
-    bleu_score = float(bleu_score)
+    try:
+      bleu_out = subprocess.check_output(
+          bleu_cmd, stdin=read_pred, stderr=subprocess.STDOUT)
+      bleu_out = bleu_out.decode("utf-8")
+      bleu_score = re.search(r"BLEU = (.+?),", bleu_out).group(1)
+      bleu_score = float(bleu_score)
+    except subprocess.CalledProcessError as error:
+      if error.output is not None:
+        tf.logging.warning("multi-bleu.perl script returned non-zero exit code")
+        tf.logging.warning(error.output)
+      return float(0.0)
 
   # Close temp files
   hypothesis_file.close()

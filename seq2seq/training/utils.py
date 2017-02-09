@@ -327,4 +327,3 @@ def print_hparams(hparams):
   for param, value in sorted(hparams.items()):
     tf.logging.info("%s=%s", param, value)
   tf.logging.info("=" * 50)
-
