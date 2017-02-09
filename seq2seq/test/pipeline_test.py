@@ -68,6 +68,7 @@ class PipelineTest(tf.test.TestCase):
     tf.app.flags.FLAGS.train_target = targets_train.name
     tf.app.flags.FLAGS.vocab_source = vocab_source.name
     tf.app.flags.FLAGS.vocab_target = vocab_target.name
+    tf.app.flags.FLAGS.hparams = """{"embedding.dim": 10}"""
     tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
     tf.app.flags.FLAGS.batch_size = 2
 
@@ -136,6 +137,31 @@ class PipelineTest(tf.test.TestCase):
     self.assertEqual(scores["arr_2"].shape[1], 4)
     self.assertIn("arr_3", scores)
     self.assertEqual(scores["arr_3"].shape[1], 4)
+
+    # Test inference with beam search
+    _clear_flags()
+    tf.reset_default_graph()
+    infer_script = imp.load_source(
+        "seq2seq.test.infer_bin", os.path.join(BIN_FOLDER, "infer.py"))
+
+    # Set inference flags
+    tf.app.flags.FLAGS.model_dir = self.output_dir
+    tf.app.flags.FLAGS.source = sources_dev.name
+    tf.app.flags.FLAGS.batch_size = 2
+    tf.app.flags.FLAGS.checkpoint_path = os.path.join(
+        self.output_dir, "model.ckpt-50")
+    tf.app.flags.FLAGS.hparams = """{
+      "inference.beam_search.score_fn": "length_normalized_score",
+      "inference.beam_search.beam_width": 5
+    }"""
+    tf.app.flags.FLAGS.dump_beams = os.path.join(
+        self.output_dir, "beams.npz")
+
+    # Run inference w/ beam search
+    infer_script.main([])
+    self.assertTrue(os.path.exists(os.path.join(
+        self.output_dir, "beams.npz")))
+
 
 
 if __name__ == "__main__":

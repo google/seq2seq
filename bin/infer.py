@@ -5,6 +5,7 @@
 import functools
 
 import os
+import yaml
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -23,8 +24,10 @@ tf.flags.DEFINE_string("delimiter", " ",
                        """Join predicted tokens on this delimiter.
                        Defaults to " " (space).""")
 tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
-tf.flags.DEFINE_integer("beam_width", None,
-                        "Use beam search with this beam width for decoding")
+tf.flags.DEFINE_string("hparams", None,
+                        """JSON/YAML string to override hyperparameters values.
+                        For example, you can use this flag to override the
+                        beam search score function.""")
 tf.flags.DEFINE_boolean("unk_replace", False,
                         """UNK token replacement strategy. If None (default)
                         do no replacement. "copy" copies source words based on
@@ -94,11 +97,16 @@ def main(_argv):
   """Program entrypoint.
   """
 
+  params_overrides = {}
+  if isinstance(FLAGS.hparams, str):
+    params_overrides = yaml.load(FLAGS.hparams)
+    tf.logging.info("Overwriting parameters: %s", params_overrides)
+
   predictions, _, _ = create_inference_graph(
       model_dir=FLAGS.model_dir,
       input_file=FLAGS.source,
       batch_size=FLAGS.batch_size,
-      beam_width=FLAGS.beam_width)
+      params_overrides=params_overrides)
 
   # Filter fetched predictions to save memory
   prediction_keys = set(
@@ -165,8 +173,8 @@ def main(_argv):
           predictions_dict["predicted_tokens"].astype("S"), "utf-8")
       predicted_tokens = predictions_dict["predicted_tokens"]
 
-      if FLAGS.beam_width is not None:
-        # If we're using beam search we take the first beam
+      # If we're using beam search we take the first beam
+      if np.ndim(predicted_tokens) > 1:
         predicted_tokens = predicted_tokens[:, 0]
 
       predictions_dict["features.source_tokens"] = np.char.decode(

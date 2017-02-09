@@ -60,24 +60,26 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
       sess.run([tf.global_variables_initializer()])
       return sess.run(res_test)
 
-  def test_residuals_add(self):
+  def _test_constant_shape(self, combiner):
+    """Tests a residual combiner whose shape doesn't change
+    with depth"""
     inputs = np.random.randn(1, 2)
     with tf.variable_scope("same_input_size"):
-      res_ = self._test_with_residuals(inputs, residual_combiner="add")
+      res_ = self._test_with_residuals(inputs, residual_combiner=combiner)
       self.assertEqual(res_[0].shape, (1, 2))
       self.assertEqual(res_[1][0].shape, (1, 2))
       self.assertEqual(res_[1][1].shape, (1, 2))
 
     inputs = np.random.randn(1, 5)
     with tf.variable_scope("diff_input_size"):
-      res_ = self._test_with_residuals(inputs, residual_combiner="add")
+      res_ = self._test_with_residuals(inputs, residual_combiner=combiner)
       self.assertEqual(res_[0].shape, (1, 2))
       self.assertEqual(res_[1][0].shape, (1, 2))
       self.assertEqual(res_[1][1].shape, (1, 2))
 
     with tf.variable_scope("same_input_size_dense"):
       res_ = self._test_with_residuals(
-          inputs, residual_combiner="add", residual_dense=True)
+          inputs, residual_combiner=combiner, residual_dense=True)
       self.assertEqual(res_[0].shape, (1, 2))
       self.assertEqual(res_[1][0].shape, (1, 2))
       self.assertEqual(res_[1][1].shape, (1, 2))
@@ -85,10 +87,16 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
     inputs = np.random.randn(1, 5)
     with tf.variable_scope("diff_input_size_dense"):
       res_ = self._test_with_residuals(
-          inputs, residual_combiner="add", residual_dense=True)
+          inputs, residual_combiner=combiner, residual_dense=True)
       self.assertEqual(res_[0].shape, (1, 2))
       self.assertEqual(res_[1][0].shape, (1, 2))
       self.assertEqual(res_[1][1].shape, (1, 2))
+
+  def test_residuals_mean(self):
+    self._test_constant_shape(combiner="mean")
+
+  def test_residuals_add(self):
+    self._test_constant_shape(combiner="add")
 
   def test_residuals_concat(self):
     inputs = np.random.randn(1, 2)

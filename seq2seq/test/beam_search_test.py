@@ -28,6 +28,24 @@ class TestGatherTree(tf.test.TestCase):
     np.testing.assert_array_equal(expected_result, res_)
 
 
+class TestLengthNorm(tf.test.TestCase):
+  """Tests the length normalization score"""
+  def test_length_norm(self):
+    #log_probs_ = np.ones([2, 3]) / 3.0
+    lengths_ = np.array([[1, 2, 3], [3, 3, 3]])
+    penalty_factor_ = 0.6
+    length_pen = beam_search.length_penalty(
+        sequence_lengths=tf.convert_to_tensor(lengths_),
+        penalty_factor=penalty_factor_)
+
+    with self.test_session() as sess:
+      length_pen_ = sess.run(length_pen)
+
+    np.testing.assert_almost_equal(length_pen_[0, 0], 1.0, decimal=5)
+    np.testing.assert_almost_equal(length_pen_[0, 1], 1.0969027, decimal=4)
+    np.testing.assert_almost_equal(length_pen_[0, 2], 1.1884017, decimal=4)
+
+
 class TestBeamStep(tf.test.TestCase):
   """Tests a single step of beam search
   """
@@ -39,57 +57,111 @@ class TestBeamStep(tf.test.TestCase):
         beam_width=3,
         vocab_size=5,
         eos_token=0,
-        score_fn=beam_search.logprob_score,
+        length_penalty_weight=0.6,
         choose_successors_fn=beam_search.choose_top_k)
     self.config = config
 
   def test_step(self):
-    beam_state = beam_search.BeamState(
-        time=tf.constant(2),
+    beam_state = beam_search.BeamSearchState(
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
-        scores=tf.zeros(self.config.beam_width),
-        predicted_ids=tf.convert_to_tensor(
-            [[1, 2, -1, -1, -1], [3, 4, -1, -1, -1], [5, 6, -1, -1, -1]]),
-        beam_parent_ids=tf.zeros(self.config.beam_width))
-    logits = tf.sparse_to_dense(
-        [[0, 2], [0, 3], [1, 3], [1, 4]],
-        output_shape=[self.config.beam_width, self.config.vocab_size],
-        sparse_values=[1.9, 2.1, 3.1, 0.9],
-        default_value=0.0001)
-    next_beam_state = beam_search.beam_search_step(
-        logits=logits, beam_state=beam_state, config=self.config)
+        lengths=tf.constant(2, shape=[self.config.beam_width], dtype=tf.int32),
+        finished=tf.zeros([self.config.beam_width], dtype=tf.bool))
+
+    logits_ = np.full([self.config.beam_width, self.config.vocab_size], 0.0001)
+    logits_[0, 2] = 1.9
+    logits_[0, 3] = 2.1
+    logits_[1, 3] = 3.1
+    logits_[1, 4] = 0.9
+    logits = tf.convert_to_tensor(logits_, dtype=tf.float32)
+    log_probs = tf.nn.log_softmax(logits)
+
+    outputs, next_beam_state = beam_search.beam_search_step(
+        time_=2, logits=logits, beam_state=beam_state, config=self.config)
 
     with self.test_session() as sess:
-      res = sess.run(next_beam_state)
+      outputs_, next_state_, state_, log_probs_ = sess.run(
+          [outputs, next_beam_state, beam_state, log_probs])
 
-    expected_predictions = np.array(
-        [[3, 4, 3, -1, -1], [1, 2, 3, -1, -1], [1, 2, 2, -1, -1]])
-    np.testing.assert_array_equal(res.predicted_ids, expected_predictions)
-    np.testing.assert_array_equal(res.beam_parent_ids, [1, 0, 0])
+    np.testing.assert_array_equal(outputs_.predicted_ids, [3, 3, 2])
+    np.testing.assert_array_equal(outputs_.beam_parent_ids, [1, 0, 0])
+    np.testing.assert_array_equal(next_state_.lengths, [3, 3, 3])
+    np.testing.assert_array_equal(next_state_.finished, [False, False, False])
+
+    expected_log_probs = state_.log_probs[[1, 0, 0]]
+    expected_log_probs[0] += log_probs_[1, 3]
+    expected_log_probs[1] += log_probs_[0, 3]
+    expected_log_probs[2] += log_probs_[0, 2]
+    np.testing.assert_array_equal(
+        next_state_.log_probs,
+        expected_log_probs)
+
 
   def test_step_with_eos(self):
-    beam_state = beam_search.BeamState(
-        time=tf.constant(2),
+    beam_state = beam_search.BeamSearchState(
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
-        scores=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
-        predicted_ids=tf.convert_to_tensor(
-            [[1, 2, -1, -1, -1], [3, 0, -1, -1, -1], [5, 6, -1, -1, -1]]),
-        beam_parent_ids=tf.zeros(self.config.beam_width))
-    logits = tf.sparse_to_dense(
-        [[0, 2], [1, 2], [2, 2]],
-        output_shape=[self.config.beam_width, self.config.vocab_size],
-        sparse_values=[1.0, 1.0, 1.0],
-        default_value=0.0001)
-    next_beam_state = beam_search.beam_search_step(
-        logits=logits, beam_state=beam_state, config=self.config)
+        lengths=tf.convert_to_tensor([2, 1, 2], dtype=tf.int32),
+        finished=tf.constant([False, True, False], dtype=tf.bool))
+
+    logits_ = np.full([self.config.beam_width, self.config.vocab_size], 0.0001)
+    logits_[0, 2] = 1.1
+    logits_[1, 2] = 1.0
+    logits_[2, 2] = 1.0
+    logits = tf.convert_to_tensor(logits_, dtype=tf.float32)
+    log_probs = tf.nn.log_softmax(logits)
+
+    outputs, next_beam_state = beam_search.beam_search_step(
+        time_=2, logits=logits, beam_state=beam_state, config=self.config)
 
     with self.test_session() as sess:
-      res = sess.run(next_beam_state)
-      expected_predictions = np.array(
-          [[3, 0, 0, -1, -1], [1, 2, 2, -1, -1], [5, 6, 2, -1, -1]])
-      np.testing.assert_array_equal(res.predicted_ids, expected_predictions)
-      previous_log_probs = sess.run(beam_state.log_probs)
-      np.testing.assert_array_equal(res.log_probs[0], previous_log_probs[0])
+      outputs_, next_state_, state_, log_probs_ = sess.run(
+          [outputs, next_beam_state, beam_state, log_probs])
+
+    np.testing.assert_array_equal(outputs_.predicted_ids, [0, 2, 2])
+    np.testing.assert_array_equal(outputs_.beam_parent_ids, [1, 0, 2])
+    np.testing.assert_array_equal(next_state_.lengths, [1, 3, 3])
+    np.testing.assert_array_equal(next_state_.finished, [True, False, False])
+
+    expected_log_probs = state_.log_probs[outputs_.beam_parent_ids]
+    expected_log_probs[1] += log_probs_[0, 2]
+    expected_log_probs[2] += log_probs_[2, 2]
+    np.testing.assert_array_equal(
+        next_state_.log_probs,
+        expected_log_probs)
+
+
+  def test_step_with_new_eos(self):
+    beam_state = beam_search.BeamSearchState(
+        log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
+        lengths=tf.constant(2, shape=[self.config.beam_width], dtype=tf.int32),
+        finished=tf.zeros([self.config.beam_width], dtype=tf.bool))
+
+    logits_ = np.full([self.config.beam_width, self.config.vocab_size], 0.0001)
+    logits_[0, 0] = 1.9
+    logits_[0, 3] = 2.1
+    logits_[1, 3] = 3.1
+    logits_[1, 4] = 0.9
+    logits = tf.convert_to_tensor(logits_, dtype=tf.float32)
+    log_probs = tf.nn.log_softmax(logits)
+
+    outputs, next_beam_state = beam_search.beam_search_step(
+        time_=2, logits=logits, beam_state=beam_state, config=self.config)
+
+    with self.test_session() as sess:
+      outputs_, next_state_, state_, log_probs_ = sess.run(
+          [outputs, next_beam_state, beam_state, log_probs])
+
+    np.testing.assert_array_equal(outputs_.predicted_ids, [3, 3, 0])
+    np.testing.assert_array_equal(outputs_.beam_parent_ids, [1, 0, 0])
+    np.testing.assert_array_equal(next_state_.lengths, [3, 3, 2])
+    np.testing.assert_array_equal(next_state_.finished, [False, False, True])
+
+    expected_log_probs = state_.log_probs[[1, 0, 0]]
+    expected_log_probs[0] += log_probs_[1, 3]
+    expected_log_probs[1] += log_probs_[0, 3]
+    expected_log_probs[2] += log_probs_[0, 0]
+    np.testing.assert_array_equal(
+        next_state_.log_probs,
+        expected_log_probs)
 
 
 class TestEosMasking(tf.test.TestCase):
@@ -97,8 +169,10 @@ class TestEosMasking(tf.test.TestCase):
   """
 
   def test_eos_masking(self):
-    probs = tf.constant(
-        [[-.2, -.2, -.2, -.2, -.2], [-.3, -.3, -.3, 3, 0], [5, 6, 0, 0, 0]])
+    probs = tf.constant([
+        [-.2, -.2, -.2, -.2, -.2],
+        [-.3, -.3, -.3, 3, 0],
+        [5, 6, 0, 0, 0]])
     eos_token = 0
     previously_finished = tf.constant([0, 1, 0], dtype=tf.float32)
     masked = beam_search.mask_probs(probs, eos_token, previously_finished)

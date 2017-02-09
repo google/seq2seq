@@ -75,7 +75,7 @@ def create_graph(predicted_ids, parent_ids, scores, vocab=None):
 
 
 def main():
-  beam_data = np.load("/Users/dennybritz/beams.npz")
+  beam_data = np.load(ARGS.data)
 
   # Optionally load vocabulary data
   vocab = None

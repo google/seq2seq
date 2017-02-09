@@ -10,7 +10,6 @@ import yaml
 
 from seq2seq import models
 from seq2seq.data import data_utils, vocab
-from seq2seq.training import HParamsParser
 from seq2seq.training import utils as training_utils
 from seq2seq.metrics import metric_specs
 
@@ -91,7 +90,7 @@ tf.flags.DEFINE_integer("sample_every_n_steps", 500,
 tf.flags.DEFINE_integer("tf_random_seed", None,
                         """Random seed for TensorFlow initializers. Setting
                         this value allows consistency between reruns.""")
-tf.flags.DEFINE_integer("save_checkpoints_secs", 600,
+tf.flags.DEFINE_integer("save_checkpoints_secs", None,
                         """Save checkpoints every this many seconds.
                         Can not be specified with save_checkpoints_steps.""")
 tf.flags.DEFINE_integer("save_checkpoints_steps", None,
@@ -133,8 +132,8 @@ def create_experiment(output_dir):
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()
-  if FLAGS.hparams is not None and isinstance(FLAGS.hparams, str):
-    hparams = HParamsParser(hparams).parse(FLAGS.hparams)
+  if isinstance(FLAGS.hparams, str):
+    hparams.update(yaml.load(FLAGS.hparams))
   elif isinstance(FLAGS.hparams, dict):
     hparams.update(FLAGS.hparams)
 
@@ -190,7 +189,8 @@ def create_experiment(output_dir):
           num_epochs=1,
           source_delimiter=FLAGS.source_delimiter,
           target_delimiter=FLAGS.target_delimiter),
-      batch_size=FLAGS.batch_size)
+      batch_size=FLAGS.batch_size,
+      allow_smaller_final_batch=True)
 
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
@@ -234,6 +234,12 @@ def main(_argv):
       config_flags = yaml.load(config_file)
       for flag_key, flag_value in config_flags.items():
         setattr(FLAGS, flag_key, flag_value)
+
+  if FLAGS.save_checkpoints_secs is None \
+    and FLAGS.save_checkpoints_steps is None:
+    FLAGS.save_checkpoints_secs = 600
+    tf.logging.info("Setting save_checkpoints_secs to %d",
+                    FLAGS.save_checkpoints_secs)
 
   if not FLAGS.output_dir:
     FLAGS.output_dir = tempfile.mkdtemp()

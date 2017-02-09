@@ -72,6 +72,11 @@ class ModelBase(object):
     # Cast parameters to correct types
     default_params = self.default_params()
     for key, value in self.params.items():
+      # If param is unknown, drop it. We do this to stay compatible with
+      # past versions
+      if key not in default_params:
+        tf.logging.warning("%s is not a valid model parameter, dropping", key)
+        continue
       self.params[key] = type(default_params[key])(value)
 
   def create_featurizer(self):
@@ -144,9 +149,10 @@ class Seq2SeqBase(ModelBase):
         "source.reverse": True,
         "target.max_seq_len": 50,
         "embedding.dim": 100,
+        "embedding.share": False,
         "inference.max_decode_length": 100,
         "inference.beam_search.beam_width": 0,
-        "inference.beam_search.score_fn": "logprob_score",
+        "inference.beam_search.length_penalty_weight": 0.0,
         "inference.beam_search.choose_successors_fn": "choose_top_k",
         "optimizer.name": "Adam",
         "optimizer.learning_rate": 1e-4,
@@ -212,8 +218,8 @@ class Seq2SeqBase(ModelBase):
         beam_width=self.params["inference.beam_search.beam_width"],
         vocab_size=self.target_vocab_info.total_size,
         eos_token=self.target_vocab_info.special_vocab.SEQUENCE_END,
-        score_fn=getattr(beam_search,
-                         self.params["inference.beam_search.score_fn"]),
+        length_penalty_weight=self.params[
+            "inference.beam_search.length_penalty_weight"],
         choose_successors_fn=getattr(
             beam_search,
             self.params["inference.beam_search.choose_successors_fn"]))
@@ -247,9 +253,13 @@ class Seq2SeqBase(ModelBase):
     source_embedding = tf.get_variable(
         "source_embedding",
         [self.source_vocab_info.total_size, self.params["embedding.dim"]])
-    target_embedding = tf.get_variable(
-        "target_embedding",
-        [self.target_vocab_info.total_size, self.params["embedding.dim"]])
+
+    if self.params["embedding.share"]:
+      target_embedding = source_embedding
+    else:
+      target_embedding = tf.get_variable(
+          "target_embedding",
+          [self.target_vocab_info.total_size, self.params["embedding.dim"]])
 
     # Embed source
     source_embedded = tf.nn.embedding_lookup(source_embedding, source_ids)
