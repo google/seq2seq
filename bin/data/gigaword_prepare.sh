@@ -22,8 +22,8 @@ for f in $(find $GIGAWORD_DIR -type f | grep data/); do
 done
 
 # Combine all sources and targets
-find $OUTPUT_DIR/extracted -name sources.txt | sort | head -n 12 | xargs cat > $OUTPUT_DIR/combined.sources.txt
-find $OUTPUT_DIR/extracted -name targets.txt | sort | head -n 12 | xargs cat > $OUTPUT_DIR/combined.targets.txt
+find $OUTPUT_DIR/extracted -name sources.txt | sort | xargs cat > $OUTPUT_DIR/combined.sources.txt
+find $OUTPUT_DIR/extracted -name targets.txt | sort | xargs cat > $OUTPUT_DIR/combined.targets.txt
 
 echo "Found $(wc -l $OUTPUT_DIR/combined.sources.txt) sources."
 echo "Found $(wc -l $OUTPUT_DIR/combined.targets.txt) targets."
