@@ -72,7 +72,7 @@ def moses_multi_bleu(hypotheses,
       if error.output is not None:
         tf.logging.warning("multi-bleu.perl script returned non-zero exit code")
         tf.logging.warning(error.output)
-      return float(0.0)
+      bleu_score = np.float32(0.0)
 
   # Close temp files
   hypothesis_file.close()
