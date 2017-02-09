@@ -20,7 +20,6 @@ import sys
 import os
 import argparse
 
-from tensorflow.python.platform import gfile
 from bs4 import BeautifulSoup
 
 PARSER = argparse.ArgumentParser(
@@ -57,21 +56,23 @@ def gigaword_iter(path, n_sentences=2):
 def main():
   """The entrypoint for the script"""
 
-  gfile.MakeDirs(ARGS.output_dir)
+  if not os.path.exists(ARGS.output_dir):
+    os.makedirs(ARGS.output_dir)
 
   sources_filename = os.path.join(ARGS.output_dir, "sources.txt")
   targets_filename = os.path.join(ARGS.output_dir, "targets.txt")
-  sources_file = gfile.GFile(sources_filename, "w")
-  targets_file = gfile.GFile(targets_filename, "w")
+  sources_file = open(sources_filename, "w")
+  targets_file = open(targets_filename, "w")
 
   records = gigaword_iter(ARGS.file, ARGS.num_sentences)
-  for i, (source, target) in enumerate(records):
+  for i, (source, target) in enumerate(records, 1):
     sources_file.write(source + "\n")
     targets_file.write(target + "\n")
     if i % 1000 == 0:
       sys.stderr.write(".")
     if i % 100000 == 0:
       sys.stderr.write("\n")
+  sys.stderr.write("\n")
 
   sources_file.close()
   targets_file.close()
