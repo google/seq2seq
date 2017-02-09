@@ -7,13 +7,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import abc
 import numpy as np
+import six
 
 import tensorflow as tf
 from tensorflow.contrib import metrics
 from tensorflow.contrib.learn import metric_spec
 from tensorflow.python.ops import variable_scope
-from tensorflow.python.framework import ops
 
 from seq2seq.metrics import bleu
 
@@ -42,7 +43,17 @@ def accumulate_strings(values, name="strings"):
   return value_tensor, update_op
 
 
+@six.add_metaclass(abc.ABCMeta)
 class TextMetricSpec(metric_spec.MetricSpec):
+  """Abstract class for text-based metrics calculated based on
+  hypotheses and references. Subclasses must implement `metric_fn`.
+
+  Args:
+    name: A name for the metric
+    separator: A seperator used to join predicted tokens. Default to space.
+    eos_token: A string token used to find the end of a sequence. Hypotheses
+      and references will be slcied until this token is found.
+  """
   def __init__(self, name, separator=" ", eos_token="SEQUENCE_END"):
     """Initializer"""
     self.name = name
@@ -50,6 +61,8 @@ class TextMetricSpec(metric_spec.MetricSpec):
     self.eos_token = eos_token
 
   def create_metric_ops(self, _inputs, labels, predictions):
+    """Creates (value, update_op) tensors
+    """
     with variable_scope.variable_scope(self.name):
       # Join tokens into single strings
       predictions_flat = tf.reduce_join(
@@ -63,7 +76,7 @@ class TextMetricSpec(metric_spec.MetricSpec):
           values=labels_flat, name="targets")
 
       metric_value = tf.py_func(
-          func=self.py_func,
+          func=self._py_func,
           inp=[sources_value, targets_value],
           Tout=tf.float32,
           name="value")
@@ -73,7 +86,10 @@ class TextMetricSpec(metric_spec.MetricSpec):
 
     return metric_value, update_op
 
-  def py_func(self, hypotheses, references):
+  def _py_func(self, hypotheses, references):
+    """Wrapper function that converts tensors to unicode and slices
+      them until the EOS token is found.
+    """
     # Deal with byte chars
     if hypotheses.dtype.kind == np.dtype("U"):
       hypotheses = np.char.encode(hypotheses, "utf-8")
@@ -100,10 +116,23 @@ class TextMetricSpec(metric_spec.MetricSpec):
     return self.metric_fn(sliced_hypotheses, sliced_references)
 
   def metric_fn(self, hypotheses, references):
+    """Calculates the value of the metric.
+
+    Args:
+      hypotheses: A python list of strings, each corresponding to a
+        single hypothesis/example.
+      references: A python list of strings, each corresponds to a single
+        reference. Must have the same number of elements of `hypotheses`.
+
+    Returns:
+      A float value.
+    """
     raise NotImplementedError()
 
 
 class BleuMetricSpec(TextMetricSpec):
+  """Calculates BLEU score using the Moses multi-bleu.perl script.
+  """
   def __init__(self, separator=" ", eos_token="SEQUENCE_END"):
     super(BleuMetricSpec, self).__init__("bleu_metric", separator, eos_token)
 
