@@ -68,6 +68,7 @@ class PipelineTest(tf.test.TestCase):
     tf.app.flags.FLAGS.train_target = targets_train.name
     tf.app.flags.FLAGS.vocab_source = vocab_source.name
     tf.app.flags.FLAGS.vocab_target = vocab_target.name
+    tf.app.flags.FLAGS.hparams = """{"embedding.dim": 10}"""
     tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
     tf.app.flags.FLAGS.batch_size = 2
 
@@ -149,9 +150,9 @@ class PipelineTest(tf.test.TestCase):
     tf.app.flags.FLAGS.batch_size = 2
     tf.app.flags.FLAGS.checkpoint_path = os.path.join(
         self.output_dir, "model.ckpt-50")
-    tf.app.flags.FLAGS.beam_width = 5
     tf.app.flags.FLAGS.hparams = """{
-      "inference.beam_search.score_fn": "length_normalized_score"
+      "inference.beam_search.score_fn": "length_normalized_score",
+      "inference.beam_search.beam_width": 5
     }"""
     tf.app.flags.FLAGS.dump_beams = os.path.join(
         self.output_dir, "beams.npz")

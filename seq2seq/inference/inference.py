@@ -13,7 +13,6 @@ from seq2seq import models
 from seq2seq.data import data_utils
 from seq2seq.data import vocab
 from seq2seq.training import utils as training_utils
-from seq2seq.inference import beam_search
 
 def load_model(model_dir, params=None):
   """Loads a model class from a given directory
@@ -75,8 +74,7 @@ def create_inference_graph(
     model_dir,
     input_file,
     batch_size=32,
-    params_overrides={},
-    beam_width=None):
+    params_overrides=None):
   """Creates a graph to perform inference.
 
   Args:
@@ -92,12 +90,11 @@ def create_inference_graph(
     (predictions, loss, train_op).
   """
 
-  if beam_width is not None and beam_width > 1:
+  model = load_model(model_dir, params_overrides)
+
+  if model.params["inference.beam_search.beam_width"] > 1:
     tf.logging.info("Setting batch size to 1 for beam search.")
     batch_size = 1
-    params_overrides["inference.beam_search.beam_width"] = beam_width
-
-  model = load_model(model_dir, params_overrides)
 
   data_provider = lambda: data_utils.make_parallel_data_provider(
       data_sources_source=[input_file],

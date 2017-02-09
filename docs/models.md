@@ -10,6 +10,7 @@ The following hyperparameters are shared by all models, unless explicitly stated
 | `source.reverse` | `True` | If set to true, reverse the source sequence before feeding it into the encoder.|
 | `target.max_seq_len` | `40` | Maximum length of target sequences. An example is sliced to this length before being fed to the decoder. |
 | `embedding.dim` | `100` | Dimensionality of the embedding layer. |
+| `embedding.share` | `False` | If set to true, share embedding parameters for source and target sequences. |
 | `inference.max_decode_length` | `100` | During inference mode, decode up to this length or until a `SEQUENCE_END` token is encountered, whichever happens first. |
 | `optimizer.name` | `Adam` | Type of Optimizer to use, e.g. `Adam`, `SGD` or `Momentum`. The name is fed to TensorFlow's [optimize_loss](https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss) function. See TensorFlow documentation for more details and all available options. |
 | `optimizer.learning_rate` | `1e-4` | Initial learning rate for the optimizer. This is fed to TensorFlow's [optimize_loss](https://www.tensorflow.org/api_docs/python/contrib.layers/optimization#optimize_loss) function. |

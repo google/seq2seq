@@ -22,19 +22,17 @@ To train a new model, run the training script below (also see [Getting Started](
   --model AttentionSeq2Seq \
   --batch_size 32 \
   --train_steps 1500 \
-  --hparams "embedding.dim=512,optimizer.name=Adam" \
+  --hparams '
+      embedding.dim: 512
+      optimizer.name: Adam' \
   --output_dir ${TMPDIR}/nmt_toy_reverse
 ```
 
-### Passing Hyperparameters
+### Passing Hyperparameters and Configuration Files
 
-[Model hyperparameters](models.md) can be passed via the `hparams` flags. This flag is a string of the form
-`"param1=value1,param2=value2,..."`. Whitespace between parameters pairs is ignored and you can have line breaks in your string. For complex parameters specifications, like cell specificatons, we recommend using a separate configuration file (see below).
+[Model hyperparameters](models.md) can be passed via the `hparams` flags. This flag is a string in [YAML](http://yaml.org/) or JSON format.
 
-
-### Passing a configuration file
-
-An alternative to passing arguments to the training script is to define a configuration file in YAML format and pass it via the `config_path` flags. For example, the trian command above would be expressed as follows in a configuration file:
+An alternative to passing arguments to the training script is to define a configuration file in YAML format and pass it via the `config_path` flags. For example, the train command above would be expressed as follows in a configuration file:
 
 ```yaml
 train_source: /home/nmt_data/toy_reverse/train/sources.txt
