@@ -8,14 +8,14 @@ DATA_DIR=${DATA_DIR:-$HOME/nmt_data}
 echo "Writing to ${DATA_DIR}. To change this, set the DATA_DIR environment variable."
 
 NUM_ARTICLE_SENTENCES=${NUM_ARTICLE_SENTENCES:-2}
-echo "Using first $NUM_ARTICLE_SENTENCES from the article."
+echo "Using first $NUM_ARTICLE_SENTENCES sentences from the article."
 
-OUTPUT_DIR=${DATA_DIR}/gigaword_${NUM_ARTICLE_SENTENCES}sent/
+OUTPUT_DIR="${DATA_DIR}/gigaword_${NUM_ARTICLE_SENTENCES}sent/"
 mkdir -p $OUTPUT_DIR
 mkdir -p $OUTPUT_DIR/extracted
 
 # Unzip all files
-find  $GIGAWORD_DIR -name *.gz | xargs gunzip
+find  $GIGAWORD_DIR -name *.gz -exec gunzip {}\;
 
 # Process all data files
 for f in $(find $GIGAWORD_DIR -type f | grep data/); do
