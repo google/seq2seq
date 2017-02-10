@@ -1,10 +1,13 @@
 dependencies:
   pre:
-    - sudo apt-get update; sudo apt-get install python-matplotlib python3-matplotlib python-tk python3-tk
+    - sudo apt-get update; sudo apt-get install python-matplotlib python3-matplotlib python-tk python3-tk libtcmalloc-minimal4
   override:
     - pip install tox tox-pyenv mkdocs
     - pyenv local 2.7.10 3.5.1
 
+machine:
+  environment:
+    LD_PRELOAD: /usr/lib/libtcmalloc_minimal.so.4
 notify:
   webhooks:
     - url: https://webhooks.gitter.im/e/3e39fb29521e82ee001d

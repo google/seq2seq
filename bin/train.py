@@ -13,7 +13,7 @@ from six import string_types
 from seq2seq import models
 from seq2seq.data import data_utils, vocab
 from seq2seq.training import utils as training_utils
-from seq2seq.metrics import metric_specs
+from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
@@ -87,6 +87,10 @@ tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
 tf.flags.DEFINE_integer("sample_every_n_steps", 500,
                         """Sample and print sequence predictions every N steps
                         during training.""")
+tf.flags.DEFINE_string("metrics", "log_perplexity,bleu",
+                       """Comma-separated list of metrics to evaluate. Each
+                       one must be defined in the `METRIC_SPECS_DICT` in
+                       metric_specs.py""")
 
 # RunConfig Flags
 tf.flags.DEFINE_integer("tf_random_seed", None,
@@ -209,10 +213,8 @@ def create_experiment(output_dir):
       source_delimiter=FLAGS.source_delimiter,
       target_delimiter=FLAGS.target_delimiter)
 
-  eval_metrics = {
-      "log_perplexity": metric_specs.LogPerplexityMetricSpec(),
-      "bleu": metric_specs.BleuMetricSpec()
-  }
+  metrics_list = [_.strip() for _ in FLAGS.metrics.split(",")]
+  eval_metrics = {m : METRIC_SPECS_DICT[m] for m in metrics_list}
 
   experiment = tf.contrib.learn.experiment.Experiment(
       estimator=estimator,

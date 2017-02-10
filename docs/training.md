@@ -90,6 +90,7 @@ The [train.py](https://github.com/dennybritz/seq2seq/blob/master/bin/train.py) s
 | train_epochs | `None` | Maximum number of training epochs over the data. If None, train forever. |
 | eval_every_n_steps | `1000` | Run evaluation on validation data every N steps. |
 | sample_every_n_steps | `500` | Sample and print sequence predictions every N steps during training. |
+| metrics | `log_perplexity,bleu` | Comma-separated list of metrics to evaluate. Each metric must be defined in the `METRIC_SPECS_DICT` in `metric_specs.py`. |
 | tf_random_seed | `None` | Random seed for TensorFlow initializers. Setting this value allows consistency between reruns. |
 | save_checkpoints_secs | `600` | Save checkpoints every N seconds. Can not be specified with `save_checkpoints_steps`. |
 | save_checkpoints_steps | `None` | Save checkpoints every N steps. Can not be specified with `save_checkpoints_secs`. |

@@ -7,6 +7,7 @@ setup(
         "numpy",
         "tensorflow",
         "matplotlib",
-        "pyyaml"
+        "pyyaml",
+        "pyrouge"
     ]
 )
