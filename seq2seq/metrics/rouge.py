@@ -31,7 +31,6 @@ def rouge(hypotheses, references):
   if np.size(hypotheses) == 0:
     return {}
 
-
   # Create a new temporary directory for rouge files
   hyp_dir = tempfile.mkdtemp(prefix="rouge_hyp")
   ref_dir = tempfile.mkdtemp(prefix="rouge_ref")

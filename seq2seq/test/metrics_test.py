@@ -9,6 +9,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
+import unittest
 
 import tensorflow as tf
 
@@ -101,7 +102,6 @@ class TestBleuMetricSpec(TestTextMetricSpec):
 
 class TestRougeMetricSpec(TestTextMetricSpec):
   """Tests the `RougeMetricSpec`"""
-
   def test_rouge_1_f_score(self):
     metric_spec = RougeMetricSpec("rouge_1_f_score")
     return self._test_metric_spec(
