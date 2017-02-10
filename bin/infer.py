@@ -5,9 +5,10 @@
 import functools
 
 import os
-import json
+import yaml
 import numpy as np
 from matplotlib import pyplot as plt
+from six import string_types
 
 import tensorflow as tf
 from tensorflow.python.platform import gfile
@@ -25,9 +26,9 @@ tf.flags.DEFINE_string("delimiter", " ",
                        Defaults to " " (space).""")
 tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
 tf.flags.DEFINE_string("hparams", None,
-                        """A JSON string to override hyperparameters values.
-                        For example, you can use this flag to override the
-                        beam search score function.""")
+                       """JSON/YAML string to override hyperparameters values.
+                       For example, you can use this flag to override the
+                       beam search score function.""")
 tf.flags.DEFINE_boolean("unk_replace", False,
                         """UNK token replacement strategy. If None (default)
                         do no replacement. "copy" copies source words based on
@@ -98,8 +99,8 @@ def main(_argv):
   """
 
   params_overrides = {}
-  if FLAGS.hparams is not None:
-    params_overrides = json.loads(FLAGS.hparams)
+  if isinstance(FLAGS.hparams, string_types):
+    params_overrides = yaml.load(FLAGS.hparams)
     tf.logging.info("Overwriting parameters: %s", params_overrides)
 
   predictions, _, _ = create_inference_graph(

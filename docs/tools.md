@@ -3,10 +3,10 @@
 If you train an `AttentionSeq2Seq` model, you can dump the raw attention scores and generate alignment visualizations during inference:
 
 ```
-./bin/infer.py \
+python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
-  --dump_atention_dir ${TMPDIR}/attention_plots > /dev/null
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
+  --dump_attention_dir ${TMPDIR:-/tmp}/attention_plots > /dev/null
 ```
 
 By default, this script generates an `attention_score.npy` array file and one attention plot per example. The array file can be [loaded used numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html) and will contain a list of arrays with shape `[target_length, source_length]`. If you only want the raw attention score data without the plots you can pass the `--dump_atention_no_plot` flag. For more details and additional options, see the [`infer.py`](https://github.com/dennybritz/seq2seq/blob/master/bin/infer.py) script.
@@ -19,20 +19,22 @@ write a numpy npz with the raw beam search data.
 
 
 ```
-./bin/infer.py \
+python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
-  --beam_width 5 \
-  --dump_beams ${TMPDIR}/beams.npz > /dev/null
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
+  --hparams '
+      inference.beam_search.score_fn: length_normalized_score
+      inference.beam_search.beam_width: 5' \
+  --dump_beams ${TMPDIR:-/tmp}/beams.npz > /dev/null
 ```
 
 You can inspect the beam search data by loading the array using numpy, or generate beam search visualizations using the
-`generate_beam_viz.py` script:
+`generate_beam_viz.py` script. This required the `networkx` module to be installed.
 
 ```
-bin/tools/generate_beam_viz.py  \
-  -o ${TMPDIR}/beam_visualizations \
-  -d ${TMPDIR}/beams.npz \
+python -m bin.tools.generate_beam_viz  \
+  -o ${TMPDIR:-/tmp}/beam_visualizations \
+  -d ${TMPDIR:-/tmp}/beams.npz \
   -v $HOME/nmt_data/toy_reverse//train/vocab.targets.txt
 ```
 
@@ -49,7 +51,7 @@ During training, the [MetadataCaptureHook](https://github.com/dennybritz/seq2seq
 For large complicated graphs, the timeline files can become quite large and analyzing them using Chrome may be slow, which is why we also provide a [`profile.py`](https://github.com/dennybritz/seq2seq/blob/master/bin/tools/profile.py) script that generates useful profiling information:
 
 ```shell
-./bin/tools/profile.py --model_dir=/path/to/model/dir
+python -m bin.tools.profile --model_dir=${TMPDIR:-/tmp}/nmt_toy_reverse
 ```
 
 This command will generate the following four files:
