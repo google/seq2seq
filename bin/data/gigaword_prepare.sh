@@ -4,8 +4,10 @@ set -e
 
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 
-OUTPUT_DIR=${OUTPUT_DIR:-$HOME/nmt_data/gigaword}
-echo "Writing to ${OUTPUT_DIR}. To change this, set the OUTPUT_DIR environment variable."
+DATA_DIR=${DATA_DIR:-$HOME/nmt_data}
+echo "Writing to ${DATA_DIR}. To change this, set the DATA_DIR environment variable."
+
+OUTPUT_DIR=${DATA_DIR}/gigaword
 mkdir -p $OUTPUT_DIR
 
 mkdir -p $OUTPUT_DIR/extracted
@@ -22,14 +24,33 @@ for f in $(find $GIGAWORD_DIR -type f | grep data/); do
 done
 
 # Combine all sources and targets
-find $OUTPUT_DIR/extracted -name sources.txt | sort | xargs cat > $OUTPUT_DIR/combined.sources.txt
-find $OUTPUT_DIR/extracted -name targets.txt | sort | xargs cat > $OUTPUT_DIR/combined.targets.txt
+find $OUTPUT_DIR/extracted -name sources.txt | sort | xargs cat > $OUTPUT_DIR/combined.sources
+find $OUTPUT_DIR/extracted -name targets.txt | sort | xargs cat > $OUTPUT_DIR/combined.targets
 
-echo "Found $(wc -l $OUTPUT_DIR/combined.sources.txt) sources."
-echo "Found $(wc -l $OUTPUT_DIR/combined.targets.txt) targets."
+echo "Found $(wc -l $OUTPUT_DIR/combined.sources) sources."
+echo "Found $(wc -l $OUTPUT_DIR/combined.targets) targets."
 
 # Tokenize using MOSES
-# TODO
+if [ ! -d "${DATA_DIR}/mosesdecoder" ]; then
+  echo "Cloning moses for data processing"
+  git clone https://github.com/moses-smt/mosesdecoder.git "${DATA_DIR}/mosesdecoder"
+fi
+
+# Clean data
+${DATA_DIR}/mosesdecoder/scripts/training/clean-corpus-n.perl \
+  --ignore-ratio \
+  ${OUTPUT_DIR}/combined sources targets "${OUTPUT_DIR}/combined.clean" 5 200
+
+# Lowercase data
+# A lot of the headlines in Gigaword are all caps
+tr '[:upper:]' '[:lower:]' < ${OUTPUT_DIR}/combined.clean.sources > ${OUTPUT_DIR}/combined.lc.sources
+tr '[:upper:]' '[:lower:]' < ${OUTPUT_DIR}/combined.clean.targets > ${OUTPUT_DIR}/combined.lc.targets
+
+# Tokenize data
+# for f in ${OUTPUT_DIR}/*.de; do
+#   echo "Tokenizing $f..."
+#   ${OUTPUT_DIR}/mosesdecoder/scripts/tokenizer/tokenizer.perl -q -l de -threads 8 < $f > ${f%.*}.tok.de
+# done
 
 # Clean dataset
 # TODO
