@@ -9,7 +9,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
-import unittest
+import pyrouge
 
 import tensorflow as tf
 
@@ -102,7 +102,16 @@ class TestBleuMetricSpec(TestTextMetricSpec):
 
 class TestRougeMetricSpec(TestTextMetricSpec):
   """Tests the `RougeMetricSpec`"""
+
+  def _skip_if_no_rouge(self):
+    try:
+      pyrouge.Rouge155()
+    except Exception:
+      tf.logging.warning("ROUGE not installed. Skipping test.")
+      self.skipTest("ROUGE not installed. Skipping test.")
+
   def test_rouge_1_f_score(self):
+    self._skip_if_no_rouge()
     metric_spec = RougeMetricSpec("rouge_1_f_score")
     return self._test_metric_spec(
         metric_spec=metric_spec,
@@ -112,6 +121,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
     )
 
   def test_rouge_2_f_score(self):
+    self._skip_if_no_rouge()
     metric_spec = RougeMetricSpec("rouge_2_f_score")
     return self._test_metric_spec(
         metric_spec=metric_spec,
@@ -121,6 +131,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
     )
 
   def test_rouge_l_f_score(self):
+    self._skip_if_no_rouge()
     metric_spec = RougeMetricSpec("rouge_l_f_score")
     return self._test_metric_spec(
         metric_spec=metric_spec,
@@ -132,7 +143,16 @@ class TestRougeMetricSpec(TestTextMetricSpec):
 
 class TestRougeMetric(tf.test.TestCase):
   """Tests the RougeMetric"""
+
+  def _skip_if_no_rouge(self):
+    try:
+      pyrouge.Rouge155()
+    except Exception:
+      tf.logging.warning("ROUGE not installed. Skipping test.")
+      self.skipTest("ROUGE not installed. Skipping test.")
+
   def test_rouge(self):
+    self._skip_if_no_rouge()
     hypotheses = np.array([
         "The brown fox jumps over the dog 笑",
         "The brown fox jumps over the dog 2 笑"])
