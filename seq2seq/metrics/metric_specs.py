@@ -155,8 +155,3 @@ class LogPerplexityMetricSpec(metric_spec.MetricSpec):
         maxlen=tf.to_int32(tf.shape(predictions["losses"])[1]))
     return metrics.streaming_mean(predictions["losses"], loss_mask)
 
-
-def streaming_log_perplexity():
-  """Creates a MetricSpec that calculates the log perplexity.
-  """
-  return LogPerplexityMetricSpec()
