@@ -1,13 +1,12 @@
 ## Ready-to-use Datasets
 
-We prepared a few datasets to help you get started. We also provide data generation scripts that
-make explicit what kind of processing has been done on the data.
+We provide data generation scripts to generate standard datasets.
 
 | Dataset | Description | Training/Dev/Test Size | Vocabulary | Download |
 | --- | --- | --- | --- | --- |
-| WMT'16 EN-DE | Data for the [WMT'16 Translation Task](http://www.statmt.org/wmt16/translation-task.html) English to German. Training data is combined from Europarl v7, Common Crawl, and News Commentary v11. Development data sets include `newstest[2010-2015]`. `newstest2016` should serve as test data. All SGM files were converted to plain text.  | 4.56M/3K/2.6K | 50k Words <br/> 50k BPE| Download <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/wmt16_en_de.sh) |
-| Toy Copy | A toy dataset where the target sequence is equal to the source sequence. The model must learn to copy the source sequence. | 10k/1k/1k | 20 | Download <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh) |
-| Toy Reverse | A toy dataset where the target sequence is equal to the reversed source sequence. The model must learn to reverse the source sequence. | 10k/1k/1k | 20 | Download <br/> [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh) |
+| WMT'16 EN-DE | Data for the [WMT'16 Translation Task](http://www.statmt.org/wmt16/translation-task.html) English to German. Training data is combined from Europarl v7, Common Crawl, and News Commentary v11. Development data sets include `newstest[2010-2015]`. `newstest2016` should serve as test data. All SGM files were converted to plain text.  | 4.56M/3K/2.6K | 50k Words <br/> 8/16/32k BPE| [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/wmt16_en_de.sh) |
+| Toy Copy | A toy dataset where the target sequence is equal to the source sequence. The model must learn to copy the source sequence. | 10k/1k/1k | 20 | [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh) |
+| Toy Reverse | A toy dataset where the target sequence is equal to the reversed source sequence. The model must learn to reverse the source sequence. | 10k/1k/1k | 20 | [Generate](https://github.com/dennybritz/seq2seq/blob/master/bin/data/toy.sh) |
 
 ## Creating your own data
 
@@ -22,13 +21,15 @@ To use your own data you must bring it into the right format. A typical data pre
 
 The input pipeline expects parallel `sources` and `targets` files where each pair of lines corresponds to one input/output example. The files must be in raw text format and tokenized with space delimiters. For example, an (extremely short and silly) Machine Translation dataset could consist of:
 
-`sources`
+Sources:
+
 ```bash
 I love cats .
 Who are you ?
 ```
 
-`targets`
+Targets:
+
 ```bash
 J` aime les chats .
 Qui es tu ?

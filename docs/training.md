@@ -12,7 +12,7 @@ In order to train a model, you need the following files. Refer to [Data](https:/
 To train a new model, run the training script below (also see [Getting Started](getting_started.md)):
 
 ```shell
-./bin/train.py \
+python -m bin.train \
   --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
   --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
   --dev_source $HOME/nmt_data/toy_reverse/dev/sources.txt \

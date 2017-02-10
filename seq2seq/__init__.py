@@ -15,6 +15,7 @@ from seq2seq import encoders
 from seq2seq import graph_utils
 from seq2seq import inference
 from seq2seq import losses
+from seq2seq import metrics
 from seq2seq import models
 from seq2seq import test
 from seq2seq import training
