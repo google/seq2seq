@@ -14,7 +14,7 @@ import tensorflow as tf
 
 from seq2seq.metrics import bleu
 from seq2seq.metrics import rouge
-from seq2seq.metrics.metric_specs import BleuMetricSpec
+from seq2seq.metrics.metric_specs import BleuMetricSpec, RougeNMetricSpec
 
 
 class TestMosesBleu(tf.test.TestCase):
@@ -85,6 +85,75 @@ class TestBleuMetricSpec(tf.test.TestCase):
 
       np.testing.assert_almost_equal(scores[0], 100.0, decimal=2)
       np.testing.assert_almost_equal(scores[1], 69.19, decimal=2)
+
+
+class TestRougeNMetricSpec(tf.test.TestCase):
+  """Tests the `PrintModelAnalysisHook` hook"""
+
+  def test_rouge_n(self):
+    predictions = {
+        "predicted_tokens": tf.placeholder(dtype=tf.string)
+    }
+    labels = {
+        "target_tokens": tf.placeholder(dtype=tf.string)
+    }
+
+    metric_spec = RougeNMetricSpec(n=2)
+    value, update_op = metric_spec.create_metric_ops(None, labels, predictions)
+
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      sess.run(tf.local_variables_initializer())
+
+      hypotheses = ["A B C D E F", "A B C D E F"]
+      references = ["A B C D E F", "A B A D E F"]
+
+      scores = []
+      for hyp, ref in zip(hypotheses, references):
+        hyp = hyp.split(" ")
+        ref = ref.split(" ")
+        sess.run(update_op, {
+            predictions["predicted_tokens"]: [hyp],
+            labels["target_tokens"]: [ref]
+        })
+        scores.append(sess.run(value))
+
+      np.testing.assert_almost_equal(scores[0], 1.0, decimal=2)
+      np.testing.assert_almost_equal(scores[1], 0.75, decimal=2)
+
+class TestRougeNMetricSpec(tf.test.TestCase):
+  """Tests the `PrintModelAnalysisHook` hook"""
+
+  def test_rouge_n(self):
+    predictions = {
+        "predicted_tokens": tf.placeholder(dtype=tf.string)
+    }
+    labels = {
+        "target_tokens": tf.placeholder(dtype=tf.string)
+    }
+
+    metric_spec = RougeNMetricSpec(n=2)
+    value, update_op = metric_spec.create_metric_ops(None, labels, predictions)
+
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      sess.run(tf.local_variables_initializer())
+
+      hypotheses = ["A B C D E F", "A B C D E F"]
+      references = ["A B C D E F", "A B A D E F"]
+
+      scores = []
+      for hyp, ref in zip(hypotheses, references):
+        hyp = hyp.split(" ")
+        ref = ref.split(" ")
+        sess.run(update_op, {
+            predictions["predicted_tokens"]: [hyp],
+            labels["target_tokens"]: [ref]
+        })
+        scores.append(sess.run(value))
+
+      np.testing.assert_almost_equal(scores[0], 1.0, decimal=2)
+      np.testing.assert_almost_equal(scores[1], 0.75, decimal=2)
 
 
 class TestRougeMetric(tf.test.TestCase):

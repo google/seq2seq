@@ -15,6 +15,7 @@ import tensorflow as tf
 from tensorflow.contrib import metrics
 from tensorflow.contrib.learn import metric_spec
 
+from seq2seq.metrics import rouge
 from seq2seq.metrics import bleu
 
 def accumulate_strings(values, name="strings"):
@@ -141,6 +142,19 @@ class BleuMetricSpec(TextMetricSpec):
         references,
         lowercase=False)
 
+
+class RougeNMetricSpec(TextMetricSpec):
+  """Calculates BLEU score using the Moses multi-bleu.perl script.
+  """
+  def __init__(self, n, separator=" ", eos_token="SEQUENCE_END"):
+    super(RougeNMetricSpec, self).__init__(
+        "rouge_{}_metric".format(n), separator, eos_token)
+    self.n = n
+
+  def metric_fn(self, hypotheses, references):
+    if not hypotheses or not references:
+      return np.float32(0.0)
+    return np.float32(rouge.rouge_n(hypotheses, references, n=self.n))
 
 class LogPerplexityMetricSpec(metric_spec.MetricSpec):
   """A MetricSpec to calculate straming log perplexity"""
