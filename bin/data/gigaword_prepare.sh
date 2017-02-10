@@ -30,7 +30,7 @@ find $OUTPUT_DIR/extracted -name targets.txt | sort | xargs cat > $OUTPUT_DIR/co
 echo "Found $(wc -l $OUTPUT_DIR/combined.sources) sources."
 echo "Found $(wc -l $OUTPUT_DIR/combined.targets) targets."
 
-# Tokenize using MOSES
+# Get moses
 if [ ! -d "${DATA_DIR}/mosesdecoder" ]; then
   echo "Cloning moses for data processing"
   git clone https://github.com/moses-smt/mosesdecoder.git "${DATA_DIR}/mosesdecoder"
