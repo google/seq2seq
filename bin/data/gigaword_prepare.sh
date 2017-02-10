@@ -89,7 +89,7 @@ cat "${OUTPUT_DIR}/train.sources" "${OUTPUT_DIR}/train.targets" | \
     ${DATA_DIR}/subword-nmt/learn_bpe.py -s $BPE_MERGE_OPS > "${OUTPUT_DIR}/bpe.${BPE_MERGE_OPS}"
 
 echo "Apply BPE with merge_ops=${BPE_MERGE_OPS}..."
-for f in "train dev test"; do
+for f in train dev test; do
   ${DATA_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${BPE_MERGE_OPS}" \
     < ${OUTPUT_DIR}/${f}.sources > ${OUTPUT_DIR}/${f}.bpe.${BPE_MERGE_OPS}.sources
   ${DATA_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${BPE_MERGE_OPS}" \
