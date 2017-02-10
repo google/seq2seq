@@ -156,33 +156,6 @@ class RougeMetricSpec(TextMetricSpec):
     return np.float32(rouge.rouge(hypotheses, references)[self.metric_name])
 
 
-# class Rouge2MetricSpec(TextMetricSpec):
-#   """Calculates BLEU score using the Moses multi-bleu.perl script.
-#   """
-#   def __init__(self, KK separator=" ", eos_token="SEQUENCE_END"):
-#     super(Rouge1MetricSpec, self).__init__(
-#         "rouge_2_f_score".format(n), separator, eos_token)
-
-#   def metric_fn(self, hypotheses, references):
-#     if not hypotheses or not references:
-#       return np.float32(0.0)
-#     return np.float32(rouge.rouge(hypotheses, references)["rouge_2_f_score"])
-
-
-# class RougeLMetricSpec(TextMetricSpec):
-#   """Calculates BLEU score using the Moses multi-bleu.perl script.
-#   """
-#   def __init__(self, separator=" ", eos_token="SEQUENCE_END"):
-#     super(RougeLMetricSpec, self).__init__(
-#         "rouge_l_sent_metric", separator, eos_token)
-
-#   def metric_fn(self, hypotheses, references):
-#     if not hypotheses or not references:
-#       return np.float32(0.0)
-#     return np.float32(
-#         rouge.rouge_l_sentence_level(
-#            hypotheses, references))
-
 class LogPerplexityMetricSpec(metric_spec.MetricSpec):
   """A MetricSpec to calculate straming log perplexity"""
   def __init__(self):
