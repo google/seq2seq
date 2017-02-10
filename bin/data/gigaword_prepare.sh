@@ -15,7 +15,7 @@ mkdir -p $OUTPUT_DIR
 mkdir -p $OUTPUT_DIR/extracted
 
 # Unzip all files
-find  $GIGAWORD_DIR -name *.gz -exec gunzip {}\;
+find  $GIGAWORD_DIR -name *.gz -exec gunzip {} \;
 
 # Process all data files
 for f in $(find $GIGAWORD_DIR -type f | grep data/); do
