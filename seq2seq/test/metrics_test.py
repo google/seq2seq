@@ -54,7 +54,11 @@ class TestMosesBleu(tf.test.TestCase):
 
 
 class TestTextMetricSpec(tf.test.TestCase):
+  """Abstract class for testing TextMetricSpecs
+  based on hypotheses and references"""
+
   def _test_metric_spec(self, metric_spec, hyps, refs, expected_scores):
+    """Tests a MetricSpec"""
     predictions = {
         "predicted_tokens": tf.placeholder(dtype=tf.string)
     }
@@ -62,15 +66,11 @@ class TestTextMetricSpec(tf.test.TestCase):
         "target_tokens": tf.placeholder(dtype=tf.string)
     }
 
-    # metric_spec = BleuMetricSpec()
     value, update_op = metric_spec.create_metric_ops(None, labels, predictions)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       sess.run(tf.local_variables_initializer())
-
-      # hypotheses = ["A B C D E F", "A B C D E F"]
-      # references = ["A B C D E F", "A B A D E F"]
 
       scores = []
       for hyp, ref in zip(hyps, refs):
@@ -88,7 +88,7 @@ class TestTextMetricSpec(tf.test.TestCase):
 
 
 class TestBleuMetricSpec(TestTextMetricSpec):
-  """Tests the `PrintModelAnalysisHook` hook"""
+  """Tests the `BleuMetricSpec`"""
 
   def test_bleu(self):
     metric_spec = BleuMetricSpec()
@@ -100,7 +100,7 @@ class TestBleuMetricSpec(TestTextMetricSpec):
     )
 
 class TestRougeMetricSpec(TestTextMetricSpec):
-  """Tests the `PrintModelAnalysisHook` hook"""
+  """Tests the `RougeMetricSpec`"""
 
   def test_rouge_1_f_score(self):
     metric_spec = RougeMetricSpec("rouge_1_f_score")
