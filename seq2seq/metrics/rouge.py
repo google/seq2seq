@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""BLEU metric implementation.
+"""ROGUE metric calculation.
 """
 
 from __future__ import absolute_import
