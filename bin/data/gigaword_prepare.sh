@@ -47,13 +47,55 @@ tr '[:upper:]' '[:lower:]' < ${OUTPUT_DIR}/combined.clean.sources > ${OUTPUT_DIR
 tr '[:upper:]' '[:lower:]' < ${OUTPUT_DIR}/combined.clean.targets > ${OUTPUT_DIR}/combined.lc.targets
 
 # Tokenize data
-# for f in ${OUTPUT_DIR}/*.de; do
-#   echo "Tokenizing $f..."
-#   ${OUTPUT_DIR}/mosesdecoder/scripts/tokenizer/tokenizer.perl -q -l de -threads 8 < $f > ${f%.*}.tok.de
-# done
+${DATA_DIR}/mosesdecoder/scripts/tokenizer/tokenizer.perl \
+  -q -l en -threads 8 \
+  < ${OUTPUT_DIR}/combined.lc.sources \
+  > ${OUTPUT_DIR}/combined.tok.sources
 
-# Clean dataset
-# TODO
+${DATA_DIR}/mosesdecoder/scripts/tokenizer/tokenizer.perl \
+  -q -l en -threads 8 \
+  < ${OUTPUT_DIR}/combined.lc.targets \
+  > ${OUTPUT_DIR}/combined.tok.targets
+
+
+# Shuffle data in parallel
+# Source: http://unix.stackexchange.com/questions/220390/shuffle-two-parallel-text-files?
+mkfifo  ${OUTPUT_DIR}/random1 ${OUTPUT_DIR}/random2
+tee ${OUTPUT_DIR}/random1 ${OUTPUT_DIR}/random2 < /dev/urandom > /dev/null &
+shuf --random-source=${OUTPUT_DIR}/random1 \
+  ${OUTPUT_DIR}/combined.tok.sources > ${OUTPUT_DIR}/combined.tok.shuf.sources &
+shuf --random-source ${OUTPUT_DIR}/random2 \
+  ${OUTPUT_DIR}/combined.tok.targets > ${OUTPUT_DIR}/combined.tok.shuf.targets &
+wait
+rm ${OUTPUT_DIR}/random1 ${OUTPUT_DIR}/random2
+
+
+# Split into train/dev/test
+tail -n +20000 ${OUTPUT_DIR}/combined.tok.shuf.sources > ${OUTPUT_DIR}/train.sources
+tail -n +20000 ${OUTPUT_DIR}/combined.tok.shuf.targets > ${OUTPUT_DIR}/train.targets
+head -n 10000 ${OUTPUT_DIR}/combined.tok.shuf.sources > ${OUTPUT_DIR}/dev.sources
+head -n 10000 ${OUTPUT_DIR}/combined.tok.shuf.targets > ${OUTPUT_DIR}/dev.targets
+head -n 20000 ${OUTPUT_DIR}/combined.tok.shuf.sources | tail -n 10000 > ${OUTPUT_DIR}/test.sources
+head -n 20000 ${OUTPUT_DIR}/combined.tok.shuf.targets | tail -n 10000 > ${OUTPUT_DIR}/test.targets
 
 # Learn BPE
-# TODO
+if [ ! -d "${DATA_DIR}/subword-nmt" ]; then
+  git clone https://github.com/rsennrich/subword-nmt.git "${DATA_DIR}/subword-nmt"
+fi
+
+BPE_MERGE_OPS=32000
+echo "Learning BPE with merge_ops=${BPE_MERGE_OPS}. This may take a while..."
+cat "${OUTPUT_DIR}/train.sources" "${OUTPUT_DIR}/train.targets" | \
+    ${DATA_DIR}/subword-nmt/learn_bpe.py -s $BPE_MERGE_OPS > "${OUTPUT_DIR}/bpe.${BPE_MERGE_OPS}"
+
+echo "Apply BPE with merge_ops=${BPE_MERGE_OPS}..."
+for f in "train dev test"; do
+  ${DATA_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${BPE_MERGE_OPS}" \
+    < ${OUTPUT_DIR}/${f}.sources > ${OUTPUT_DIR}/${f}.bpe.${BPE_MERGE_OPS}.sources
+  ${DATA_DIR}/subword-nmt/apply_bpe.py -c "${OUTPUT_DIR}/bpe.${BPE_MERGE_OPS}" \
+    < ${OUTPUT_DIR}/${f}.targets > ${OUTPUT_DIR}/${f}.bpe.${BPE_MERGE_OPS}.targets
+done
+
+# Learn vocabulary
+cat "${OUTPUT_DIR}/train.bpe.${BPE_MERGE_OPS}.sources" "${OUTPUT_DIR}/train.bpe.${BPE_MERGE_OPS}.targets" \
+  | ${DATA_DIR}/subword-nmt/get_vocab.py | cut -f1 -d ' ' > "${OUTPUT_DIR}/vocab.bpe.${BPE_MERGE_OPS}"
