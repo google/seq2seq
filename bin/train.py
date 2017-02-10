@@ -8,6 +8,8 @@ import os
 import tempfile
 import yaml
 
+from six import string_types
+
 from seq2seq import models
 from seq2seq.data import data_utils, vocab
 from seq2seq.training import utils as training_utils
@@ -132,7 +134,7 @@ def create_experiment(output_dir):
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()
-  if isinstance(FLAGS.hparams, str):
+  if isinstance(FLAGS.hparams, string_types):
     hparams.update(yaml.load(FLAGS.hparams))
   elif isinstance(FLAGS.hparams, dict):
     hparams.update(FLAGS.hparams)
