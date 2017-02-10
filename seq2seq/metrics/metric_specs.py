@@ -15,6 +15,7 @@ import tensorflow as tf
 from tensorflow.contrib import metrics
 from tensorflow.contrib.learn import metric_spec
 
+from seq2seq.metrics import rouge
 from seq2seq.metrics import bleu
 
 def accumulate_strings(values, name="strings"):
@@ -142,6 +143,19 @@ class BleuMetricSpec(TextMetricSpec):
         lowercase=False)
 
 
+class RougeMetricSpec(TextMetricSpec):
+  """Calculates BLEU score using the Moses multi-bleu.perl script.
+  """
+  def __init__(self, metric_name, **kwargs):
+    super(RougeMetricSpec, self).__init__(metric_name, **kwargs)
+    self.metric_name = metric_name
+
+  def metric_fn(self, hypotheses, references):
+    if not hypotheses or not references:
+      return np.float32(0.0)
+    return np.float32(rouge.rouge(hypotheses, references)[self.metric_name])
+
+
 class LogPerplexityMetricSpec(metric_spec.MetricSpec):
   """A MetricSpec to calculate straming log perplexity"""
   def __init__(self):
@@ -155,3 +169,11 @@ class LogPerplexityMetricSpec(metric_spec.MetricSpec):
         maxlen=tf.to_int32(tf.shape(predictions["losses"])[1]))
     return metrics.streaming_mean(predictions["losses"], loss_mask)
 
+
+METRIC_SPECS_DICT = {
+    "bleu": BleuMetricSpec(),
+    "log_perplexity": LogPerplexityMetricSpec(),
+    "rouge_1_f_score": RougeMetricSpec("rouge_1_f_score"),
+    "rouge_2_f_score": RougeMetricSpec("rouge_2_f_score"),
+    "rouge_l_f_score": RougeMetricSpec("rouge_l_f_score")
+}
