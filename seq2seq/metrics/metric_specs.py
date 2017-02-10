@@ -168,3 +168,12 @@ class LogPerplexityMetricSpec(metric_spec.MetricSpec):
         lengths=tf.to_int32(labels["target_len"] - 1),
         maxlen=tf.to_int32(tf.shape(predictions["losses"])[1]))
     return metrics.streaming_mean(predictions["losses"], loss_mask)
+
+
+METRIC_SPECS_DICT = {
+    "bleu": BleuMetricSpec(),
+    "log_perplexity": LogPerplexityMetricSpec(),
+    "rouge_1_f_score": RougeMetricSpec("rouge_1_f_score"),
+    "rouge_2_f_score": RougeMetricSpec("rouge_2_f_score"),
+    "rouge_l_f_score": RougeMetricSpec("rouge_l_f_score")
+}
