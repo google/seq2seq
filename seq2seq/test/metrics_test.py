@@ -15,6 +15,7 @@ import tensorflow as tf
 from seq2seq.metrics import bleu
 from seq2seq.metrics import rouge
 from seq2seq.metrics.metric_specs import BleuMetricSpec, RougeNMetricSpec
+from seq2seq.metrics.metric_specs import RougeLMetricSpec
 
 
 class TestMosesBleu(tf.test.TestCase):
@@ -52,108 +53,76 @@ class TestMosesBleu(tf.test.TestCase):
         expected_bleu=46.51)
 
 
-class TestBleuMetricSpec(tf.test.TestCase):
+class TestTextMetricSpec(tf.test.TestCase):
+  def _test_metric_spec(self, metric_spec, hyps, refs, expected_scores):
+    predictions = {
+        "predicted_tokens": tf.placeholder(dtype=tf.string)
+    }
+    labels = {
+        "target_tokens": tf.placeholder(dtype=tf.string)
+    }
+
+    # metric_spec = BleuMetricSpec()
+    value, update_op = metric_spec.create_metric_ops(None, labels, predictions)
+
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      sess.run(tf.local_variables_initializer())
+
+      # hypotheses = ["A B C D E F", "A B C D E F"]
+      # references = ["A B C D E F", "A B A D E F"]
+
+      scores = []
+      for hyp, ref in zip(hyps, refs):
+        hyp = hyp.split(" ")
+        ref = ref.split(" ")
+        sess.run(update_op, {
+            predictions["predicted_tokens"]: [hyp],
+            labels["target_tokens"]: [ref]
+        })
+        scores.append(sess.run(value))
+
+      for score, expected in zip(scores, expected_scores):
+        np.testing.assert_almost_equal(score, expected, decimal=2)
+        np.testing.assert_almost_equal(score, expected, decimal=2)
+
+
+class TestBleuMetricSpec(TestTextMetricSpec):
   """Tests the `PrintModelAnalysisHook` hook"""
 
   def test_bleu(self):
-    predictions = {
-        "predicted_tokens": tf.placeholder(dtype=tf.string)
-    }
-    labels = {
-        "target_tokens": tf.placeholder(dtype=tf.string)
-    }
-
     metric_spec = BleuMetricSpec()
-    value, update_op = metric_spec.create_metric_ops(None, labels, predictions)
+    return self._test_metric_spec(
+        metric_spec=metric_spec,
+        hyps=["A B C D E F", "A B C D E F"],
+        refs=["A B C D E F", "A B A D E F"],
+        expected_scores=[100.0, 69.19]
+    )
 
-    with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
-      sess.run(tf.local_variables_initializer())
-
-      hypotheses = ["A B C D E F", "A B C D E F"]
-      references = ["A B C D E F", "A B A D E F"]
-
-      scores = []
-      for hyp, ref in zip(hypotheses, references):
-        hyp = hyp.split(" ")
-        ref = ref.split(" ")
-        sess.run(update_op, {
-            predictions["predicted_tokens"]: [hyp],
-            labels["target_tokens"]: [ref]
-        })
-        scores.append(sess.run(value))
-
-      np.testing.assert_almost_equal(scores[0], 100.0, decimal=2)
-      np.testing.assert_almost_equal(scores[1], 69.19, decimal=2)
-
-
-class TestRougeNMetricSpec(tf.test.TestCase):
+class TestRougeNMetricSpec(TestTextMetricSpec):
   """Tests the `PrintModelAnalysisHook` hook"""
 
   def test_rouge_n(self):
-    predictions = {
-        "predicted_tokens": tf.placeholder(dtype=tf.string)
-    }
-    labels = {
-        "target_tokens": tf.placeholder(dtype=tf.string)
-    }
-
     metric_spec = RougeNMetricSpec(n=2)
-    value, update_op = metric_spec.create_metric_ops(None, labels, predictions)
+    return self._test_metric_spec(
+        metric_spec=metric_spec,
+        hyps=["A B C D E F", "A B C D E F"],
+        refs=["A B C D E F", "A B A D E F"],
+        expected_scores=[1.0, 0.75]
+    )
 
-    with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
-      sess.run(tf.local_variables_initializer())
-
-      hypotheses = ["A B C D E F", "A B C D E F"]
-      references = ["A B C D E F", "A B A D E F"]
-
-      scores = []
-      for hyp, ref in zip(hypotheses, references):
-        hyp = hyp.split(" ")
-        ref = ref.split(" ")
-        sess.run(update_op, {
-            predictions["predicted_tokens"]: [hyp],
-            labels["target_tokens"]: [ref]
-        })
-        scores.append(sess.run(value))
-
-      np.testing.assert_almost_equal(scores[0], 1.0, decimal=2)
-      np.testing.assert_almost_equal(scores[1], 0.75, decimal=2)
-
-class TestRougeNMetricSpec(tf.test.TestCase):
+class TestRougeLMetricSpec(TestTextMetricSpec):
   """Tests the `PrintModelAnalysisHook` hook"""
 
-  def test_rouge_n(self):
-    predictions = {
-        "predicted_tokens": tf.placeholder(dtype=tf.string)
-    }
-    labels = {
-        "target_tokens": tf.placeholder(dtype=tf.string)
-    }
+  def test_rouge_l(self):
+    metric_spec = RougeLMetricSpec()
+    return self._test_metric_spec(
+        metric_spec=metric_spec,
+        hyps=["A B C D E F", "A B C D E F"],
+        refs=["A B C D E F", "A B A D E F"],
+        expected_scores=[1.0, 0.916669]
+    )
 
-    metric_spec = RougeNMetricSpec(n=2)
-    value, update_op = metric_spec.create_metric_ops(None, labels, predictions)
-
-    with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
-      sess.run(tf.local_variables_initializer())
-
-      hypotheses = ["A B C D E F", "A B C D E F"]
-      references = ["A B C D E F", "A B A D E F"]
-
-      scores = []
-      for hyp, ref in zip(hypotheses, references):
-        hyp = hyp.split(" ")
-        ref = ref.split(" ")
-        sess.run(update_op, {
-            predictions["predicted_tokens"]: [hyp],
-            labels["target_tokens"]: [ref]
-        })
-        scores.append(sess.run(value))
-
-      np.testing.assert_almost_equal(scores[0], 1.0, decimal=2)
-      np.testing.assert_almost_equal(scores[1], 0.75, decimal=2)
 
 
 class TestRougeMetric(tf.test.TestCase):

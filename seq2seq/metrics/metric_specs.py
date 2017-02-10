@@ -149,12 +149,27 @@ class RougeNMetricSpec(TextMetricSpec):
   def __init__(self, n, separator=" ", eos_token="SEQUENCE_END"):
     super(RougeNMetricSpec, self).__init__(
         "rouge_{}_metric".format(n), separator, eos_token)
-    self.n = n
+    self.n = n #pylint: disable=C0103
 
   def metric_fn(self, hypotheses, references):
     if not hypotheses or not references:
       return np.float32(0.0)
     return np.float32(rouge.rouge_n(hypotheses, references, n=self.n))
+
+
+class RougeLMetricSpec(TextMetricSpec):
+  """Calculates BLEU score using the Moses multi-bleu.perl script.
+  """
+  def __init__(self, separator=" ", eos_token="SEQUENCE_END"):
+    super(RougeLMetricSpec, self).__init__(
+        "rouge_l_sent_metric", separator, eos_token)
+
+  def metric_fn(self, hypotheses, references):
+    if not hypotheses or not references:
+      return np.float32(0.0)
+    return np.float32(
+        rouge.rouge_l_sentence_level(
+            hypotheses, references))
 
 class LogPerplexityMetricSpec(metric_spec.MetricSpec):
   """A MetricSpec to calculate straming log perplexity"""
@@ -168,4 +183,3 @@ class LogPerplexityMetricSpec(metric_spec.MetricSpec):
         lengths=tf.to_int32(labels["target_len"] - 1),
         maxlen=tf.to_int32(tf.shape(predictions["losses"])[1]))
     return metrics.streaming_mean(predictions["losses"], loss_mask)
-
