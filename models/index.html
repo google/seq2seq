@@ -169,7 +169,7 @@
 <tbody>
 <tr>
 <td><code>source.max_seq_len</code></td>
-<td><code>40</code></td>
+<td><code>50</code></td>
 <td>Maximum length of source sequences. An example is sliced to this length before being fed to the encoder.</td>
 </tr>
 <tr>
@@ -179,7 +179,7 @@
 </tr>
 <tr>
 <td><code>target.max_seq_len</code></td>
-<td><code>40</code></td>
+<td><code>50</code></td>
 <td>Maximum length of target sequences. An example is sliced to this length before being fed to the decoder.</td>
 </tr>
 <tr>
@@ -196,6 +196,16 @@
 <td><code>inference.max_decode_length</code></td>
 <td><code>100</code></td>
 <td>During inference mode, decode up to this length or until a <code>SEQUENCE_END</code> token is encountered, whichever happens first.</td>
+</tr>
+<tr>
+<td><code>inference.beam_search.beam_width</code></td>
+<td><code>0</code></td>
+<td>Beam Search beam width used during inference. A value of <code>0</code> or <code>1</code> disables beam search.</td>
+</tr>
+<tr>
+<td><code>inference.beam_search.length_penalty_weight</code></td>
+<td><code>0.0</code></td>
+<td>Length penalty factor applied to beam search hypotheses, as described in <a href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.</td>
 </tr>
 <tr>
 <td><code>optimizer.name</code></td>

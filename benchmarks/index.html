@@ -108,13 +108,7 @@
                 <li class="toctree-l3"><a href="#machine-translation-wmt16-german-english">Machine Translation: WMT'16 German-English</a></li>
                 
             
-                <li class="toctree-l3"><a href="#machine-translation-wmt16-english-french">Machine Translation: WMT'16 English-French</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#machine-translation-wmt16-french-english">Machine Translation: WMT'16 French-English</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#text-summarization">Text Summarization</a></li>
+                <li class="toctree-l3"><a href="#text-summarization-gigaword">Text Summarization: Gigaword</a></li>
                 
             
                 <li class="toctree-l3"><a href="#conversational-modeling">Conversational Modeling</a></li>
@@ -173,79 +167,65 @@
 <th>Settings / Notes</th>
 <th>Training Time</th>
 <th>Test Set BLEU</th>
-<th>Downloads</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>2-Layer LSTM Attention Model + BPE</td>
-<td><a href="">Hyperparameters</a></td>
-<td>---</td>
-<td>newstest2014: - </br> newstest2015: -</td>
-<td><a href="">Model</a> <br/> <a href="">Data</a></td>
+<td>tf-seq2seq</td>
+<td><a href="https://gist.github.com/dennybritz/525ed7c84a40c90b1b77921b39eb90b7">Configuration</a></td>
+<td>~4 days on 8 NVidia K80 GPUs</td>
+<td>newstest2014: <strong>22.03</strong> </br> newstest2015: <strong>24.75</strong></td>
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1611.02344">Gehring, et al. (2016-11)</a> <br/> Deep Convolutional 15/5</td>
 <td></td>
 <td>---</td>
 <td>newstest2014: - <br/> newstest2015: <strong>24.3</strong></td>
-<td>---</td>
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1609.08144">Wu et al. (2016-09)</a> <br/> GNMT</td>
 <td>8 encoder/decoder layers, 1024 LSTM units, 32k shared wordpieces (similar to BPE); residual between layers connections; lots of other tricks; newstest2012 and newstest2013 as validation sets. Paper mentions 5M training examples, how is this possible if WMT only has ~4.5M?</td>
 <td>---</td>
 <td>newstest2014:&nbsp;<strong>24.61</strong> <br/>newstest2015: -</td>
-<td>---</td>
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1606.04199">Zhou et al. (2016-06)</a> <br/> Deep-Att</td>
 <td></td>
 <td>---</td>
 <td>newstest2014: <strong>20.6</strong> <br/> newstest2015: -</td>
-<td>---</td>
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1603.06147v4">Chung, et al. (2016-03)</a> <br/> BPE-Char</td>
 <td><strong>Character-level decoder with BPE encoder.</strong> Based on Bahdanau attention model; Bidirectional encoder with 512 GRU units; 2-layer GRU decoder with 1024 units; Adam; batch size 128; gradient clipping at norm 1; Moses Tokenizer; limit sequences to 50 symbols in source and 100 symbols and 500 characters in target.</td>
 <td>---</td>
 <td>newstest2014: <strong>21.5</strong> </br> newstest2015: <strong>23.9</strong></td>
-<td>---</td>
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1508.07909">Sennrich et al. (2015-8)</a> <br/> BPE</td>
 <td><strong>Authors propose BPE for subword unit nsegmentation as a pre/post-processing step to handle open vocabulary</strong>;  Base model is based on <a href="https://arxiv.org/abs/1409.0473">Bahndanau's paper</a>. Bidirectional encoder; GRU; 1000 hidden units; 1000 attention units; 620-dimensional word embeddings; single-layer; beam search width 12; Adadelta with batch size 80; Using <a href="https://github.com/sebastien-j/LV_groundhog">Groundhog</a>;</td>
 <td></td>
 <td>newstest2014: - <br/>newstest2015: <strong>20.5</strong></td>
-<td>---</td>
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1508.04025">Luong et al. (2015-08)</a></td>
 <td><strong>Novel local/global attention mechanism;</strong> 50k vocabulary; 4 layers in encoder and decoder; unidirectional encoder; gradient clipping at norm 5;  1028 LSTM units, 1028-dimensional embeddings; (somewhat complicated) SGD decay schedule; dropout 0.2; UNK replace;</td>
 <td>---</td>
 <td>newstest2014: <strong>20.9</strong> <br/> newstest2015: -</td>
-<td>---</td>
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1412.2007">Jean et al. (2014-12)</a> <br/> RNNsearch-LV</td>
 <td><strong>Authors propose a new sampling-based approach to incorporate a larger vocabulary</strong>; Base model is based on <a href="https://arxiv.org/abs/1409.0473">Bahndanau's paper</a>. Bidirectional encoder; GRU; 1000 hidden units; 1000 attention units; 620-dimensional word embeddings; single-layer; beam search width 12;</td>
 <td>---</td>
 <td>newstest2014: <strong>19.4</strong> <br/> newstest2015: -</td>
-<td>---</td>
 </tr>
 </tbody>
 </table>
 <h2 id="machine-translation-wmt16-german-english">Machine Translation: WMT'16 German-English</h2>
 <p>Coming soon.</p>
-<h2 id="machine-translation-wmt16-english-french">Machine Translation: WMT'16 English-French</h2>
-<p>Coming soon.</p>
-<h2 id="machine-translation-wmt16-french-english">Machine Translation: WMT'16 French-English</h2>
-<p>Coming soon.</p>
-<h2 id="text-summarization">Text Summarization</h2>
+<h2 id="text-summarization-gigaword">Text Summarization: Gigaword</h2>
 <p>Coming soon.</p>
 <h2 id="conversational-modeling">Conversational Modeling</h2>
 <p>Coming soon.</p>
-<p>4 layers, 1000-dimensional embeddings, LSTM cell, unidirectional encoder, gradient norm clipping at 5; SGD with decay schedule; dropout 0.2.</p>
               
             </div>
           </div>

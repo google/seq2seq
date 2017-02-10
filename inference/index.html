@@ -163,37 +163,36 @@
               
                 <h2 id="performing-inference">Performing Inference</h2>
 <p>After you have trained a model, you can use the <code>bin/infer.py</code> script to make predictions. For example, from the <a href="../getting_started/">Getting Started Guide</a>:</p>
-<pre><code class="bash">./bin/infer.py \
+<pre><code class="bash">python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
-  &gt; ${TMPDIR}/nmt_toy_reverse/predictions.txt
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
+  &gt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 </code></pre>
 
-<p>The inference script reads the model hyperparameters from the <code>hparams.txt</code> file in the model directory, so
-you do not need to pass them explicitly. By default, the latest model checkpoint found in <code>model_dir</code> is used, but you can also pass a specific checkpoint (e.g. <code>${TMPDIR}/nmt_toy_reverse/model.ckpt-1562</code>) via
+<p>The inference script reads the model hyperparameters from the <code>train_options.json</code> file in the model directory, so
+you do not need to pass them explicitly. By default, the latest model checkpoint found in <code>model_dir</code> is used, but you can also pass a specific checkpoint (e.g. <code>${TMPDIR:-/tmp}/nmt_toy_reverse/model.ckpt-1562</code>) via
 the <code>checkpoint_path</code> flag.</p>
 <h2 id="beam-search">Beam Search</h2>
 <p><strong>Beam Search is currently experimental.</strong> To perform beam search you can can set the <code>inference.beam_search.beam_width</code> model parameter to a number greater than 1 (see below). When using beam search, your batch size will be set to 1 and the <code>beam_width</code> will be used as an implicit batch size. Beam search can become very expensive with large beam widths.</p>
 <h2 id="overwriting-hyperparameters">Overwriting hyperparameters</h2>
 <p>To overwrite specific hyperparameters of a model, pass an hparams JSON object as the <code>hparams</code> flag to the inference script:</p>
-<pre><code>./bin/infer.py \
+<pre><code>python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
-  --hparams '{
-      &quot;inference.beam_search.score_fn&quot;: &quot;length_normalized_score&quot;,
-      &quot;inference.beam_search.beam_width&quot;: 5
-    }' \
-  &gt; ${TMPDIR}/nmt_toy_reverse/predictions.txt
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
+  --hparams '
+      inference.beam_search.score_fn: length_normalized_score
+      inference.beam_search.beam_width: 5' \
+  &gt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 </code></pre>
 
 <h2 id="unk-token-replacement-using-a-copy-mechanism">UNK token replacement using a Copy Mechanism</h2>
 <p>Rare words (such as place and people names) are often absent from the target vocabulary and result in <code>UNK</code> tokens in the output predictions. An easy strategy to improve predictions is to replace each <code>UNK</code> token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces <code>[source_length]</code> alignment scores for each target token.</p>
 <p>If you trained a model that generates such attention scores (e.g. <code>AttentionSeq2Seq</code>), you can use them to perform UNK token replacement by passing the <code>unk_replace</code> flag to the inference script.</p>
-<pre><code class="bash">./bin/infer.py \
+<pre><code class="bash">python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
   --unk_replace \
-  &gt; ${TMPDIR}/nmt_toy_reverse/predictions.txt
+  &gt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 </code></pre>
 
 <h2 id="unk-token-replacement-using-a-mapping">UNK token replacement using a mapping</h2>
@@ -225,12 +224,12 @@ sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
 </code></pre>
 
 <p>The output file specified by the <code>-p</code> argument will contain conditional probabilities for <code>p(target | source)</code> in the form of <code>&lt;source&gt;\t&lt;target&gt;\t&lt;prob&gt;</code>. These can be used to do smarter UNK token replacement by passing the <code>unk_mapping</code> flag.</p>
-<pre><code class="bash">./bin/infer.py \
+<pre><code class="bash">python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR}/nmt_toy_reverse \
+  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
   --unk_replace \
   --unk_mapping $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict \
-  &gt; ${TMPDIR}/nmt_toy_reverse/predictions.txt
+  &gt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 </code></pre>
               
             </div>

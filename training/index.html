@@ -174,7 +174,7 @@
 </ul>
 <h3 id="running-training">Running Training</h3>
 <p>To train a new model, run the training script below (also see <a href="../getting_started/">Getting Started</a>):</p>
-<pre><code class="shell">./bin/train.py \
+<pre><code class="shell">python -m bin.train \
   --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
   --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
   --dev_source $HOME/nmt_data/toy_reverse/dev/sources.txt \
@@ -316,6 +316,11 @@ output_dir: /tmp/nmt_toy_reverse
 <td>sample_every_n_steps</td>
 <td><code>500</code></td>
 <td>Sample and print sequence predictions every N steps during training.</td>
+</tr>
+<tr>
+<td>metrics</td>
+<td><code>log_perplexity,bleu</code></td>
+<td>Comma-separated list of metrics to evaluate. Each metric must be defined in the <code>METRIC_SPECS_DICT</code> in <code>metric_specs.py</code>.</td>
 </tr>
 <tr>
 <td>tf_random_seed</td>
