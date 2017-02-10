@@ -31,7 +31,7 @@ PARSER.add_argument(
     "-o", "--output_dir", type=str, required=True,
     help="path to the output directory")
 PARSER.add_argument(
-    "-n", "--num_sentences", type=str, required=False, default=2,
+    "-n", "--num_sentences", type=int, required=False, default=2,
     help="Use the first N sentences as source text")
 ARGS = PARSER.parse_args()
 
