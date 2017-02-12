@@ -145,3 +145,7 @@ class TestRougeMetric(tf.test.TestCase):
     np.testing.assert_almost_equal(output["rouge_2/f_score"], 0.548, decimal=2)
     # pyrouge result 0.84926
     np.testing.assert_almost_equal(output["rouge_l/f_score"], 0.852, decimal=2)
+
+
+if __name__ == "__main__":
+  tf.test.main()
