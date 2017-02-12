@@ -173,7 +173,11 @@ class LogPerplexityMetricSpec(metric_spec.MetricSpec):
 METRIC_SPECS_DICT = {
     "bleu": BleuMetricSpec(),
     "log_perplexity": LogPerplexityMetricSpec(),
-    "rouge_1_f_score": RougeMetricSpec("rouge_1_f_score"),
-    "rouge_2_f_score": RougeMetricSpec("rouge_2_f_score"),
-    "rouge_l_f_score": RougeMetricSpec("rouge_l_f_score")
+    "rouge_1/f_score": RougeMetricSpec("rouge_1/f_score"),
+    "rouge_1/r_score": RougeMetricSpec("rouge_1/r_score"),
+    "rouge_1/p_score": RougeMetricSpec("rouge_1/p_score"),
+    "rouge_2/f_score": RougeMetricSpec("rouge_2/f_score"),
+    "rouge_2/r_score": RougeMetricSpec("rouge_2/r_score"),
+    "rouge_2/p_score": RougeMetricSpec("rouge_2/p_score"),
+    "rouge_l/f_score": RougeMetricSpec("rouge_l/f_score")
 }
