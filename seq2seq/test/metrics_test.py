@@ -9,7 +9,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
-import pyrouge
 
 import tensorflow as tf
 
@@ -102,27 +101,17 @@ class TestBleuMetricSpec(TestTextMetricSpec):
 
 class TestRougeMetricSpec(TestTextMetricSpec):
   """Tests the `RougeMetricSpec`"""
-
-  def _skip_if_no_rouge(self):
-    try:
-      pyrouge.Rouge155()
-    except Exception:
-      tf.logging.warning("ROUGE not installed. Skipping test.")
-      self.skipTest("ROUGE not installed. Skipping test.")
-
   def test_rouge_1_f_score(self):
-    self._skip_if_no_rouge()
-    metric_spec = RougeMetricSpec("rouge_1_f_score")
+    metric_spec = RougeMetricSpec("rouge_1/f_score")
     return self._test_metric_spec(
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
         refs=["A B C D E F", "A B A D E F"],
-        expected_scores=[1.0, 0.916]
+        expected_scores=[1.0, 0.954]
     )
 
   def test_rouge_2_f_score(self):
-    self._skip_if_no_rouge()
-    metric_spec = RougeMetricSpec("rouge_2_f_score")
+    metric_spec = RougeMetricSpec("rouge_2/f_score")
     return self._test_metric_spec(
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
@@ -131,8 +120,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
     )
 
   def test_rouge_l_f_score(self):
-    self._skip_if_no_rouge()
-    metric_spec = RougeMetricSpec("rouge_l_f_score")
+    metric_spec = RougeMetricSpec("rouge_l/f_score")
     return self._test_metric_spec(
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
@@ -143,16 +131,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
 
 class TestRougeMetric(tf.test.TestCase):
   """Tests the RougeMetric"""
-
-  def _skip_if_no_rouge(self):
-    try:
-      pyrouge.Rouge155()
-    except Exception:
-      tf.logging.warning("ROUGE not installed. Skipping test.")
-      self.skipTest("ROUGE not installed. Skipping test.")
-
   def test_rouge(self):
-    self._skip_if_no_rouge()
     hypotheses = np.array([
         "The brown fox jumps over the dog 笑",
         "The brown fox jumps over the dog 2 笑"])
@@ -160,5 +139,9 @@ class TestRougeMetric(tf.test.TestCase):
         "The quick brown fox jumps over the lazy dog 笑",
         "The quick brown fox jumps over the lazy dog 笑"])
     output = rouge.rouge(hypotheses, references)
-    np.testing.assert_almost_equal(output["rouge_1_f_score"], 0.84926)
-    np.testing.assert_almost_equal(output["rouge_2_f_score"], 0.55238)
+    # pyrouge result: 0.84926
+    np.testing.assert_almost_equal(output["rouge_1/f_score"], 0.865, decimal=2)
+    # pyrouge result: 0.55238
+    np.testing.assert_almost_equal(output["rouge_2/f_score"], 0.548, decimal=2)
+    # pyrouge result 0.84926
+    np.testing.assert_almost_equal(output["rouge_l/f_score"], 0.852, decimal=2)
