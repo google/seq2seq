@@ -162,3 +162,4 @@ class TestRougeMetric(tf.test.TestCase):
     output = rouge.rouge(hypotheses, references)
     np.testing.assert_almost_equal(output["rouge_1_f_score"], 0.84926)
     np.testing.assert_almost_equal(output["rouge_2_f_score"], 0.55238)
+    np.testing.assert_almost_equal(output["rouge_l_f_score"], 0.84926)
