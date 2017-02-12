@@ -20,7 +20,6 @@ import sys
 import os
 import argparse
 
-from tensorflow.python.platform import gfile
 from bs4 import BeautifulSoup
 
 PARSER = argparse.ArgumentParser(
@@ -32,14 +31,14 @@ PARSER.add_argument(
     "-o", "--output_dir", type=str, required=True,
     help="path to the output directory")
 PARSER.add_argument(
-    "-n", "--num_sentences", type=str, required=False, default=2,
+    "-n", "--num_sentences", type=int, required=False, default=2,
     help="Use the first N sentences as source text")
 ARGS = PARSER.parse_args()
 
 def gigaword_iter(path, n_sentences=2):
   """Creates an iterator that yields (source, target) tuples.
   """
-  soup = BeautifulSoup(open(path))
+  soup = BeautifulSoup(open(path), "html.parser")
   for doc in soup.find_all("doc"):
     # Skip docs without headline
     if doc.headline is None:
@@ -48,28 +47,32 @@ def gigaword_iter(path, n_sentences=2):
     sentences = doc.find_all("p")[:n_sentences]
     if not sentences:
       continue
-    sentences = [_.text.strip().replace("\n", "") for _ in sentences]
+    sentences = [_.text.strip().replace("\n", " ") for _ in sentences]
+    sentences = [_.replace("  ", " ") for _ in sentences]
+    headline = doc.headline.text.replace("\n", " ").strip()
     # Returns sentencs and headline
-    yield " ".join(sentences), doc.headline.text.strip()
+    yield " ".join(sentences), headline
 
 def main():
   """The entrypoint for the script"""
 
-  gfile.MakeDirs(ARGS.output_dir)
+  if not os.path.exists(ARGS.output_dir):
+    os.makedirs(ARGS.output_dir)
 
   sources_filename = os.path.join(ARGS.output_dir, "sources.txt")
   targets_filename = os.path.join(ARGS.output_dir, "targets.txt")
-  sources_file = gfile.GFile(sources_filename, "w")
-  targets_file = gfile.GFile(targets_filename, "w")
+  sources_file = open(sources_filename, "w")
+  targets_file = open(targets_filename, "w")
 
   records = gigaword_iter(ARGS.file, ARGS.num_sentences)
-  for i, (source, target) in enumerate(records):
+  for i, (source, target) in enumerate(records, 1):
     sources_file.write(source + "\n")
     targets_file.write(target + "\n")
     if i % 1000 == 0:
       sys.stderr.write(".")
     if i % 100000 == 0:
       sys.stderr.write("\n")
+  sys.stderr.write("\n")
 
   sources_file.close()
   targets_file.close()
