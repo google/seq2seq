@@ -6,6 +6,7 @@ guide for detailed setup instructions.
 
 **IMPORTANT: This project requires Tensorflow 1.0, which is currently a release candidate and not published on PyPI. Follow the [Pip installation](https://www.tensorflow.org/versions/r1.0/get_started/os_setup#pip_installation) instructions on the Tensorflow site above to install this version. Tensorflow 1.0 will be released in the coming weeks, and once that happens a simple `pip install tensorflow` will be sufficient.**
 
+
 With TensorFlow installed, you can clone this repository:
 
 ```bash
