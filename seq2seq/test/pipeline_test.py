@@ -64,6 +64,8 @@ class PipelineTest(tf.test.TestCase):
 
     # Set training flags
     tf.app.flags.FLAGS.output_dir = self.output_dir
+    tf.app.flags.FLAGS.metrics = """
+      log_perplexity,bleu,rouge_1/f_score,rouge_l/f_score"""
     tf.app.flags.FLAGS.train_source = sources_train.name
     tf.app.flags.FLAGS.train_target = targets_train.name
     tf.app.flags.FLAGS.vocab_source = vocab_source.name
