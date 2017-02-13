@@ -2,10 +2,9 @@
 
 To use tf-seq2seq you need a working installation of TensorFlow 1.0 with
 Python 2.7 or Python 3.5. Follow the [TensorFlow Getting Started](https://www.tensorflow.org/versions/r1.0/get_started/os_setup)
-for detailed setup instructions.
+guide for detailed setup instructions.
 
 **IMPORTANT: This project requires Tensorflow 1.0, which is currently a release candidate and not published on PyPI. Follow the [Pip installation](https://www.tensorflow.org/versions/r1.0/get_started/os_setup#pip_installation) instructions on the Tensorflow site above to install this version. Tensorflow 1.0 will be released in the coming weeks, and once that happens a simple `pip install tensorflow` will be sufficient.**
-
 
 With TensorFlow installed, you can clone this repository:
 
@@ -20,7 +19,7 @@ To make sure everything works as expect you can run a simple pipeline unit test:
 python -m unittest seq2seq.test.pipeline_test
 ```
 
-If you see a "success" message, you are all set. If you run into setup issues,
+If you see a "success" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,
 please [file a Github issue](https://github.com/dennybritz/seq2seq/issues).
 
 ## Using a pre-trained model
