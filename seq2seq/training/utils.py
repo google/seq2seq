@@ -18,7 +18,6 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 from seq2seq.contrib import rnn_cell
-from seq2seq.data.data_utils import read_from_data_provider
 from seq2seq.training import hooks
 
 class TrainOptions(object):
@@ -218,7 +217,7 @@ def create_learning_rate_decay_fn(decay_type,
   return decay_fn
 
 
-def create_input_fn(data_provider_fn,
+def create_input_fn(pipeline,
                     batch_size,
                     bucket_boundaries=None,
                     allow_smaller_final_batch=False):
@@ -227,8 +226,7 @@ def create_input_fn(data_provider_fn,
     featurizer to ensure that everything will be created in  the same graph.
 
   Args:
-    data_provider_fn: Function that creates a data provider to read from.
-      An instance of `tf.contrib.slim.data_provider.DataProvider`.
+    pipeline: An instance of `seq2seq.data.InputPipeline`.
     batch_size: Create batches of this size. A queue to hold a
       reasonable number of batches in memory is created.
     bucket_boundaries: int list, increasing non-negative numbers.
@@ -242,10 +240,12 @@ def create_input_fn(data_provider_fn,
   def input_fn():
     """Creates features and labels.
     """
-    features_and_labels = read_from_data_provider(data_provider_fn())
+
+    data_provider = pipeline.make_data_provider()
+    features_and_labels = pipeline.read_from_data_provider(data_provider)
 
     if bucket_boundaries:
-      bucket_num, batch = tf.contrib.training.bucket_by_sequence_length(
+      _, batch = tf.contrib.training.bucket_by_sequence_length(
           input_length=features_and_labels["source_len"],
           bucket_boundaries=bucket_boundaries,
           tensors=features_and_labels,
@@ -266,9 +266,9 @@ def create_input_fn(data_provider_fn,
           name="batch_queue")
 
     # Separate features and labels
-    features_batch = {k: batch[k] for k in ("source_tokens", "source_len")}
-    if "target_tokens" in batch:
-      labels_batch = {k: batch[k] for k in ("target_tokens", "target_len")}
+    features_batch = {k: batch[k] for k in pipeline.feature_keys}
+    if set(batch.keys()).intersection(pipeline.label_keys):
+      labels_batch = {k: batch[k] for k in pipeline.label_keys}
     else:
       labels_batch = None
 

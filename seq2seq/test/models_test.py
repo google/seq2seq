@@ -11,7 +11,7 @@ from __future__ import unicode_literals
 from collections import namedtuple
 
 from seq2seq import losses as seq2seq_losses
-from seq2seq.data import data_utils, vocab
+from seq2seq.data import vocab, input_pipeline
 from seq2seq.training import utils as training_utils
 from seq2seq.test import utils as test_utils
 from seq2seq.models import BasicSeq2Seq, AttentionSeq2Seq
@@ -239,9 +239,10 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     # Build model graph
     model = self.create_model(params)
-    data_provider = lambda: data_utils.make_parallel_data_provider(
+    input_pipeline_ = input_pipeline.ParallelTextInputPipeline(
         [sources_file.name], [targets_file.name])
-    input_fn = training_utils.create_input_fn(data_provider, self.batch_size)
+    input_fn = training_utils.create_input_fn(
+        pipeline=input_pipeline_, batch_size=self.batch_size)
     features, labels = input_fn()
     fetches = model(features, labels, None, mode)
     fetches = [_ for _ in fetches if _ is not None]

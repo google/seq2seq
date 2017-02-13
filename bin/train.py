@@ -11,7 +11,7 @@ import yaml
 from six import string_types
 
 from seq2seq import models
-from seq2seq.data import data_utils, vocab
+from seq2seq.data import input_pipeline, vocab
 from seq2seq.training import utils as training_utils
 from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
 
@@ -174,27 +174,25 @@ def create_experiment(output_dir):
 
   # Create training input function
   train_input_fn = training_utils.create_input_fn(
-      data_provider_fn=functools.partial(
-          data_utils.make_parallel_data_provider,
-          data_sources_source=FLAGS.train_source,
-          data_sources_target=FLAGS.train_target,
-          shuffle=True,
-          num_epochs=FLAGS.train_epochs,
+      pipeline=input_pipeline.ParallelTextInputPipeline(
+          source_files=FLAGS.train_source,
+          target_files=FLAGS.train_target,
           source_delimiter=FLAGS.source_delimiter,
-          target_delimiter=FLAGS.target_delimiter),
+          target_delimiter=FLAGS.target_delimiter,
+          shuffle=True,
+          num_epochs=FLAGS.train_epochs),
       batch_size=FLAGS.batch_size,
       bucket_boundaries=bucket_boundaries)
 
   # Create eval input function
   eval_input_fn = training_utils.create_input_fn(
-      data_provider_fn=functools.partial(
-          data_utils.make_parallel_data_provider,
-          data_sources_source=FLAGS.dev_source,
-          data_sources_target=FLAGS.dev_target,
-          shuffle=False,
-          num_epochs=1,
+      pipeline=input_pipeline.ParallelTextInputPipeline(
+          source_files=FLAGS.dev_source,
+          target_files=FLAGS.dev_target,
           source_delimiter=FLAGS.source_delimiter,
-          target_delimiter=FLAGS.target_delimiter),
+          target_delimiter=FLAGS.target_delimiter,
+          shuffle=False,
+          num_epochs=1),
       batch_size=FLAGS.batch_size,
       allow_smaller_final_batch=True)
 

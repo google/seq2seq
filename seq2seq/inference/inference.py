@@ -10,8 +10,7 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 from seq2seq import models
-from seq2seq.data import data_utils
-from seq2seq.data import vocab
+from seq2seq.data import input_pipeline, vocab
 from seq2seq.training import utils as training_utils
 
 def load_model(model_dir, params=None):
@@ -96,14 +95,14 @@ def create_inference_graph(
     tf.logging.info("Setting batch size to 1 for beam search.")
     batch_size = 1
 
-  data_provider = lambda: data_utils.make_parallel_data_provider(
-      data_sources_source=[input_file],
-      data_sources_target=None,
+  pipeline = input_pipeline.ParallelTextInputPipeline(
+      source_files=[input_file],
+      target_files=None,
       shuffle=False,
       num_epochs=1)
 
   input_fn = training_utils.create_input_fn(
-      data_provider_fn=data_provider,
+      pipeline=pipeline,
       batch_size=batch_size,
       allow_smaller_final_batch=True)
 

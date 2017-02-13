@@ -13,6 +13,63 @@ from tensorflow.contrib.slim.python.slim.data import parallel_reader
 from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.training import queue_runner
 
+from seq2seq.data import split_tokens_decoder
+
+
+def make_parallel_data_provider(data_sources_source,
+                                data_sources_target,
+                                reader=tf.TextLineReader,
+                                num_samples=None,
+                                source_delimiter=" ",
+                                target_delimiter=" ",
+                                **kwargs):
+  """Creates a DataProvider that reads parallel text data.
+
+  Args:
+    data_sources_source: A list of data sources for the source text files.
+    data_sources_target: A list of data sources for the target text files.
+      Can be None for inference mode.
+    num_samples: Optional, number of records in the dataset
+    delimiter: Split tokens in the data on this delimiter. Defaults to space.
+    kwargs: Additional arguments (shuffle, num_epochs, etc) that are passed
+      to the data provider
+
+  Returns:
+    A DataProvider instance
+  """
+
+  decoder_source = split_tokens_decoder.SplitTokensDecoder(
+      tokens_feature_name="source_tokens",
+      length_feature_name="source_len",
+      append_token="SEQUENCE_END",
+      delimiter=source_delimiter)
+
+  dataset_source = tf.contrib.slim.dataset.Dataset(
+      data_sources=data_sources_source,
+      reader=reader,
+      decoder=decoder_source,
+      num_samples=num_samples,
+      items_to_descriptions={})
+
+  dataset_target = None
+  if data_sources_target is not None:
+    decoder_target = split_tokens_decoder.SplitTokensDecoder(
+        tokens_feature_name="target_tokens",
+        length_feature_name="target_len",
+        prepend_token="SEQUENCE_START",
+        append_token="SEQUENCE_END",
+        delimiter=target_delimiter)
+
+    dataset_target = tf.contrib.slim.dataset.Dataset(
+        data_sources=data_sources_target,
+        reader=reader,
+        decoder=decoder_target,
+        num_samples=num_samples,
+        items_to_descriptions={})
+
+  return ParallelDataProvider(
+      dataset1=dataset_source, dataset2=dataset_target, **kwargs)
+
 
 class ParallelDataProvider(data_provider.DataProvider):
   """Creates a ParallelDataProvider. This data provider reads two datasets
