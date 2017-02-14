@@ -272,17 +272,17 @@ class Seq2SeqBase(ModelBase):
           target_embedding,
           tf.ones_like(features["source_len"]) * target_start_id)
 
-      def make_input_fn(predictions):
+      def make_input_fn(outputs):
         """Use the embedded prediction as the input to the next time step
         """
-        return tf.nn.embedding_lookup(target_embedding, predictions)
+        return tf.nn.embedding_lookup(target_embedding, outputs.predicted_ids)
 
-      def elements_finished_fn(_time_, predictions):
+      def elements_finished_fn(_time_, outputs):
         """Returns true when a prediction is finished"""
         return tf.equal(
-            predictions,
+            outputs.predicted_ids,
             tf.cast(self.target_vocab_info.special_vocab.SEQUENCE_END,
-                    dtype=predictions.dtype))
+                    dtype=outputs.predicted_ids.dtype))
 
       decoder_input_fn_infer = decoders.DynamicDecoderInputs(
           initial_inputs=initial_input,
