@@ -25,6 +25,9 @@ tf.flags.DEFINE_string("delimiter", " ",
                        """Join predicted tokens on this delimiter.
                        Defaults to " " (space).""")
 tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
+tf.flags.DEFINE_string("input_pipeline_def", None,
+                       """Use this to overwrite the input pipeline.
+                       A YAML string.""")
 tf.flags.DEFINE_string("hparams", None,
                        """JSON/YAML string to override hyperparameters values.
                        For example, you can use this flag to override the
@@ -107,7 +110,8 @@ def main(_argv):
       model_dir=FLAGS.model_dir,
       input_file=FLAGS.source,
       batch_size=FLAGS.batch_size,
-      params_overrides=params_overrides)
+      params_overrides=params_overrides,
+      input_pipeline_def=FLAGS.input_pipeline_def)
 
   # Filter fetched predictions to save memory
   prediction_keys = set(
