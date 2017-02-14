@@ -77,6 +77,6 @@ python -m bin.infer \
 ./bin/tools/multi-bleu.perl $HOME/nmt_data/toy_reverse/test/targets.txt < ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 ```
 
-To learn more about available models, data and tools, check see the corresponding sections of the documentation.
+To learn more about available models, data and tools, please see the corresponding sections of the documentation.
 
 
