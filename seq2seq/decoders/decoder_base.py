@@ -12,7 +12,8 @@ import tensorflow as tf
 from seq2seq.graph_module import GraphModule
 
 
-class DecoderOutput(namedtuple("DecoderOutput", ["logits", "predicted_ids"])):
+class DecoderOutput(namedtuple(
+    "DecoderOutput", ["logits", "predicted_ids", "cell_output"])):
   """Output of a decoder.
 
   Note that we output both the logits and predictions because during
@@ -269,7 +270,9 @@ class DecoderBase(GraphModule):
     """
     logits = outputs_ta.logits.stack()
     predicted_ids = outputs_ta.predicted_ids.stack()
-    return DecoderOutput(logits=logits, predicted_ids=predicted_ids)
+    cell_output = outputs_ta.cell_output.stack()
+    return DecoderOutput(
+        logits=logits, predicted_ids=predicted_ids, cell_output=cell_output)
 
   def _build(self, initial_state):
     rnn_loop_fn = RNNStep(

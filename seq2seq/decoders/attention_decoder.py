@@ -14,7 +14,8 @@ from seq2seq.decoders import DecoderBase, DecoderStepOutput
 class AttentionDecoderOutput(
     namedtuple(
         "DecoderOutput",
-        ["logits", "predicted_ids", "attention_scores", "attention_context"])):
+        ["logits", "predicted_ids", "cell_output",
+         "attention_scores", "attention_context"])):
   """Augmented decoder output that also includes the attention scores.
   """
   pass
@@ -63,8 +64,8 @@ class AttentionDecoder(DecoderBase):
     self.reverse_scores_lengths = reverse_scores_lengths
 
   def pack_outputs(self, outputs_ta, final_loop_state):
-    logits, predicted_ids = DecoderBase.pack_outputs(self, outputs_ta,
-                                                     final_loop_state)
+    packed_outputs = DecoderBase.pack_outputs(
+        self, outputs_ta, final_loop_state)
 
     attention_scores = outputs_ta.attention_scores.stack()
     attention_input_len = tf.shape(self.attention_inputs)[1]
@@ -80,8 +81,12 @@ class AttentionDecoder(DecoderBase):
           batch_dim=1)
 
     attention_context = outputs_ta.attention_context.stack()
-    return AttentionDecoderOutput(logits, predicted_ids, attention_scores,
-                                  attention_context)
+    return AttentionDecoderOutput(
+        logits=packed_outputs.logits,
+        predicted_ids=packed_outputs.predicted_ids,
+        cell_output=packed_outputs.cell_output,
+        attention_scores=attention_scores,
+        attention_context=attention_context)
 
   def compute_output(self, cell_output):
     # Compute attention
@@ -106,12 +111,13 @@ class AttentionDecoder(DecoderBase):
         activation_fn=None,
         scope="logits")
 
-    return logits, att_scores, attention_context
+    return softmax_input, logits, att_scores, attention_context
 
   def output_shapes(self):
     return AttentionDecoderOutput(
         logits=tf.zeros([self.vocab_size]),
         predicted_ids=tf.zeros([], dtype=tf.int64),
+        cell_output=tf.zeros([self.cell.output_size], dtype=tf.float32),
         attention_scores=tf.zeros([self.attention_inputs_max_len]),
         attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
 
@@ -145,15 +151,17 @@ class AttentionDecoder(DecoderBase):
       outputs = self.output_shapes()
       cell_output = tf.zeros(
           [tf.shape(self.attention_inputs)[0], self.cell.output_size])
-      _, _, attention_context = self.compute_output(cell_output)
+      _, _, _, attention_context = self.compute_output(cell_output)
       predicted_ids = None
     else:
-      logits, att_scores, attention_context = self.compute_output(cell_output)
+      cell_output_new, logits, att_scores, attention_context = \
+        self.compute_output(cell_output)
       attention_scores = self._pad_att_scores(att_scores)
       predicted_ids = self.prediction_fn(logits)
       outputs = AttentionDecoderOutput(
           logits=logits,
           predicted_ids=predicted_ids,
+          cell_output=cell_output_new,
           attention_scores=attention_scores,
           attention_context=attention_context)
 
