@@ -10,12 +10,45 @@ from __future__ import division
 from __future__ import print_function
 
 import abc
+import sys
+
 import six
+import yaml
 
 import tensorflow as tf
 from tensorflow.contrib.slim.python.slim.data import tfexample_decoder
 
 from seq2seq.data import split_tokens_decoder, parallel_data_provider
+
+def make_input_pipeline_from_def(def_str, **kwargs):
+  """Creates an InputPipeline object from a YAML or JSON definition string.
+
+  Args:
+    def_str: A YAML/JSON string that defines the input pipeline.
+      It must have a "class" key and "args" they that correspond to the class
+      name and constructor parameter of an InputPipeline, respectively.
+
+  Returns:
+    A new InputPipeline object
+  """
+  def_dict = yaml.load(def_str)
+
+  if not "class" in def_dict:
+    raise ValueError("Input Pipeline definition must have a class propert.")
+
+  class_ = def_dict["class"]
+  if not hasattr(sys.modules[__name__], class_):
+    raise ValueError("Invalid Input Pipeline class: {}".format(class_))
+
+  pipeline_class = getattr(sys.modules[__name__], class_)
+
+  # Constructor arguments
+  class_args = {}
+  if "args" in def_dict:
+    class_args.update(def_dict["args"])
+  class_args.update(kwargs)
+
+  return pipeline_class(**class_args)
 
 
 @six.add_metaclass(abc.ABCMeta)

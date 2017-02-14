@@ -3,7 +3,6 @@
 """Main script to run training and evaluation of models.
 """
 
-import functools
 import os
 import tempfile
 import yaml

@@ -17,6 +17,44 @@ from seq2seq.data import input_pipeline
 from seq2seq.test import utils as test_utils
 
 
+class TestInputPipelineDef(tf.test.TestCase):
+  """Tests InputPipeline string definitions"""
+
+  def test_without_extra_args(self):
+    pipeline_def = """
+      class: ParallelTextInputPipeline
+      args:
+        source_files: ["file1"]
+        target_files: ["file2"]
+        num_epochs: 1
+        shuffle: True
+    """
+    pipeline = input_pipeline.make_input_pipeline_from_def(pipeline_def)
+    self.assertIsInstance(pipeline, input_pipeline.ParallelTextInputPipeline)
+    #pylint: disable=W0212
+    self.assertEqual(pipeline._source_files, ["file1"])
+    self.assertEqual(pipeline._target_files, ["file2"])
+    self.assertEqual(pipeline._num_epochs, 1)
+    self.assertEqual(pipeline._shuffle, True)
+
+  def test_with_extra_args(self):
+    pipeline_def = """
+      class: ParallelTextInputPipeline
+      args:
+        source_files: ["file1"]
+        target_files: ["file2"]
+        num_epochs: 1
+        shuffle: True
+    """
+    pipeline = input_pipeline.make_input_pipeline_from_def(
+        pipeline_def, num_epochs=5, shuffle=False)
+    self.assertIsInstance(pipeline, input_pipeline.ParallelTextInputPipeline)
+    #pylint: disable=W0212
+    self.assertEqual(pipeline._source_files, ["file1"])
+    self.assertEqual(pipeline._target_files, ["file2"])
+    self.assertEqual(pipeline._num_epochs, 5)
+    self.assertEqual(pipeline._shuffle, False)
+
 class TFRecordsInputPipelineTest(tf.test.TestCase):
   """
   Tests Data Provider operations.
