@@ -15,7 +15,7 @@ import tensorflow as tf
 import numpy as np
 
 from seq2seq.contrib import rnn_cell
-from seq2seq.data import data_utils
+from seq2seq.data import input_pipeline
 from seq2seq.test import utils as test_utils
 from seq2seq.training import utils as training_utils
 from seq2seq.training import hooks
@@ -127,10 +127,11 @@ class TestInputFn(tf.test.TestCase):
         sources=["Hello World ."],
         targets=["Goodbye ."]
     )
-    data_provider_fn = lambda: data_utils.make_parallel_data_provider(
+
+    pipeline = input_pipeline.ParallelTextInputPipeline(
         [sources_file.name], [targets_file.name])
     input_fn = training_utils.create_input_fn(
-        data_provider_fn=data_provider_fn,
+        pipeline=pipeline,
         **kwargs)
     features, labels = input_fn()
 

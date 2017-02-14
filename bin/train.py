@@ -3,7 +3,6 @@
 """Main script to run training and evaluation of models.
 """
 
-import functools
 import os
 import tempfile
 import yaml
@@ -11,7 +10,7 @@ import yaml
 from six import string_types
 
 from seq2seq import models
-from seq2seq.data import data_utils, vocab
+from seq2seq.data import input_pipeline, vocab
 from seq2seq.training import utils as training_utils
 from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
 
@@ -50,6 +49,12 @@ tf.flags.DEFINE_string("config_path", None,
                        """Path to a YAML configuration file defining FLAG
                        values and hyperparameters. Refer to the documentation
                        for more details.""")
+tf.flags.DEFINE_string("train_input_pipeline_def", None,
+                       """Use this to overwrite the training input pipeline.
+                       A YAML string.""")
+tf.flags.DEFINE_string("dev_input_pipeline_def", None,
+                       """Use this to overwrite the development input pipeline.
+                       A YAML string.""")
 
 # Model Configuration
 tf.flags.DEFINE_string("model", "AttentionSeq2Seq",
@@ -172,29 +177,41 @@ def create_experiment(output_dir):
   if FLAGS.buckets:
     bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
 
+  # Define training data input pipeline
+  if FLAGS.train_input_pipeline_def is not None:
+    train_input_pipeline = input_pipeline.make_input_pipeline_from_def(
+        FLAGS.train_input_pipeline_def)
+  else:
+    train_input_pipeline = input_pipeline.ParallelTextInputPipeline(
+        source_files=FLAGS.train_source,
+        target_files=FLAGS.train_target,
+        source_delimiter=FLAGS.source_delimiter,
+        target_delimiter=FLAGS.target_delimiter,
+        shuffle=True,
+        num_epochs=FLAGS.train_epochs)
+
+  # Define development data input pipeline
+  if FLAGS.dev_input_pipeline_def is not None:
+    dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
+        FLAGS.dev_input_pipeline_def, shuffle=False, num_epochs=1)
+  else:
+    dev_input_pipeline = input_pipeline.ParallelTextInputPipeline(
+        source_files=FLAGS.dev_source,
+        target_files=FLAGS.dev_target,
+        source_delimiter=FLAGS.source_delimiter,
+        target_delimiter=FLAGS.target_delimiter,
+        shuffle=False,
+        num_epochs=1)
+
   # Create training input function
   train_input_fn = training_utils.create_input_fn(
-      data_provider_fn=functools.partial(
-          data_utils.make_parallel_data_provider,
-          data_sources_source=FLAGS.train_source,
-          data_sources_target=FLAGS.train_target,
-          shuffle=True,
-          num_epochs=FLAGS.train_epochs,
-          source_delimiter=FLAGS.source_delimiter,
-          target_delimiter=FLAGS.target_delimiter),
+      pipeline=train_input_pipeline,
       batch_size=FLAGS.batch_size,
       bucket_boundaries=bucket_boundaries)
 
   # Create eval input function
   eval_input_fn = training_utils.create_input_fn(
-      data_provider_fn=functools.partial(
-          data_utils.make_parallel_data_provider,
-          data_sources_source=FLAGS.dev_source,
-          data_sources_target=FLAGS.dev_target,
-          shuffle=False,
-          num_epochs=1,
-          source_delimiter=FLAGS.source_delimiter,
-          target_delimiter=FLAGS.target_delimiter),
+      pipeline=dev_input_pipeline,
       batch_size=FLAGS.batch_size,
       allow_smaller_final_batch=True)
 
