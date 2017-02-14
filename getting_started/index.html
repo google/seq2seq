@@ -172,9 +172,9 @@ cd seq2seq
 <p>If you see a "success" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,
 please <a href="https://github.com/dennybritz/seq2seq/issues">file a Github issue</a>.</p>
 <h2 id="using-a-pre-trained-model">Using a pre-trained model</h2>
-<p>Coming soon.</p>
+<p>Coming soon!</p>
 <h2 id="training-your-own-model">Training your own model</h2>
-<p>Let's look at how you can train a model based on your own data. In this section we will train a model that learns to reverse an input sequence. While this task is not very useful in practice, we can train such a model quickly and use it as as sanity-check to make sure that the end-to-end pipeline is working as intended.</p>
+<p>Let's look at how you can train a model based on your own data. In this section, we will train a model that learns to reverse an input sequence. While this task is not very useful in practice, we can train such a model quickly and use it as as sanity-check to make sure that the end-to-end pipeline is working as intended.</p>
 <p>First, let's generate some data:</p>
 <pre><code class="bash">DATA_TYPE=reverse ./bin/data/toy.sh
 </code></pre>
@@ -190,23 +190,23 @@ please <a href="https://github.com/dennybritz/seq2seq/issues">file a Github issu
 <tbody>
 <tr>
 <td><code>train_source</code></td>
-<td>The input sequences. A plain text file where each line corresponds to one input example. Tokens/words are separated by spaces. For natural language data you may need to use a tokenizer to generate this. See <a href="../tools/">tools</a> for more details.</td>
+<td>The input sequences. A plain text file where each line corresponds to one input example. Tokens/words are separated by spaces. For natural language data, you may need to use a tokenizer to generate this. See <a href="../tools/">tools</a> for more detail.</td>
 </tr>
 <tr>
 <td><code>train_target</code></td>
-<td>The targets sequences in the same format as <code>train_target</code>. Each line corresponds to the "translation" of the input sequence in the same line in <code>train_target</code>. Thus, the number of lines in these two files must be equal.</td>
+<td>The target sequences in the same format as <code>train_source</code>. Each line corresponds to the "translation" of the input sequence in the same line in <code>train_source</code>. Thus, the number of lines in these two files must be equal.</td>
 </tr>
 <tr>
 <td><code>dev_source</code></td>
-<td>Same as <code>train_source</code> but used as a validation/development set.</td>
+<td>Same as <code>train_source</code> but used for validation/development.</td>
 </tr>
 <tr>
 <td><code>dev_target</code></td>
-<td>Same as <code>train_target</code> but used as a validation/development set.</td>
+<td>Same as <code>train_target</code> but used for validation/development.</td>
 </tr>
 <tr>
 <td><code>vocab_source</code></td>
-<td>The vocabulary for the source sequences. A plain text file that contains one word per line. All words that appear in the source text but are not in the vocabulary will be mapped to <code>UNK</code> (unknown) tokens. We provide a script to generate a vocabulary file. See <a href="../tools/">tools</a> for more details.</td>
+<td>The vocabulary for the source sequences in the form of a plain text file containing one word per line. All words that appear in the source text but are not in the vocabulary will be mapped to <code>UNK</code> (unknown) tokens. We provide a script to generate a vocabulary file. See <a href="../tools/">tools</a> for more detail.</td>
 </tr>
 <tr>
 <td><code>vocab_target</code></td>
@@ -214,7 +214,7 @@ please <a href="https://github.com/dennybritz/seq2seq/issues">file a Github issu
 </tr>
 </tbody>
 </table>
-<p>With the above input files you can now train a new model:</p>
+<p>Given the above input files, you can now train a new model:</p>
 <pre><code class="bash">python -m bin.train \
   --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
   --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
@@ -228,7 +228,7 @@ please <a href="https://github.com/dennybritz/seq2seq/issues">file a Github issu
   --output_dir ${TMPDIR:-/tmp}/nmt_toy_reverse
 </code></pre>
 
-<p>On a CPU, the training may take up to 15 minutes. With the trained model you can run inference and make predictions as follows:</p>
+<p>On a CPU, the training may take up to 15 minutes. With the trained model, you can run inference and make predictions as follows:</p>
 <pre><code class="bash">python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
   --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
@@ -238,7 +238,7 @@ please <a href="https://github.com/dennybritz/seq2seq/issues">file a Github issu
 ./bin/tools/multi-bleu.perl $HOME/nmt_data/toy_reverse/test/targets.txt &lt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 </code></pre>
 
-<p>To learn more about available models, data and tools, hceck see the corresponding sections of the documentation.</p>
+<p>To learn more about available models, data and tools, please see the corresponding sections of the documentation.</p>
               
             </div>
           </div>
