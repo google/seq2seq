@@ -120,7 +120,7 @@ def main():
   try:
     os.makedirs(ARGS.output_dir)
   except OSError:
-    if not os.path.isdir(path):
+    if not os.path.isdir(ARGS.output_dir):
       raise
 
   # Write train data
