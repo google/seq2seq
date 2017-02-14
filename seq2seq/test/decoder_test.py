@@ -93,10 +93,10 @@ class DecoderTests(object):
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
-    def make_input_fn(predicted_ids):
+    def make_input_fn(outputs):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predicted_ids)
+      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
 
     decoder_input_fn = DynamicDecoderInputs(
         initial_inputs=initial_input,
@@ -121,15 +121,16 @@ class DecoderTests(object):
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
-    def make_input_fn(predicted_ids):
+    def make_input_fn(outputs):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predicted_ids)
+      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
 
-    def elements_finished_fn(time_, predicted_ids):
+    def elements_finished_fn(time_, outputs):
       """Looks up the predictions in the embeddings.
       """
-      ones_batch = tf.ones(tf.shape(predicted_ids[0]), dtype=time_.dtype)
+      ones_batch = tf.ones(
+          tf.shape(outputs.predicted_ids[0]), dtype=time_.dtype)
       return (ones_batch * time_) >= 5
 
     decoder_input_fn = DynamicDecoderInputs(
@@ -165,10 +166,10 @@ class DecoderTests(object):
     initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
-    def make_input_fn(predicted_ids):
+    def make_input_fn(outputs):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predicted_ids)
+      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
 
     decoder_input_fn = DynamicDecoderInputs(
         initial_inputs=initial_input,

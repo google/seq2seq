@@ -192,10 +192,10 @@ class ConcatInputBridge(Bridge):
           activation_fn=self._activation_fn)
 
     # Create a new input function
-    def new_input_fn(time_, initial_call, predicted_ids):
+    def new_input_fn(time_, initial_call, outputs):
       """An input function that concatenes the transformed encoder outputs
       to the decoer inputs"""
-      next_input, finished = self.input_fn(time_, initial_call, predicted_ids)
+      next_input, finished = self.input_fn(time_, initial_call, outputs)
       return tf.concat([next_input, tenor_to_concat], 1), finished
 
     return  new_input_fn, zero_state

@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from collections import namedtuple
 import numpy as np
 
 import tensorflow as tf
@@ -15,6 +16,8 @@ from seq2seq.encoders.rnn_encoder import RNNEncoderOutput
 from seq2seq.decoders import FixedDecoderInputs, DynamicDecoderInputs
 from seq2seq.models.bridges import ZeroBridge, InitialStateBridge
 from seq2seq.models.bridges import ConcatInputBridge, PassThroughBridge
+
+DecoderOutput = namedtuple("DecoderOutput", ["predicted_ids"])
 
 class BridgeTest(tf.test.TestCase):
   """Abstract class for bridge tests"""
@@ -57,10 +60,10 @@ class BridgeTest(tf.test.TestCase):
           "W_embed", [self.vocab_size, self.input_depth])
       initial_input = tf.random_normal([self.batch_size, self.input_depth])
 
-    def make_input_fn(predicted_ids):
+    def make_input_fn(outputs):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predicted_ids)
+      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
 
     return DynamicDecoderInputs(
         initial_inputs=initial_input,
@@ -84,8 +87,11 @@ class BridgeTest(tf.test.TestCase):
     bridge = self._create_bridge(input_fn, **kwargs)
     new_input_fn, initial_state = bridge()
     predicted_ids = np.random.randint(0, self.vocab_size, [self.batch_size])
-    orig_input = input_fn(tf.constant(1), False, predicted_ids)
-    new_input = new_input_fn(tf.constant(1), False, predicted_ids)
+
+    output = DecoderOutput(predicted_ids=predicted_ids)
+
+    orig_input = input_fn(tf.constant(1), False, output)
+    new_input = new_input_fn(tf.constant(1), False, output)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())

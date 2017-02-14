@@ -229,7 +229,7 @@ class DecoderBase(GraphModule):
     Returns:
       The input for the next time step. A tensor of shape `[batch_size, ...]`.
     """
-    return self.input_fn(time_, initial_call, output.predicted_ids)
+    return self.input_fn(time_, initial_call, output)
 
 
   def step(self, time_, cell_output, cell_state, loop_state):

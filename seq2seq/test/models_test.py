@@ -106,10 +106,10 @@ class EncoderDecoderTests(tf.test.TestCase):
     embeddings = tf.get_variable(
         "W_embed", [model.target_vocab_info.total_size, self.input_depth])
 
-    def make_input_fn(predicted_ids):
+    def make_input_fn(outputs):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predicted_ids)
+      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
 
     decoder_input_fn = DynamicDecoderInputs(
         initial_inputs=tf.zeros(
@@ -149,10 +149,10 @@ class EncoderDecoderTests(tf.test.TestCase):
     embeddings = tf.get_variable(
         "W_embed", [model.target_vocab_info.total_size, self.input_depth])
 
-    def make_input_fn(predicted_ids):
+    def make_input_fn(outputs):
       """Looks up the predictions in the embeddings.
       """
-      return tf.nn.embedding_lookup(embeddings, predicted_ids)
+      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
 
     decoder_input_fn = DynamicDecoderInputs(
         initial_inputs=tf.zeros(

@@ -123,7 +123,7 @@ class AttentionDecoder(DecoderBase):
 
   def create_next_input(self, time_, initial_call, output):
     next_input, elements_finished = self.input_fn(
-        time_, initial_call, output.predicted_ids)
+        time_, initial_call, output)
     if initial_call:
       attention_context = tf.zeros([
           tf.shape(next_input)[0],
