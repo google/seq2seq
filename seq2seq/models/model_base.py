@@ -120,11 +120,6 @@ class Seq2SeqBase(ModelBase):
     max_seq_len_source = self.params["source.max_seq_len"]
     max_seq_len_target = self.params["target.max_seq_len"]
 
-    # In EVAL and INFER we do not slice the examples to a maximum length
-    if mode != tf.contrib.learn.ModeKeys.TRAIN:
-      max_seq_len_source = None
-      max_seq_len_target = None
-
     return featurizers.Seq2SeqFeaturizer(
         source_vocab_info=self.source_vocab_info,
         target_vocab_info=self.target_vocab_info,
