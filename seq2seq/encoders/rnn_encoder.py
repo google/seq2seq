@@ -8,6 +8,8 @@ from __future__ import print_function
 
 import collections
 import tensorflow as tf
+from tensorflow.contrib.rnn.python.ops import rnn
+
 from seq2seq.graph_module import GraphModule
 
 RNNEncoderOutput = collections.namedtuple("RNNEncoderOutput",
@@ -91,7 +93,7 @@ class StackBidirectionalRNNEncoder(GraphModule):
     else:
       cells = [self.cell]
 
-    result = tf.contrib.rnn.stack_bidirectional_dynamic_rnn(
+    result = rnn.stack_bidirectional_dynamic_rnn(
         cells_fw=cells,
         cells_bw=cells,
         inputs=inputs,

@@ -13,7 +13,7 @@ import six
 
 import tensorflow as tf
 from tensorflow.contrib import metrics
-from tensorflow.contrib.learn import metric_spec
+from tensorflow.contrib.learn import MetricSpec
 
 from seq2seq.metrics import rouge
 from seq2seq.metrics import bleu
@@ -44,7 +44,7 @@ def accumulate_strings(values, name="strings"):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class TextMetricSpec(metric_spec.MetricSpec):
+class TextMetricSpec(MetricSpec):
   """Abstract class for text-based metrics calculated based on
   hypotheses and references. Subclasses must implement `metric_fn`.
 
@@ -156,7 +156,7 @@ class RougeMetricSpec(TextMetricSpec):
     return np.float32(rouge.rouge(hypotheses, references)[self.metric_name])
 
 
-class LogPerplexityMetricSpec(metric_spec.MetricSpec):
+class LogPerplexityMetricSpec(MetricSpec):
   """A MetricSpec to calculate straming log perplexity"""
   def __init__(self):
     """Initializer"""
