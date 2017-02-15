@@ -219,7 +219,7 @@ def create_experiment(output_dir):
     """Builds the model graph"""
     return model(features, labels, params, mode)
 
-  estimator = tf.contrib.learn.estimator.Estimator(
+  estimator = tf.contrib.learn.Estimator(
       model_fn=model_fn,
       model_dir=output_dir,
       config=config)
@@ -233,7 +233,7 @@ def create_experiment(output_dir):
   metrics_list = [_.strip() for _ in FLAGS.metrics.split(",")]
   eval_metrics = {m : METRIC_SPECS_DICT[m] for m in metrics_list}
 
-  experiment = tf.contrib.learn.experiment.Experiment(
+  experiment = tf.contrib.learn.Experiment(
       estimator=estimator,
       train_input_fn=train_input_fn,
       eval_input_fn=eval_input_fn,

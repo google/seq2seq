@@ -339,7 +339,7 @@ class Seq2SeqBase(ModelBase):
         learning_rate_decay_fn=learning_rate_decay_fn,
         clip_gradients=self.params["optimizer.clip_gradients"],
         optimizer=self.params["optimizer.name"],
-        summaries=tf.contrib.layers.optimizers.OPTIMIZER_SUMMARIES)
+        summaries=["learning_rate", "loss", "gradients", "gradient_norm"])
 
     if mode == tf.contrib.learn.ModeKeys.EVAL:
       train_op = None
