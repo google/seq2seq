@@ -94,18 +94,18 @@ class BridgeTest(tf.test.TestCase):
     child classes"""
     raise NotImplementedError()
 
-  def _run_with_inputs(self, input_fn, **kwargs):
+  def _run_with_inputs(self, input_fn, scope=None, **kwargs):
     """Runs the bridge with the given input function and optional
     arguments to be passed to the bridge creation.
     """
-    bridge = self._create_bridge(input_fn, **kwargs)
-    new_input_fn, initial_state = bridge()
-    predicted_ids = np.random.randint(0, self.vocab_size, [self.batch_size])
 
-    output = DecoderOutput(predicted_ids=predicted_ids)
-
-    orig_input = input_fn(tf.constant(1), False, output)
-    new_input = new_input_fn(tf.constant(1), False, output)
+    with tf.variable_scope(scope or "bridge"):
+      bridge = self._create_bridge(input_fn, **kwargs)
+      new_input_fn, initial_state = bridge()
+      predicted_ids = np.random.randint(0, self.vocab_size, [self.batch_size])
+      output = DecoderOutput(predicted_ids=predicted_ids)
+      orig_input = input_fn(tf.constant(1), False, output)
+      new_input = new_input_fn(tf.constant(1), False, output)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -192,30 +192,36 @@ class TestInitialStateBridge(BridgeTest):
   def test_with_final_state(self):
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_fixed_inputs(),
+        scope="bridge_fixed_inputs",
         bridge_input="final_state",
         activation_fn=None))
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_dynamic_inputs(),
+        scope="bridge_dynamic_inputs",
         bridge_input="final_state",
         activation_fn=None))
 
   def test_with_outputs(self):
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_fixed_inputs(),
+        scope="bridge_fixed_inputs",
         bridge_input="outputs",
         activation_fn=None))
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_dynamic_inputs(),
+        scope="bridge_dynamic_inputs",
         bridge_input="outputs",
         activation_fn=None))
 
   def test_with_activation_fn(self):
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_fixed_inputs(),
+        scope="bridge_fixed_inputs",
         bridge_input="final_state",
         activation_fn="tanh"))
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_dynamic_inputs(),
+        scope="bridge_dynamic_inputs",
         bridge_input="final_state",
         activation_fn="tanh"))
 
@@ -240,11 +246,13 @@ class TestConcatInputBridge(BridgeTest):
   def test_with_final_state(self):
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_fixed_inputs(),
+        scope="bridge_fixed_inputs",
         bridge_input="final_state",
         activation_fn="tanh",
         num_units=16))
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_dynamic_inputs(),
+        scope="bridge_dynamic_inputs",
         bridge_input="final_state",
         activation_fn="tanh",
         num_units=16))
@@ -252,11 +260,13 @@ class TestConcatInputBridge(BridgeTest):
   def test_with_outputs(self):
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_fixed_inputs(),
+        scope="bridge_fixed_inputs",
         bridge_input="outputs",
         activation_fn="tanh",
         num_units=16))
     self._assert_correct_outputs(*self._run_with_inputs(
         input_fn=self._create_dynamic_inputs(),
+        scope="bridge_dynamic_inputs",
         bridge_input="outputs",
         activation_fn="tanh",
         num_units=16))
