@@ -61,6 +61,7 @@ class AttentionDecoder(DecoderBase):
   def __init__(self,
                cell,
                input_fn,
+               initial_state,
                vocab_size,
                attention_inputs,
                attention_fn,
@@ -70,37 +71,65 @@ class AttentionDecoder(DecoderBase):
                prediction_fn=None,
                name="attention_decoder"):
     super(AttentionDecoder, self).__init__(
-        cell, input_fn, max_decode_length, prediction_fn, name)
+        cell, input_fn, initial_state, max_decode_length, prediction_fn, name)
     self.vocab_size = vocab_size
     self.attention_inputs = attention_inputs
     self.attention_fn = attention_fn
     self.attention_inputs_max_len = attention_inputs_max_len
     self.reverse_scores_lengths = reverse_scores_lengths
 
-  def pack_outputs(self, outputs_ta, final_loop_state):
-    packed_outputs = DecoderBase.pack_outputs(
-        self, outputs_ta, final_loop_state)
 
-    attention_scores = outputs_ta.attention_scores.stack()
-    attention_input_len = tf.shape(self.attention_inputs)[1]
+  # def output_shapes(self):
+  #   return AttentionDecoderOutput(
+  #       logits=tf.zeros([self.vocab_size]),
+  #       predicted_ids=tf.zeros([], dtype=tf.int64),
+  #       cell_output=tf.zeros([self.cell.output_size], dtype=tf.float32),
+  #       attention_scores=tf.zeros([self.attention_inputs_max_len]),
+  #       attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
 
-    # Slice attention scores to actual length of the inputs
-    attention_scores = attention_scores[:, :, :attention_input_len]
 
-    if self.reverse_scores_lengths is not None:
-      attention_scores = tf.reverse_sequence(
-          input=attention_scores,
-          seq_lengths=self.reverse_scores_lengths,
-          seq_dim=2,
-          batch_dim=1)
-
-    attention_context = outputs_ta.attention_context.stack()
+  @property
+  def output_size(self):
     return AttentionDecoderOutput(
-        logits=packed_outputs.logits,
-        predicted_ids=packed_outputs.predicted_ids,
-        cell_output=packed_outputs.cell_output,
-        attention_scores=attention_scores,
-        attention_context=attention_context)
+        logits=self.vocab_size,
+        predicted_ids=tf.TensorShape([]),
+        cell_output=self.cell.output_size,
+        attention_scores=self.attention_inputs_max_len,
+        attention_context=self.attention_inputs.get_shape()[2])
+
+  @property
+  def output_dtype(self):
+    return AttentionDecoderOutput(
+        logits=tf.float32,
+        predicted_ids=tf.int64,
+        cell_output=tf.float32,
+        attention_scores=tf.float32,
+        attention_context=tf.float32)
+
+  def initialize(self, name=None):
+    first_inputs, finished = self.input_fn(
+        time_=0,
+        initial_call=True,
+        predictions=None)
+
+    # Concat empty attention context
+    attention_context = tf.zeros([
+        tf.shape(first_inputs)[0],
+        self.attention_inputs.get_shape().as_list()[2]])
+    first_inputs = tf.concat([first_inputs, attention_context], 1)
+
+    return finished, first_inputs, self.initial_state
+
+
+
+  def _build(self):
+    outputs, final_state = super(AttentionDecoder, self)._build()
+
+    # Slice attention scores to actual length
+    source_len = tf.shape(self.attention_inputs)[1]
+    outputs = outputs._replace(
+        attention_scores=outputs.attention_scores[:, :, :source_len])
+    return outputs, final_state
 
   def compute_output(self, cell_output):
     # Compute attention
@@ -127,27 +156,20 @@ class AttentionDecoder(DecoderBase):
 
     return softmax_input, logits, att_scores, attention_context
 
-  def output_shapes(self):
-    return AttentionDecoderOutput(
-        logits=tf.zeros([self.vocab_size]),
-        predicted_ids=tf.zeros([], dtype=tf.int64),
-        cell_output=tf.zeros([self.cell.output_size], dtype=tf.float32),
-        attention_scores=tf.zeros([self.attention_inputs_max_len]),
-        attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
 
-  def create_next_input(self, time_, initial_call, output):
-    next_input, elements_finished = self.input_fn(
-        time_, initial_call, output)
-    if initial_call:
-      attention_context = tf.zeros([
-          tf.shape(next_input)[0],
-          self.attention_inputs.get_shape().as_list()[2]
-      ])
-    else:
-      attention_context = output.attention_context
+  # def create_next_input(self, time_, initial_call, output):
+  #   next_input, elements_finished = self.input_fn(
+  #       time_, initial_call, output)
+  #   if initial_call:
+  #     attention_context = tf.zeros([
+  #         tf.shape(next_input)[0],
+  #         self.attention_inputs.get_shape().as_list()[2]
+  #     ])
+  #   else:
+  #     attention_context = output.attention_context
 
-    next_input = tf.concat([next_input, attention_context], 1)
-    return next_input, elements_finished
+  #   next_input = tf.concat([next_input, attention_context], 1)
+  #   return next_input, elements_finished
 
   def _pad_att_scores(self, scores):
     """Pads attention scores to fixed length. This is a hack because raw_rnn
@@ -158,28 +180,32 @@ class AttentionDecoder(DecoderBase):
     scores.set_shape([None, max_len])
     return scores
 
-  def step(self, time_, cell_output, cell_state, loop_state):
-    initial_call = (cell_output is None)
+  def step(self, time_, inputs, state, name=None):
+    cell_output, cell_state = self.cell(inputs, state)
+    cell_output_new, logits, att_scores, attention_context = \
+      self.compute_output(cell_output)
+    attention_scores = self._pad_att_scores(att_scores)
 
-    if initial_call:
-      outputs = self.output_shapes()
-      cell_output = tf.zeros(
-          [tf.shape(self.attention_inputs)[0], self.cell.output_size])
-      _, _, _, attention_context = self.compute_output(cell_output)
-      predicted_ids = None
-    else:
-      cell_output_new, logits, att_scores, attention_context = \
-        self.compute_output(cell_output)
-      attention_scores = self._pad_att_scores(att_scores)
-      predicted_ids = self.prediction_fn(logits)
-      outputs = AttentionDecoderOutput(
-          logits=logits,
-          predicted_ids=predicted_ids,
-          cell_output=cell_output_new,
-          attention_scores=attention_scores,
-          attention_context=attention_context)
+    if self.reverse_scores_lengths is not None:
+      attention_scores = tf.reverse_sequence(
+          input=attention_scores,
+          seq_lengths=self.reverse_scores_lengths,
+          seq_dim=1,
+          batch_dim=0)
 
-    return DecoderStepOutput(
-        outputs=outputs,
-        next_cell_state=cell_state,
-        next_loop_state=None)
+    predicted_ids = self.prediction_fn(logits)
+    outputs = AttentionDecoderOutput(
+        logits=logits,
+        predicted_ids=predicted_ids,
+        cell_output=cell_output_new,
+        attention_scores=attention_scores,
+        attention_context=attention_context)
+
+    next_inputs, finished = self.input_fn(
+        time_=time_+1,
+        initial_call=False,
+        predictions=outputs)
+
+    next_inputs = tf.concat([next_inputs, attention_context], 1)
+
+    return (outputs, cell_state, next_inputs, finished)

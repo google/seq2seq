@@ -88,7 +88,7 @@ class EncoderDecoderTests(tf.test.TestCase):
             ex.target_len, dtype=tf.int32))
 
     model = self.create_model()
-    decoder_output = model.encode_decode(
+    decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
@@ -131,7 +131,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         make_input_fn=make_input_fn,
         max_decode_length=self.max_decode_length)
 
-    decoder_output = model.encode_decode(
+    decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
@@ -174,7 +174,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         make_input_fn=make_input_fn,
         max_decode_length=self.max_decode_length)
 
-    decoder_output = model.encode_decode(
+    decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
@@ -214,7 +214,7 @@ class EncoderDecoderTests(tf.test.TestCase):
             ex.target_len, dtype=tf.int32))
 
     model = self.create_model()
-    decoder_output = model.encode_decode(
+    decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(

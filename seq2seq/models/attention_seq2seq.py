@@ -88,6 +88,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     decoder_fn = decoders.AttentionDecoder(
         cell=decoder_cell,
         input_fn=new_decoder_input_fn,
+        initial_state=decoder_initial_state,
         vocab_size=self.target_vocab_info.total_size,
         attention_inputs=encoder_output.outputs,
         attention_fn=attention_layer,
@@ -98,7 +99,6 @@ class AttentionSeq2Seq(BasicSeq2Seq):
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
           decoder_fn)
 
-    decoder_output, _, _ = decoder_fn(
-        initial_state=decoder_initial_state)
+    decoder_output, final_state = decoder_fn()
 
-    return decoder_output
+    return decoder_output, final_state

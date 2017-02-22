@@ -41,12 +41,13 @@ class BasicDecoder(DecoderBase):
   def __init__(self,
                cell,
                input_fn,
+               initial_state,
                vocab_size,
                max_decode_length,
                prediction_fn=None,
                name="basic_decoder"):
     super(BasicDecoder, self).__init__(
-        cell, input_fn, max_decode_length, prediction_fn, name)
+        cell, input_fn, initial_state, max_decode_length, prediction_fn, name)
     self.vocab_size = vocab_size
 
   def compute_output(self, cell_output):
@@ -55,30 +56,38 @@ class BasicDecoder(DecoderBase):
         num_outputs=self.vocab_size,
         activation_fn=None)
 
-  def output_shapes(self):
+  @property
+  def output_size(self):
     return DecoderOutput(
-        logits=tf.zeros([self.vocab_size]),
-        predicted_ids=tf.zeros([], dtype=tf.int64),
-        cell_output=tf.zeros([self.cell.output_size]))
+        logits=self.vocab_size,
+        predicted_ids=tf.TensorShape([]),
+        cell_output=self.cell.output_size)
 
-  def step(self, time_, cell_output, cell_state, loop_state):
-    initial_call = (cell_output is None)
+  @property
+  def output_dtype(self):
+    return DecoderOutput(
+        logits=tf.float32,
+        predicted_ids=tf.int64,
+        cell_output=tf.float32)
 
-    if initial_call:
-      outputs = self.output_shapes()
-      predicted_ids = None
-      # We need to call this here to create variables
-      cell_output = tf.zeros([1, self.cell.output_size])
-      self.compute_output(cell_output)
-    else:
-      logits = self.compute_output(cell_output)
-      predicted_ids = self.prediction_fn(logits)
-      outputs = DecoderOutput(
-          logits=logits,
-          predicted_ids=predicted_ids,
-          cell_output=cell_output)
+  def initialize(self, name=None):
+    first_inputs, finished = self.input_fn(
+        time_=0,
+        initial_call=True,
+        predictions=None)
+    return finished, first_inputs, self.initial_state
 
-    return DecoderStepOutput(
-        outputs=outputs,
-        next_cell_state=cell_state,
-        next_loop_state=None)
+  def step(self, time_, inputs, state, name=None):
+    cell_output, cell_state = self.cell(inputs, state)
+    logits = self.compute_output(cell_output)
+    predicted_ids = self.prediction_fn(logits)
+    outputs = DecoderOutput(
+        logits=logits,
+        predicted_ids=predicted_ids,
+        cell_output=cell_output)
+    next_inputs, finished = self.input_fn(
+        time_=time_+1,
+        initial_call=False,
+        predictions=outputs)
+
+    return (outputs, cell_state, next_inputs, finished)

@@ -138,6 +138,7 @@ class BasicSeq2Seq(Seq2SeqBase):
     decoder_fn = decoders.BasicDecoder(
         cell=decoder_cell,
         input_fn=new_decoder_input_fn,
+        initial_state=decoder_initial_state,
         vocab_size=self.target_vocab_info.total_size,
         max_decode_length=self.params["inference.max_decode_length"])
 
@@ -145,7 +146,6 @@ class BasicSeq2Seq(Seq2SeqBase):
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
           decoder_fn)
 
-    decoder_output, _, _ = decoder_fn(
-        initial_state=decoder_initial_state)
+    decoder_output, final_state = decoder_fn()
 
-    return decoder_output
+    return decoder_output, final_state

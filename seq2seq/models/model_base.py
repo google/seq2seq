@@ -300,7 +300,7 @@ class Seq2SeqBase(ModelBase):
           elements_finished_fn=elements_finished_fn)
 
       # Decode
-      decoder_output = self.encode_decode(
+      decoder_output, _ = self.encode_decode(
           source=source_embedded,
           source_len=features["source_len"],
           decoder_input_fn=decoder_input_fn_infer,
@@ -321,7 +321,7 @@ class Seq2SeqBase(ModelBase):
         inputs=target_embedded[:, :-1],
         sequence_length=labels["target_len"] - 1)
 
-    decoder_output = self.encode_decode(
+    decoder_output, _ = self.encode_decode(
         source=source_embedded,
         source_len=features["source_len"],
         decoder_input_fn=decoder_input_fn_train,

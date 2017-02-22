@@ -59,7 +59,7 @@ class DecoderTests(object):
 
     decoder_input_fn = FixedDecoderInputs(inputs, seq_length)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
-    decoder_output, _, _ = decoder_fn(initial_state)
+    decoder_output, _ = decoder_fn()
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -84,7 +84,7 @@ class DecoderTests(object):
 
     decoder_input_fn = FixedDecoderInputs(inputs, seq_length)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
-    decoder_output, _, _ = decoder_fn(initial_state)
+    decoder_output, _ = decoder_fn()
 
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
         logits=decoder_output.logits,
@@ -117,7 +117,7 @@ class DecoderTests(object):
         make_input_fn=make_input_fn,
         max_decode_length=self.max_decode_length)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
-    decoder_output, _, _ = decoder_fn(initial_state)
+    decoder_output, _ = decoder_fn()
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -153,7 +153,7 @@ class DecoderTests(object):
         max_decode_length=self.max_decode_length,
         elements_finished_fn=elements_finished_fn)
     decoder_fn = self.create_decoder(input_fn=decoder_input_fn)
-    decoder_output, _, _ = decoder_fn(initial_state)
+    decoder_output, _, = decoder_fn()
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -193,7 +193,7 @@ class DecoderTests(object):
     decoder_fn = beam_search_decoder.BeamSearchDecoder(
         decoder=decoder_fn, config=config)
 
-    decoder_output, _, _ = decoder_fn(initial_state)
+    decoder_output, _ = decoder_fn()
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -232,6 +232,7 @@ class BasicDecoderTest(tf.test.TestCase, DecoderTests):
     return BasicDecoder(
         cell=self.cell,
         input_fn=input_fn,
+        initial_state=self.cell.zero_state(self.batch_size, dtype=tf.float32),
         vocab_size=self.vocab_size,
         max_decode_length=self.max_decode_length)
 
@@ -255,6 +256,7 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
     return AttentionDecoder(
         cell=self.cell,
         input_fn=input_fn,
+        initial_state=self.cell.zero_state(self.batch_size, dtype=tf.float32),
         vocab_size=self.vocab_size,
         attention_inputs=attention_inputs,
         attention_fn=attention_fn,

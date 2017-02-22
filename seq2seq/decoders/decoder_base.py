@@ -23,7 +23,10 @@ from __future__ import print_function
 from collections import namedtuple
 
 import tensorflow as tf
+from tensorflow.python.util import nest
+
 from seq2seq.graph_module import GraphModule
+from seq2seq.contrib.decoder import Decoder, dynamic_decode
 
 
 class DecoderOutput(namedtuple(
@@ -132,7 +135,7 @@ class FixedDecoderInputs(DecoderInputs):
       self.batch_size = tf.identity(tf.shape(inputs)[0], name="batch_size")
       self.input_dim = tf.identity(tf.shape(inputs)[-1], name="input_dim")
 
-  def _build(self, time_, initial_call, predicted_ids):
+  def _build(self, time_, initial_call, predictions):
     all_finished = (time_ >= self.max_seq_len)
     next_input = tf.cond(
         all_finished,
@@ -173,9 +176,10 @@ class DynamicDecoderInputs(DecoderInputs):
       next_input = self.initial_inputs
       elements_finished = tf.zeros([self.batch_size], dtype=tf.bool)
     else:
+      batch_size = tf.shape(nest.flatten(predictions)[0])[0]
       next_input = self.make_input_fn(predictions)
       max_decode_length_batch = tf.cast(
-          tf.ones([self.batch_size]) * self.max_decode_length,
+          tf.ones([batch_size]) * self.max_decode_length,
           dtype=time_.dtype)
       elements_finished = (time_ >= max_decode_length_batch)
       if self.elements_finished_fn:
@@ -184,7 +188,7 @@ class DynamicDecoderInputs(DecoderInputs):
     return next_input, elements_finished
 
 
-class DecoderBase(GraphModule):
+class DecoderBase(GraphModule, Decoder):
   """Base class for RNN decoders.
 
   Args:
@@ -194,16 +198,21 @@ class DecoderBase(GraphModule):
       instance of `FixedDecoderInputs` or `DynamicDecoderInputs`.
   """
 
-  def __init__(self, cell, input_fn, max_decode_length, prediction_fn, name):
-    super(DecoderBase, self).__init__(name)
+  def __init__(self, cell, input_fn, initial_state, max_decode_length, prediction_fn, name):
+    GraphModule.__init__(self, name)
     self.cell = cell
     self.max_decode_length = max_decode_length
     self.input_fn = input_fn
+    self.initial_state = initial_state
 
     if prediction_fn is None:
       self.prediction_fn = lambda logits: tf.stop_gradient(tf.argmax(logits, 1))
     else:
       self.prediction_fn = prediction_fn
+
+  @property
+  def batch_size(self):
+    return tf.shape( nest.flatten([self.initial_state])[0])[0]
 
   def compute_output(self, cell_output):
     """Compute the decoder output based on the current cell state. This method
@@ -216,16 +225,6 @@ class DecoderBase(GraphModule):
     Returns:
       A (possibly nested) tuple of Tensors that represent decoder-specific
       outputs.
-    """
-    raise NotImplementedError
-
-  def output_shapes(self):
-    """Defines decoder output shapes. Must be implemented by subclasses.
-
-    Returns:
-      A (possibly nested) tuple of tensors that defines the output type
-      of this decoder. See Tensorflow's raw_rnn initialization
-      call for more details.
     """
     raise NotImplementedError
 
@@ -245,59 +244,63 @@ class DecoderBase(GraphModule):
     """
     return self.input_fn(time_, initial_call, output)
 
+  # def step(self, time_, cell_output, cell_state, loop_state):
+  #   """
+  #   This function maps from the decoder state to the outputs of the current
+  #   time step and the state of the next step. This is where the actual decoding
+  #   logic should be implemented by subclasses.
 
-  def step(self, time_, cell_output, cell_state, loop_state):
-    """
-    This function maps from the decoder state to the outputs of the current
-    time step and the state of the next step. This is where the actual decoding
-    logic should be implemented by subclasses.
+  #   The arguments to this function follow those of `tf.nn.raw_rnn`.
+  #   Refer to its documentation for further explanation.
 
-    The arguments to this function follow those of `tf.nn.raw_rnn`.
-    Refer to its documentation for further explanation.
+  #   Args:
+  #     time: An int32 scalar corresponding to the current time step.
+  #     cell_output: The output result of applying the cell function to the input.
+  #       A tensor of shape `[B, cell.output_size]`
+  #     cell_state: The state result of applying the cell function to the input.
+  #       A tensor of shape `[B, cell.state_size]`. This may also be a tuple
+  #       depending on which type of cell is being used.
+  #     loop_state: An optional tuple that can be used to pass state through
+  #       time steps. The shape of this is defined by the subclass.
 
-    Args:
-      time: An int32 scalar corresponding to the current time step.
-      cell_output: The output result of applying the cell function to the input.
-        A tensor of shape `[B, cell.output_size]`
-      cell_state: The state result of applying the cell function to the input.
-        A tensor of shape `[B, cell.state_size]`. This may also be a tuple
-        depending on which type of cell is being used.
-      loop_state: An optional tuple that can be used to pass state through
-        time steps. The shape of this is defined by the subclass.
+  #   Returns:
+  #     A `DecoderStepOutput` tuple, where:
 
-    Returns:
-      A `DecoderStepOutput` tuple, where:
+  #     outputs: The RNN output at this time step. A tuple.
+  #     next_cell_state: The cell state for the next iteration. In most cases
+  #       this is simply the passed in `cell_state`.
+  #       A tensor of shape `[B, cell.state_size]`.
+  #     next_input: The input to the next time step.
+  #       A tensor of shape `[B, ...]`
+  #     next_loop_state: A new loop state of the same type/shape
+  #       as the passed in `loop_state`.
+  #   """
+  #   raise NotImplementedError
 
-      outputs: The RNN output at this time step. A tuple.
-      next_cell_state: The cell state for the next iteration. In most cases
-        this is simply the passed in `cell_state`.
-        A tensor of shape `[B, cell.state_size]`.
-      next_input: The input to the next time step.
-        A tensor of shape `[B, ...]`
-      next_loop_state: A new loop state of the same type/shape
-        as the passed in `loop_state`.
-    """
-    raise NotImplementedError
+  # def pack_outputs(self, outputs_ta, _final_loop_state):
+  #   """Transposes outputs from time-major to batch-major.
+  #   """
+  #   logits = outputs_ta.logits.stack()
+  #   predicted_ids = outputs_ta.predicted_ids.stack()
+  #   cell_output = outputs_ta.cell_output.stack()
+  #   return DecoderOutput(
+  #       logits=logits, predicted_ids=predicted_ids, cell_output=cell_output)
 
-  def pack_outputs(self, outputs_ta, _final_loop_state):
-    """Transposes outputs from time-major to batch-major.
-    """
-    logits = outputs_ta.logits.stack()
-    predicted_ids = outputs_ta.predicted_ids.stack()
-    cell_output = outputs_ta.cell_output.stack()
-    return DecoderOutput(
-        logits=logits, predicted_ids=predicted_ids, cell_output=cell_output)
+  def _build(self):
+    return dynamic_decode(
+        decoder=self,
+        output_time_major=True,
+        impute_finished=True)
 
-  def _build(self, initial_state):
-    rnn_loop_fn = RNNStep(
-        step_fn=self.step,
-        next_input_fn=self.create_next_input,
-        initial_state=initial_state)
+    # rnn_loop_fn = RNNStep(
+    #     step_fn=self.step,
+    #     next_input_fn=self.create_next_input,
+    #     initial_state=initial_state)
 
-    outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(
-        cell=self.cell,
-        loop_fn=rnn_loop_fn,
-        swap_memory=True)
+    # outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(
+    #     cell=self.cell,
+    #     loop_fn=rnn_loop_fn,
+    #     swap_memory=True)
 
-    return self.pack_outputs(
-        outputs_ta, final_loop_state), final_state, final_loop_state
+    # return self.pack_outputs(
+    #     outputs_ta, final_loop_state), final_state, final_loop_state
