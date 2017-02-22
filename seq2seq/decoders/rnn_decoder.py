@@ -65,5 +65,5 @@ class RNNDecoder(GraphModule, Decoder):
     return dynamic_decode(
         decoder=self,
         output_time_major=True,
-        impute_finished=True,
+        impute_finished=False,
         maximum_iterations=self.max_decode_length)

@@ -128,26 +128,19 @@ class DecoderTests(object):
 
   def test_with_beam_search(self):
     # Batch size for beam search must be 1.
-    self.batch_size = 1
     config = beam_search.BeamSearchConfig(
         beam_width=10,
         vocab_size=self.vocab_size,
         eos_token=self.vocab_size - 2,
         length_penalty_weight=0.6,
         choose_successors_fn=beam_search.choose_top_k)
+    self.batch_size = config.beam_width
 
-    initial_input = tf.random_normal([self.batch_size, self.input_depth])
-    initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
-
-    def make_input_fn(outputs):
-      """Looks up the predictions in the embeddings.
-      """
-      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
 
     helper = decode_helper.GreedyEmbeddingHelper(
         embedding=embeddings,
-        start_tokens=[0] * self.batch_size,
+        start_tokens=[0] * config.beam_width,
         end_token=-1)
     decoder_fn = self.create_decoder(helper=helper)
     decoder_fn = beam_search_decoder.BeamSearchDecoder(

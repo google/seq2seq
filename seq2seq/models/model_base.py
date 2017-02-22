@@ -278,9 +278,13 @@ class Seq2SeqBase(ModelBase):
     if mode == tf.contrib.learn.ModeKeys.INFER:
       target_start_id = self.target_vocab_info.special_vocab.SEQUENCE_START
 
+      batch_size = tf.shape(source_embedded)[0]
+      if self.use_beam_search:
+        batch_size = self.params["inference.beam_search.beam_width"]
+
       helper = decode_helper.GreedyEmbeddingHelper(
           embedding=target_embedding,
-          start_tokens=tf.fill([tf.shape(source_embedded)[0]], target_start_id),
+          start_tokens=tf.fill([batch_size], target_start_id),
           end_token=self.target_vocab_info.special_vocab.SEQUENCE_END)
 
       # Decode

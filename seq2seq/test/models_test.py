@@ -148,9 +148,10 @@ class EncoderDecoderTests(tf.test.TestCase):
       and using beam search to decode
     """
     self.batch_size = 1
+    beam_width = 10
+
     ex = self._create_example()
 
-    beam_width = 10
     model = self.create_model({"inference.beam_search.beam_width": beam_width})
 
     embeddings = tf.get_variable(
@@ -158,7 +159,7 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     helper = decode_helper.GreedyEmbeddingHelper(
         embedding=embeddings,
-        start_tokens=[0] * self.batch_size,
+        start_tokens=[0] * beam_width,
         end_token=-1)
 
     decoder_output, _ = model.encode_decode(

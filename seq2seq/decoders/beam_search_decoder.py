@@ -107,15 +107,6 @@ class BeamSearchDecoder(RNNDecoder):
   def initialize(self, name=None):
     finished, first_inputs, initial_state = self.decoder.initialize()
 
-    # Tile everything
-    first_inputs = nest.map_structure(
-        lambda x: tf.tile(x, [self.config.beam_width, 1]),
-        first_inputs)
-    finished = tf.tile(finished, [self.config.beam_width])
-    initial_state = nest.map_structure(
-        lambda x: tf.tile(x, [self.config.beam_width, 1]),
-        initial_state)
-
     # Create beam state
     beam_state = beam_search.create_initial_beam_state(config=self.config)
     return finished, first_inputs, (initial_state, beam_state)

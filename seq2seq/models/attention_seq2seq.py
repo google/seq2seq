@@ -21,6 +21,7 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 from seq2seq import decoders
 from seq2seq.models.basic_seq2seq import BasicSeq2Seq
@@ -86,7 +87,13 @@ class AttentionSeq2Seq(BasicSeq2Seq):
 
     max_decode_length = None
     if  mode == tf.contrib.learn.ModeKeys.INFER:
-        max_decode_length = self.params["inference.max_decode_length"]
+      max_decode_length = self.params["inference.max_decode_length"]
+
+    if self.use_beam_search:
+      beam_width = self.params["inference.beam_search.beam_width"]
+      decoder_initial_state = nest.map_structure(
+          lambda x: tf.tile(x, [beam_width, 1]),
+          decoder_initial_state)
 
     decoder_fn = decoders.AttentionDecoder(
         cell=decoder_cell,

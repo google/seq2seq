@@ -357,6 +357,6 @@ class GreedyEmbeddingHelper(Helper):
     next_inputs = control_flow_ops.cond(
         all_finished,
         # If we're finished, the next_inputs value doesn't matter
-        lambda: self._embedding_fn(sample_ids), #TODO: FIX
+        lambda: self._start_inputs,
         lambda: self._embedding_fn(sample_ids))
     return (finished, next_inputs, state)
