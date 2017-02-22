@@ -198,6 +198,4 @@ class AttentionDecoder(RNNDecoder):
         state=cell_state,
         sample_ids=sample_ids)
 
-    # next_inputs = self.transform_inputs(next_inputs, outputs)
-
     return (outputs, next_state, next_inputs, finished)
