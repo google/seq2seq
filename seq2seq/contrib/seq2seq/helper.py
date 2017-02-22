@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""A library of helpers for use with SamplingDecoders.
+"""
+IMPORTANT: This code is taken directly from Tensorflow
+(https://github.com/tensorflow/tensorflow) and is copied temporarily
+until it is available in a packaged Tensorflow version on pypi.
+
+A library of helpers for use with SamplingDecoders.
 """
 
 # pylint: skip-file

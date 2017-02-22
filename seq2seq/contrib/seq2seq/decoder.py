@@ -12,8 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Seq2seq layer operations for use in neural networks.
 """
+IMPORTANT: This code is taken directly from Tensorflow
+(https://github.com/tensorflow/tensorflow) and is copied temporarily
+until it is available in a packaged Tensorflow version on pypi.
+
+Seq2seq layer operations for use in neural networks.
+"""
+
+
 
 # pylint: skip-file
 
