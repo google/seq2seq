@@ -120,8 +120,6 @@ class AttentionDecoder(DecoderBase):
 
     return finished, first_inputs, self.initial_state
 
-
-
   def _build(self):
     outputs, final_state = super(AttentionDecoder, self)._build()
 
@@ -130,6 +128,9 @@ class AttentionDecoder(DecoderBase):
     outputs = outputs._replace(
         attention_scores=outputs.attention_scores[:, :, :source_len])
     return outputs, final_state
+
+  def transform_inputs(self, inputs, decoder_outputs):
+    return tf.concat([inputs, decoder_outputs.attention_context], 1)
 
   def compute_output(self, cell_output):
     # Compute attention
@@ -191,6 +192,6 @@ class AttentionDecoder(DecoderBase):
         initial_call=False,
         predictions=outputs)
 
-    next_inputs = tf.concat([next_inputs, attention_context], 1)
+    next_inputs = self.transform_inputs(next_inputs, outputs)
 
     return (outputs, cell_state, next_inputs, finished)

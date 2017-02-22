@@ -120,9 +120,6 @@ class BeamSearchDecoder(DecoderBase):
     beam_state = beam_search.create_initial_beam_state(config=self.config)
     return finished, first_inputs, (initial_state, beam_state)
 
-  def compute_output(self, cell_output):
-    raise ValueError("""Beam Search decoder does not support this method.""")
-
   def _build(self):
     outputs, final_state = super(BeamSearchDecoder, self)._build()
 
@@ -148,7 +145,7 @@ class BeamSearchDecoder(DecoderBase):
     decoder_state, beam_state = state
 
     # Call the original decoder
-    (decoder_output, decoder_state, next_inputs, finished) = self.decoder.step(
+    (decoder_output, decoder_state, _, _) = self.decoder.step(
         time_, inputs, decoder_state)
 
     # Perform a step of beam search
@@ -162,10 +159,9 @@ class BeamSearchDecoder(DecoderBase):
     decoder_state = nest.map_structure(
         lambda x: tf.gather(x, bs_output.beam_parent_ids),
         decoder_state)
-    next_inputs = nest.map_structure(
+    decoder_output = nest.map_structure(
         lambda x: tf.gather(x, bs_output.beam_parent_ids),
-        next_inputs)
-    finished = tf.gather(finished, bs_output.beam_parent_ids)
+        decoder_output)
 
     next_state = (decoder_state, beam_state)
 
@@ -176,5 +172,12 @@ class BeamSearchDecoder(DecoderBase):
         scores=bs_output.scores,
         beam_parent_ids=bs_output.beam_parent_ids,
         original_outputs=decoder_output)
+
+    next_inputs, finished = self.input_fn(
+        time_=time_+1,
+        initial_call=False,
+        predictions=outputs)
+
+    next_inputs = self.decoder.transform_inputs(next_inputs, decoder_output)
 
     return (outputs, next_state, next_inputs, finished)

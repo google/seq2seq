@@ -171,19 +171,8 @@ class DecoderBase(GraphModule, Decoder):
   def batch_size(self):
     return tf.shape(nest.flatten([self.initial_state])[0])[0]
 
-  def compute_output(self, cell_output):
-    """Compute the decoder output based on the current cell state. This method
-    should be implemented by all subclasses.
-
-    Args:
-      cell_output: The cell outputs for the current time step.
-        A float32 tensor of shape `[B, cell.output_size]`
-
-    Returns:
-      A (possibly nested) tuple of Tensors that represent decoder-specific
-      outputs.
-    """
-    raise NotImplementedError
+  def transform_inputs(self, inputs, decoder_outputs):
+    return inputs
 
   def _build(self):
     return dynamic_decode(
