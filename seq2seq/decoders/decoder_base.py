@@ -40,49 +40,6 @@ class DecoderOutput(namedtuple(
   pass
 
 
-class DecoderStepOutput(
-    namedtuple(
-        "DecoderStepOutput",
-        ["outputs", "next_cell_state", "next_loop_state"])):
-  """Output of a decoder step to be used with Tensorflow's `raw_rnn`.
-  """
-
-
-class RNNStep(GraphModule):
-  """
-  A Wrapper around `raw_rnn`.
-  """
-
-  def __init__(self,
-               step_fn,
-               next_input_fn,
-               initial_state,
-               name="rnn_step"):
-    super(RNNStep, self).__init__(name)
-    self.step_fn = step_fn
-    self.next_input_fn = next_input_fn
-    self.initial_state = initial_state
-
-  def _build(self, time_, cell_output, cell_state, loop_state):
-    initial_call = (cell_output is None)
-
-    if cell_output is None:
-      cell_state = self.initial_state
-
-    step_output = self.step_fn(time_, cell_output, cell_state, loop_state)
-    next_input, elements_finished = self.next_input_fn(
-        time_=time_,
-        initial_call=initial_call,
-        output=step_output.outputs)
-
-    assert isinstance(step_output, DecoderStepOutput), \
-      "Step output must be an isntance of DecoderStepOutput"
-
-    return (elements_finished, next_input,
-            step_output.next_cell_state, step_output.outputs,
-            step_output.next_loop_state)
-
-
 class DecoderInputs(GraphModule):
   """Abstract base class for decoder input feeding.
   """
@@ -212,7 +169,7 @@ class DecoderBase(GraphModule, Decoder):
 
   @property
   def batch_size(self):
-    return tf.shape( nest.flatten([self.initial_state])[0])[0]
+    return tf.shape(nest.flatten([self.initial_state])[0])[0]
 
   def compute_output(self, cell_output):
     """Compute the decoder output based on the current cell state. This method
@@ -228,79 +185,8 @@ class DecoderBase(GraphModule, Decoder):
     """
     raise NotImplementedError
 
-  def create_next_input(self, time_, initial_call, output):
-    """Creates the input for the next time step. For decoders that
-    do not perform any special input transformations this is a no-op.
-
-    Args:
-      time_: The current time step, an int32 scalar
-      initial_call: True iff this is the initialization call. In this case
-        we want the initial input.
-      output: The decoder output at this time step. This is of the same type
-        as the return value of `output_shapes`.
-
-    Returns:
-      The input for the next time step. A tensor of shape `[batch_size, ...]`.
-    """
-    return self.input_fn(time_, initial_call, output)
-
-  # def step(self, time_, cell_output, cell_state, loop_state):
-  #   """
-  #   This function maps from the decoder state to the outputs of the current
-  #   time step and the state of the next step. This is where the actual decoding
-  #   logic should be implemented by subclasses.
-
-  #   The arguments to this function follow those of `tf.nn.raw_rnn`.
-  #   Refer to its documentation for further explanation.
-
-  #   Args:
-  #     time: An int32 scalar corresponding to the current time step.
-  #     cell_output: The output result of applying the cell function to the input.
-  #       A tensor of shape `[B, cell.output_size]`
-  #     cell_state: The state result of applying the cell function to the input.
-  #       A tensor of shape `[B, cell.state_size]`. This may also be a tuple
-  #       depending on which type of cell is being used.
-  #     loop_state: An optional tuple that can be used to pass state through
-  #       time steps. The shape of this is defined by the subclass.
-
-  #   Returns:
-  #     A `DecoderStepOutput` tuple, where:
-
-  #     outputs: The RNN output at this time step. A tuple.
-  #     next_cell_state: The cell state for the next iteration. In most cases
-  #       this is simply the passed in `cell_state`.
-  #       A tensor of shape `[B, cell.state_size]`.
-  #     next_input: The input to the next time step.
-  #       A tensor of shape `[B, ...]`
-  #     next_loop_state: A new loop state of the same type/shape
-  #       as the passed in `loop_state`.
-  #   """
-  #   raise NotImplementedError
-
-  # def pack_outputs(self, outputs_ta, _final_loop_state):
-  #   """Transposes outputs from time-major to batch-major.
-  #   """
-  #   logits = outputs_ta.logits.stack()
-  #   predicted_ids = outputs_ta.predicted_ids.stack()
-  #   cell_output = outputs_ta.cell_output.stack()
-  #   return DecoderOutput(
-  #       logits=logits, predicted_ids=predicted_ids, cell_output=cell_output)
-
   def _build(self):
     return dynamic_decode(
         decoder=self,
         output_time_major=True,
         impute_finished=True)
-
-    # rnn_loop_fn = RNNStep(
-    #     step_fn=self.step,
-    #     next_input_fn=self.create_next_input,
-    #     initial_state=initial_state)
-
-    # outputs_ta, final_state, final_loop_state = tf.nn.raw_rnn(
-    #     cell=self.cell,
-    #     loop_fn=rnn_loop_fn,
-    #     swap_memory=True)
-
-    # return self.pack_outputs(
-    #     outputs_ta, final_loop_state), final_state, final_loop_state

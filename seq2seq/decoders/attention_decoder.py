@@ -22,7 +22,7 @@ from __future__ import print_function
 
 from collections import namedtuple
 import tensorflow as tf
-from seq2seq.decoders import DecoderBase, DecoderStepOutput
+from seq2seq.decoders import DecoderBase
 
 
 class AttentionDecoderOutput(
@@ -155,21 +155,6 @@ class AttentionDecoder(DecoderBase):
         scope="logits")
 
     return softmax_input, logits, att_scores, attention_context
-
-
-  # def create_next_input(self, time_, initial_call, output):
-  #   next_input, elements_finished = self.input_fn(
-  #       time_, initial_call, output)
-  #   if initial_call:
-  #     attention_context = tf.zeros([
-  #         tf.shape(next_input)[0],
-  #         self.attention_inputs.get_shape().as_list()[2]
-  #     ])
-  #   else:
-  #     attention_context = output.attention_context
-
-  #   next_input = tf.concat([next_input, attention_context], 1)
-  #   return next_input, elements_finished
 
   def _pad_att_scores(self, scores):
     """Pads attention scores to fixed length. This is a hack because raw_rnn

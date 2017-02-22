@@ -26,7 +26,7 @@ import tensorflow as tf
 from tensorflow.python.util import nest
 
 from seq2seq.inference import beam_search
-from seq2seq.decoders.decoder_base import DecoderBase, DecoderStepOutput
+from seq2seq.decoders.decoder_base import DecoderBase
 
 class FinalBeamDecoderOutput(
     namedtuple("FinalBeamDecoderOutput", [
