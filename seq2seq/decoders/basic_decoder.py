@@ -40,14 +40,13 @@ class BasicDecoder(DecoderBase):
 
   def __init__(self,
                cell,
-               input_fn,
+               helper,
                initial_state,
                vocab_size,
                max_decode_length,
-               prediction_fn=None,
                name="basic_decoder"):
     super(BasicDecoder, self).__init__(
-        cell, input_fn, initial_state, max_decode_length, prediction_fn, name)
+        cell, helper, initial_state, max_decode_length, name)
     self.vocab_size = vocab_size
 
   def compute_output(self, cell_output):
@@ -67,27 +66,27 @@ class BasicDecoder(DecoderBase):
   def output_dtype(self):
     return DecoderOutput(
         logits=tf.float32,
-        predicted_ids=tf.int64,
+        predicted_ids=tf.int32,
         cell_output=tf.float32)
 
   def initialize(self, name=None):
-    first_inputs, finished = self.input_fn(
-        time_=0,
-        initial_call=True,
-        predictions=None)
+    finished, first_inputs = self.helper.initialize()
     return finished, first_inputs, self.initial_state
 
   def step(self, time_, inputs, state, name=None):
     cell_output, cell_state = self.cell(inputs, state)
     logits = self.compute_output(cell_output)
-    predicted_ids = self.prediction_fn(logits)
+    sample_ids = self.helper.sample(
+        time=time_,
+        outputs=logits,
+        state=cell_state)
     outputs = DecoderOutput(
         logits=logits,
-        predicted_ids=predicted_ids,
+        predicted_ids=sample_ids,
         cell_output=cell_output)
-    next_inputs, finished = self.input_fn(
-        time_=time_+1,
-        initial_call=False,
-        predictions=outputs)
-
-    return (outputs, cell_state, next_inputs, finished)
+    finished, next_inputs, next_state = self.helper.next_inputs(
+        time=time_,
+        outputs=outputs,
+        state=cell_state,
+        sample_ids=sample_ids)
+    return (outputs, next_state, next_inputs, finished)

@@ -60,7 +60,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
   def encode_decode(self,
                     source,
                     source_len,
-                    decoder_input_fn,
+                    decode_helper,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
     encoder_cell = self._create_encoder_cell(enable_dropout)
@@ -70,9 +70,8 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     decoder_cell = self._create_decoder_cell(enable_dropout)
     bridge = self._create_bridge(
         encoder_outputs=encoder_output,
-        decoder_cell=decoder_cell,
-        input_fn=decoder_input_fn)
-    new_decoder_input_fn, decoder_initial_state = bridge()
+        decoder_cell=decoder_cell)
+    decoder_initial_state = bridge()
     attention_layer = decoders.AttentionLayer(
         num_units=self.params["attention.dim"],
         score_type=self.params["attention.score_type"])
@@ -85,15 +84,19 @@ class AttentionSeq2Seq(BasicSeq2Seq):
             input=reverse_scores_lengths,
             multiples=[self.params["inference.beam_search.beam_width"]])
 
+    max_decode_length = None
+    if  mode == tf.contrib.learn.ModeKeys.INFER:
+        max_decode_length = self.params["inference.max_decode_length"]
+
     decoder_fn = decoders.AttentionDecoder(
         cell=decoder_cell,
-        input_fn=new_decoder_input_fn,
+        helper=decode_helper,
         initial_state=decoder_initial_state,
         vocab_size=self.target_vocab_info.total_size,
         attention_inputs=encoder_output.outputs,
         attention_fn=attention_layer,
         reverse_scores_lengths=reverse_scores_lengths,
-        max_decode_length=self.params["inference.max_decode_length"])
+        max_decode_length=max_decode_length)
 
     if self.use_beam_search:
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204

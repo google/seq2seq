@@ -71,8 +71,8 @@ class BeamSearchDecoder(DecoderBase):
 
   def __init__(self, decoder, config):
     super(BeamSearchDecoder, self).__init__(
-        decoder.cell, decoder.input_fn, decoder.initial_state, decoder.max_decode_length,
-        decoder.prediction_fn, decoder.name)
+        decoder.cell, decoder.helper, decoder.initial_state, decoder.max_decode_length,
+        decoder.name)
     self.decoder = decoder
     self.config = config
 
@@ -94,7 +94,7 @@ class BeamSearchDecoder(DecoderBase):
   def output_dtype(self):
     return BeamDecoderOutput(
         logits=tf.float32,
-        predicted_ids=tf.int64,
+        predicted_ids=tf.int32,
         log_probs=tf.float32,
         scores=tf.float32,
         beam_parent_ids=tf.int32,
@@ -167,16 +167,18 @@ class BeamSearchDecoder(DecoderBase):
 
     outputs = BeamDecoderOutput(
         logits=tf.zeros([self.config.beam_width, self.config.vocab_size]),
-        predicted_ids=tf.to_int64(bs_output.predicted_ids),
+        predicted_ids=bs_output.predicted_ids,
         log_probs=beam_state.log_probs,
         scores=bs_output.scores,
         beam_parent_ids=bs_output.beam_parent_ids,
         original_outputs=decoder_output)
 
-    next_inputs, finished = self.input_fn(
-        time_=time_+1,
-        initial_call=False,
-        predictions=outputs)
+    finished, next_inputs, next_state = self.helper.next_inputs(
+        time=time_,
+        outputs=outputs,
+        state=next_state,
+        sample_ids=bs_output.predicted_ids)
+    next_inputs.set_shape([self.batch_size, None])
 
     next_inputs = self.decoder.transform_inputs(next_inputs, decoder_output)
 

@@ -60,7 +60,7 @@ class AttentionDecoder(DecoderBase):
 
   def __init__(self,
                cell,
-               input_fn,
+               helper,
                initial_state,
                vocab_size,
                attention_inputs,
@@ -68,24 +68,14 @@ class AttentionDecoder(DecoderBase):
                max_decode_length,
                reverse_scores_lengths=None,
                attention_inputs_max_len=500,
-               prediction_fn=None,
                name="attention_decoder"):
     super(AttentionDecoder, self).__init__(
-        cell, input_fn, initial_state, max_decode_length, prediction_fn, name)
+        cell, helper, initial_state, max_decode_length, name)
     self.vocab_size = vocab_size
     self.attention_inputs = attention_inputs
     self.attention_fn = attention_fn
     self.attention_inputs_max_len = attention_inputs_max_len
     self.reverse_scores_lengths = reverse_scores_lengths
-
-
-  # def output_shapes(self):
-  #   return AttentionDecoderOutput(
-  #       logits=tf.zeros([self.vocab_size]),
-  #       predicted_ids=tf.zeros([], dtype=tf.int64),
-  #       cell_output=tf.zeros([self.cell.output_size], dtype=tf.float32),
-  #       attention_scores=tf.zeros([self.attention_inputs_max_len]),
-  #       attention_context=tf.zeros([self.attention_inputs.get_shape()[2]]))
 
 
   @property
@@ -101,16 +91,13 @@ class AttentionDecoder(DecoderBase):
   def output_dtype(self):
     return AttentionDecoderOutput(
         logits=tf.float32,
-        predicted_ids=tf.int64,
+        predicted_ids=tf.int32,
         cell_output=tf.float32,
         attention_scores=tf.float32,
         attention_context=tf.float32)
 
   def initialize(self, name=None):
-    first_inputs, finished = self.input_fn(
-        time_=0,
-        initial_call=True,
-        predictions=None)
+    finished, first_inputs = self.helper.initialize()
 
     # Concat empty attention context
     attention_context = tf.zeros([
@@ -179,19 +166,24 @@ class AttentionDecoder(DecoderBase):
           seq_dim=1,
           batch_dim=0)
 
-    predicted_ids = self.prediction_fn(logits)
+    sample_ids = self.helper.sample(
+        time=time_,
+        outputs=logits,
+        state=cell_state)
+
     outputs = AttentionDecoderOutput(
         logits=logits,
-        predicted_ids=predicted_ids,
+        predicted_ids=sample_ids,
         cell_output=cell_output_new,
         attention_scores=attention_scores,
         attention_context=attention_context)
 
-    next_inputs, finished = self.input_fn(
-        time_=time_+1,
-        initial_call=False,
-        predictions=outputs)
+    finished, next_inputs, next_state = self.helper.next_inputs(
+        time=time_,
+        outputs=outputs,
+        state=cell_state,
+        sample_ids=sample_ids)
 
     next_inputs = self.transform_inputs(next_inputs, outputs)
 
-    return (outputs, cell_state, next_inputs, finished)
+    return (outputs, next_state, next_inputs, finished)

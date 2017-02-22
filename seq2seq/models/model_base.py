@@ -30,6 +30,8 @@ from seq2seq.inference import beam_search
 from seq2seq.models import featurizers, bridges
 from seq2seq.training import utils as training_utils
 
+from seq2seq.contrib.seq2seq import helper as decode_helper
+
 def time_to_batch(tensor, name=None):
   """Transposes the first two dimensions of a tensor. Leaves the remaining
   dimensions unchanged.
@@ -140,7 +142,7 @@ class Seq2SeqBase(ModelBase):
         max_seq_len_source=max_seq_len_source,
         max_seq_len_target=max_seq_len_target)
 
-  def _create_bridge(self, encoder_outputs, decoder_cell, input_fn):
+  def _create_bridge(self, encoder_outputs, decoder_cell):
     """Creates the bridge to be used between encoder and decoder"""
     bridge_spec = copy.deepcopy(self.params["bridge_spec"])
     bridge_class_name = bridge_spec.pop("class")
@@ -148,7 +150,6 @@ class Seq2SeqBase(ModelBase):
     return bridge_class(
         encoder_outputs=encoder_outputs,
         decoder_cell=decoder_cell,
-        input_fn=input_fn,
         **bridge_spec)
 
   @staticmethod
@@ -178,7 +179,7 @@ class Seq2SeqBase(ModelBase):
   def encode_decode(self,
                     source,
                     source_len,
-                    decoder_input_fn,
+                    decode_helper,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     """Should be implemented by child classes"""
     raise NotImplementedError
@@ -209,7 +210,7 @@ class Seq2SeqBase(ModelBase):
     if "predicted_ids" in predictions.keys():
       vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
       target_id_to_vocab = vocab_tables["target_id_to_vocab"]
-      predicted_tokens = target_id_to_vocab.lookup(predictions["predicted_ids"])
+      predicted_tokens = target_id_to_vocab.lookup(tf.to_int64(predictions["predicted_ids"]))
       predictions["predicted_tokens"] = predicted_tokens
 
     return predictions
@@ -276,35 +277,19 @@ class Seq2SeqBase(ModelBase):
     # Graph used for inference
     if mode == tf.contrib.learn.ModeKeys.INFER:
       target_start_id = self.target_vocab_info.special_vocab.SEQUENCE_START
-      # Embed the "SEQUENCE_START" token
-      initial_input = tf.nn.embedding_lookup(
-          target_embedding,
-          tf.ones_like(features["source_len"]) * target_start_id)
 
-      def make_input_fn(outputs):
-        """Use the embedded prediction as the input to the next time step
-        """
-        return tf.nn.embedding_lookup(target_embedding, outputs.predicted_ids)
-
-      def elements_finished_fn(_time_, outputs):
-        """Returns true when a prediction is finished"""
-        return tf.equal(
-            outputs.predicted_ids,
-            tf.cast(self.target_vocab_info.special_vocab.SEQUENCE_END,
-                    dtype=outputs.predicted_ids.dtype))
-
-      decoder_input_fn_infer = decoders.DynamicDecoderInputs(
-          initial_inputs=initial_input,
-          make_input_fn=make_input_fn,
-          max_decode_length=self.params["inference.max_decode_length"],
-          elements_finished_fn=elements_finished_fn)
+      helper = decode_helper.GreedyEmbeddingHelper(
+          embedding=target_embedding,
+          start_tokens=tf.fill([tf.shape(source_embedded)[0]], target_start_id),
+          end_token=self.target_vocab_info.special_vocab.SEQUENCE_END)
 
       # Decode
       decoder_output, _ = self.encode_decode(
           source=source_embedded,
           source_len=features["source_len"],
-          decoder_input_fn=decoder_input_fn_infer,
+          decode_helper=helper,
           mode=mode)
+
       predictions = self._create_predictions(
           decoder_output=decoder_output,
           features=features,
@@ -317,14 +302,14 @@ class Seq2SeqBase(ModelBase):
 
     # During training/eval, we have labels and use them for teacher forcing
     # We don't feed the last SEQUENCE_END token
-    decoder_input_fn_train = decoders.FixedDecoderInputs(
+    helper = decode_helper.TrainingHelper(
         inputs=target_embedded[:, :-1],
         sequence_length=labels["target_len"] - 1)
 
     decoder_output, _ = self.encode_decode(
         source=source_embedded,
         source_len=features["source_len"],
-        decoder_input_fn=decoder_input_fn_train,
+        decode_helper=helper,
         mode=mode)
 
     # Calculate loss per example-timestep of shape [B, T]
