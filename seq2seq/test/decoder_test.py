@@ -78,7 +78,6 @@ class DecoderTests(object):
     inputs = tf.random_normal(
         [self.batch_size, self.sequence_length, self.input_depth])
     seq_length = tf.ones(self.batch_size, dtype=tf.int32) * self.sequence_length
-    initial_state = self.cell.zero_state(self.batch_size, dtype=tf.float32)
     labels = np.random.randint(0, self.vocab_size,
                                [self.batch_size, self.sequence_length])
 

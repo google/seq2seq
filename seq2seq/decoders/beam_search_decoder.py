@@ -32,6 +32,14 @@ class FinalBeamDecoderOutput(
     namedtuple("FinalBeamDecoderOutput", [
         "predicted_ids", "beam_search_output"
     ])):
+  """Final outputs returned by the beam search after all decoding is finished.
+
+  Args:
+    predicted_ids: The final prediction. A tensor of shape
+      `[T, 1, beam_width]`.
+    beam_search_output: An instance of `BeamDecoderOutput` that describes
+      the state of the beam search.
+  """
   pass
 
 class BeamDecoderOutput(
@@ -71,8 +79,8 @@ class BeamSearchDecoder(RNNDecoder):
 
   def __init__(self, decoder, config):
     super(BeamSearchDecoder, self).__init__(
-        decoder.cell, decoder.helper, decoder.initial_state, decoder.max_decode_length,
-        decoder.name)
+        decoder.cell, decoder.helper, decoder.initial_state,
+        decoder.max_decode_length, decoder.name)
     self.decoder = decoder
     self.config = config
 
@@ -111,9 +119,7 @@ class BeamSearchDecoder(RNNDecoder):
     beam_state = beam_search.create_initial_beam_state(config=self.config)
     return finished, first_inputs, (initial_state, beam_state)
 
-  def _build(self):
-    outputs, final_state = super(BeamSearchDecoder, self)._build()
-
+  def finalize(self, outputs, final_state):
     # Gather according to beam search result
     predicted_ids = beam_search.gather_tree(
         outputs.predicted_ids,
@@ -126,7 +132,7 @@ class BeamSearchDecoder(RNNDecoder):
         lambda x: tf.expand_dims(x, 1),
         outputs)
 
-    final_outputs =  FinalBeamDecoderOutput(
+    final_outputs = FinalBeamDecoderOutput(
         predicted_ids=tf.expand_dims(predicted_ids, 1),
         beam_search_output=outputs)
 

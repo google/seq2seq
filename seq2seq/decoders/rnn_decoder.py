@@ -31,7 +31,7 @@ from seq2seq.contrib.seq2seq.decoder import Decoder, dynamic_decode
 
 class DecoderOutput(namedtuple(
     "DecoderOutput", ["logits", "predicted_ids", "cell_output"])):
-  """Output of a decoder.
+  """Output of an RNN decoder.
 
   Note that we output both the logits and predictions because during
   dynamic decoding the predictions may not correspond to max(logits).
@@ -40,14 +40,16 @@ class DecoderOutput(namedtuple(
   pass
 
 
-class RNNDecoder(GraphModule, Decoder):
+class RNNDecoder(Decoder, GraphModule):
   """Base class for RNN decoders.
 
   Args:
     cell: An instance of ` tf.contrib.rnn.RNNCell`
+    helper: An instance of `tf.contrib.seq2seq.Helper` to assist decoding
+    initial_state: A tensor or tuple of tensors used as the initial cell
+      state.
+    max_decode_length: Maximum number of decode steps, an int32 scalar.
     name: A name for this module
-    input_fn: A function that generates the next input, e.g. an
-      instance of `FixedDecoderInputs` or `DynamicDecoderInputs`.
   """
 
   def __init__(self, cell, helper, initial_state, max_decode_length, name):
@@ -61,9 +63,16 @@ class RNNDecoder(GraphModule, Decoder):
   def batch_size(self):
     return tf.shape(nest.flatten([self.initial_state])[0])[0]
 
+  def finalize(self, outputs, final_state):
+    """Applies final transformation to the decoder output once decoding is
+    finished.
+    """
+    return (outputs, final_state)
+
   def _build(self):
-    return dynamic_decode(
+    outputs, final_state = dynamic_decode(
         decoder=self,
         output_time_major=True,
         impute_finished=False,
         maximum_iterations=self.max_decode_length)
+    return self.finalize(outputs, final_state)

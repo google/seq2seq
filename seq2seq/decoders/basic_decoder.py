@@ -29,13 +29,13 @@ class BasicDecoder(RNNDecoder):
 
   Args:
     cell: An instance of ` tf.contrib.rnn.RNNCell`
+    helper: An instance of `tf.contrib.seq2seq.Helper` to assist decoding
+    initial_state: A tensor or tuple of tensors used as the initial cell
+      state.
     vocab_size: Output vocabulary size, i.e. number of units
       in the softmax layer
     max_decode_length: Maximum length for decoding steps for each example
       of shape `[B]`.
-    prediction_fn: Optional. A function that generates a predictions
-      of shape `[B]` from a logits of shape `[B, vocab_size]`.
-      By default, this is argmax.
   """
 
   def __init__(self,
@@ -50,6 +50,7 @@ class BasicDecoder(RNNDecoder):
     self.vocab_size = vocab_size
 
   def compute_output(self, cell_output):
+    """Computes the decoder outputs."""
     return tf.contrib.layers.fully_connected(
         inputs=cell_output,
         num_outputs=self.vocab_size,

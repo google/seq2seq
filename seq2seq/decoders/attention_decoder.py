@@ -42,6 +42,9 @@ class AttentionDecoder(RNNDecoder):
 
   Args:
     cell: An instance of ` tf.contrib.rnn.RNNCell`
+    helper: An instance of `tf.contrib.seq2seq.Helper` to assist decoding
+    initial_state: A tensor or tuple of tensors used as the initial cell
+      state.
     vocab_size: Output vocabulary size, i.e. number of units
       in the softmax layer
     attention_inputs: The sequence to take attentio over.
@@ -55,9 +58,6 @@ class AttentionDecoder(RNNDecoder):
       reverse the attention scores in the output. This is used for when
       a reversed source sequence is fed as an input but you want to
       return the scores in non-reversed order.
-    prediction_fn: Optional. A function that generates a predictions
-      of shape `[B]` from a logits of shape `[B, vocab_size]`.
-      By default, this is argmax.
   """
 
   def __init__(self,
@@ -80,8 +80,12 @@ class AttentionDecoder(RNNDecoder):
     self.reverse_scores_lengths = reverse_scores_lengths
 
     def att_next_inputs(time, outputs, state, sample_ids, name=None):
+      """Wraps the original decoder helper function to append the attention
+      context.
+      """
       finished, next_inputs, next_state = helper.next_inputs(
-          time=time, outputs=outputs, state=state, sample_ids=sample_ids, name=name)
+          time=time, outputs=outputs, state=state,
+          sample_ids=sample_ids, name=name)
       next_inputs = tf.concat([next_inputs, outputs.attention_context], 1)
       return (finished, next_inputs, next_state)
 
@@ -120,19 +124,16 @@ class AttentionDecoder(RNNDecoder):
 
     return finished, first_inputs, self.initial_state
 
-  def _build(self):
-    outputs, final_state = super(AttentionDecoder, self)._build()
-
+  def finalize(self, outputs, final_state):
     # Slice attention scores to actual length
     source_len = tf.shape(self.attention_inputs)[1]
     outputs = outputs._replace(
         attention_scores=outputs.attention_scores[:, :, :source_len])
-    return outputs, final_state
-
-  # def transform_inputs(self, inputs, decoder_outputs):
-  #   return tf.concat([inputs, decoder_outputs.attention_context], 1)
+    return (outputs, final_state)
 
   def compute_output(self, cell_output):
+    """Computes the decoder outputs."""
+
     # Compute attention
     att_scores, attention_context = self.attention_fn(
         cell_output, self.attention_inputs)

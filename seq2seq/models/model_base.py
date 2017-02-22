@@ -22,7 +22,6 @@ import copy
 import collections
 import tensorflow as tf
 
-from seq2seq import decoders
 from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
 from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
@@ -30,7 +29,7 @@ from seq2seq.inference import beam_search
 from seq2seq.models import featurizers, bridges
 from seq2seq.training import utils as training_utils
 
-from seq2seq.contrib.seq2seq import helper as decode_helper
+from seq2seq.contrib.seq2seq import helper as tf_decode_helper
 
 def time_to_batch(tensor, name=None):
   """Transposes the first two dimensions of a tensor. Leaves the remaining
@@ -132,7 +131,7 @@ class Seq2SeqBase(ModelBase):
     self.source_vocab_info = source_vocab_info
     self.target_vocab_info = target_vocab_info
 
-  def create_featurizer(self, mode):
+  def create_featurizer(self):
     max_seq_len_source = self.params["source.max_seq_len"]
     max_seq_len_target = self.params["target.max_seq_len"]
 
@@ -210,7 +209,8 @@ class Seq2SeqBase(ModelBase):
     if "predicted_ids" in predictions.keys():
       vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
       target_id_to_vocab = vocab_tables["target_id_to_vocab"]
-      predicted_tokens = target_id_to_vocab.lookup(tf.to_int64(predictions["predicted_ids"]))
+      predicted_tokens = target_id_to_vocab.lookup(
+          tf.to_int64(predictions["predicted_ids"]))
       predictions["predicted_tokens"] = predicted_tokens
 
     return predictions
@@ -243,7 +243,7 @@ class Seq2SeqBase(ModelBase):
 
   def _build(self, features, labels, params, mode):
     # Pre-process features and labels
-    features, labels = self.create_featurizer(mode)(features, labels)
+    features, labels = self.create_featurizer()(features, labels)
 
     # Add to graph collection for later use
     graph_utils.add_dict_to_collection(features, "features")
@@ -282,7 +282,7 @@ class Seq2SeqBase(ModelBase):
       if self.use_beam_search:
         batch_size = self.params["inference.beam_search.beam_width"]
 
-      helper = decode_helper.GreedyEmbeddingHelper(
+      helper_infer = tf_decode_helper.GreedyEmbeddingHelper(
           embedding=target_embedding,
           start_tokens=tf.fill([batch_size], target_start_id),
           end_token=self.target_vocab_info.special_vocab.SEQUENCE_END)
@@ -291,7 +291,7 @@ class Seq2SeqBase(ModelBase):
       decoder_output, _ = self.encode_decode(
           source=source_embedded,
           source_len=features["source_len"],
-          decode_helper=helper,
+          decode_helper=helper_infer,
           mode=mode)
 
       predictions = self._create_predictions(
@@ -306,14 +306,14 @@ class Seq2SeqBase(ModelBase):
 
     # During training/eval, we have labels and use them for teacher forcing
     # We don't feed the last SEQUENCE_END token
-    helper = decode_helper.TrainingHelper(
+    helper_train = tf_decode_helper.TrainingHelper(
         inputs=target_embedded[:, :-1],
         sequence_length=labels["target_len"] - 1)
 
     decoder_output, _ = self.encode_decode(
         source=source_embedded,
         source_len=features["source_len"],
-        decode_helper=helper,
+        decode_helper=helper_train,
         mode=mode)
 
     # Calculate loss per example-timestep of shape [B, T]
