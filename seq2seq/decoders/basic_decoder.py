@@ -21,10 +21,10 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
-from seq2seq.decoders import DecoderBase, DecoderOutput
+from seq2seq.decoders.rnn_decoder import RNNDecoder, DecoderOutput
 
 
-class BasicDecoder(DecoderBase):
+class BasicDecoder(RNNDecoder):
   """Simple RNN decoder that performed a softmax operations on the cell output.
 
   Args:

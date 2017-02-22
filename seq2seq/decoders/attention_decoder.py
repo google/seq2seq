@@ -22,7 +22,9 @@ from __future__ import print_function
 
 from collections import namedtuple
 import tensorflow as tf
-from seq2seq.decoders import DecoderBase
+from seq2seq.decoders.rnn_decoder import RNNDecoder
+
+from seq2seq.contrib.seq2seq.helper import CustomHelper
 
 
 class AttentionDecoderOutput(
@@ -35,7 +37,7 @@ class AttentionDecoderOutput(
   pass
 
 
-class AttentionDecoder(DecoderBase):
+class AttentionDecoder(RNNDecoder):
   """An RNN Decoder that uses attention over an input sequence.
 
   Args:
@@ -77,6 +79,17 @@ class AttentionDecoder(DecoderBase):
     self.attention_inputs_max_len = attention_inputs_max_len
     self.reverse_scores_lengths = reverse_scores_lengths
 
+    def att_next_inputs(time, outputs, state, sample_ids, name=None):
+      finished, next_inputs, next_state = helper.next_inputs(
+          time=time, outputs=outputs, state=state, sample_ids=sample_ids, name=name)
+      next_inputs = tf.concat([next_inputs, outputs.attention_context], 1)
+      return (finished, next_inputs, next_state)
+
+    self.helper = CustomHelper(
+        initialize_fn=helper.initialize,
+        sample_fn=helper.sample,
+        next_inputs_fn=att_next_inputs)
+
 
   @property
   def output_size(self):
@@ -116,8 +129,8 @@ class AttentionDecoder(DecoderBase):
         attention_scores=outputs.attention_scores[:, :, :source_len])
     return outputs, final_state
 
-  def transform_inputs(self, inputs, decoder_outputs):
-    return tf.concat([inputs, decoder_outputs.attention_context], 1)
+  # def transform_inputs(self, inputs, decoder_outputs):
+  #   return tf.concat([inputs, decoder_outputs.attention_context], 1)
 
   def compute_output(self, cell_output):
     # Compute attention
@@ -184,6 +197,6 @@ class AttentionDecoder(DecoderBase):
         state=cell_state,
         sample_ids=sample_ids)
 
-    next_inputs = self.transform_inputs(next_inputs, outputs)
+    # next_inputs = self.transform_inputs(next_inputs, outputs)
 
     return (outputs, next_state, next_inputs, finished)

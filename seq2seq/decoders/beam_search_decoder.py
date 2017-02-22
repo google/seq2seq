@@ -26,7 +26,7 @@ import tensorflow as tf
 from tensorflow.python.util import nest
 
 from seq2seq.inference import beam_search
-from seq2seq.decoders.decoder_base import DecoderBase
+from seq2seq.decoders.rnn_decoder import RNNDecoder
 
 class FinalBeamDecoderOutput(
     namedtuple("FinalBeamDecoderOutput", [
@@ -59,13 +59,13 @@ class BeamDecoderOutput(
   pass
 
 
-class BeamSearchDecoder(DecoderBase):
+class BeamSearchDecoder(RNNDecoder):
   """The BeamSearchDecoder wraps another decoder to perform beam search instead
   of greedy selection. This decoder must be used with batch size of 1, which
   will result in an effective batch size of `beam_width`.
 
   Args:
-    decoder: A instance of `DecoderBase` to be used with beam search.
+    decoder: A instance of `RNNDecoder` to be used with beam search.
     config: A `BeamSearchConfig` that defines beam search decoding parameters.
   """
 
@@ -173,13 +173,11 @@ class BeamSearchDecoder(DecoderBase):
         beam_parent_ids=bs_output.beam_parent_ids,
         original_outputs=decoder_output)
 
-    finished, next_inputs, next_state = self.helper.next_inputs(
+    finished, next_inputs, next_state = self.decoder.helper.next_inputs(
         time=time_,
-        outputs=outputs,
+        outputs=decoder_output,
         state=next_state,
         sample_ids=bs_output.predicted_ids)
     next_inputs.set_shape([self.batch_size, None])
-
-    next_inputs = self.decoder.transform_inputs(next_inputs, decoder_output)
 
     return (outputs, next_state, next_inputs, finished)
