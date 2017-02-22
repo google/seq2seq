@@ -27,7 +27,7 @@ python -m bin.infer \
   --source $HOME/nmt_data/toy_reverse/test/sources.txt \
   --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
   --hparams '
-      inference.beam_search.score_fn: length_normalized_score
+      inference.beam_search.length_penalty_weight: 0.6
       inference.beam_search.beam_width: 5' \
   > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 ```

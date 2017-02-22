@@ -55,7 +55,7 @@ python -m bin.train \
   --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
   --model AttentionSeq2Seq \
   --batch_size 32 \
-  --train_steps 1500 \
+  --train_steps 2000 \
   --output_dir ${TMPDIR:-/tmp}/nmt_toy_reverse
 ```
 
