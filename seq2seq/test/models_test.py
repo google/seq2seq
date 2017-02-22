@@ -29,7 +29,7 @@ from seq2seq.data import vocab, input_pipeline
 from seq2seq.training import utils as training_utils
 from seq2seq.test import utils as test_utils
 from seq2seq.models import BasicSeq2Seq, AttentionSeq2Seq
-from seq2seq.decoders import FixedDecoderInputs, DynamicDecoderInputs
+from seq2seq.contrib.seq2seq import helper as decode_helper
 
 import tensorflow as tf
 import numpy as np
@@ -81,19 +81,17 @@ class EncoderDecoderTests(tf.test.TestCase):
   def test_forward_pass(self):
     """Tests model forward pass by checking the shape of the outputs."""
     ex = self._create_example()
-    decoder_input_fn = FixedDecoderInputs(
-        inputs=tf.convert_to_tensor(
-            ex.target, dtype=tf.float32),
-        sequence_length=tf.convert_to_tensor(
-            ex.target_len, dtype=tf.int32))
+    helper = decode_helper.TrainingHelper(
+        inputs=tf.convert_to_tensor(ex.target, dtype=tf.float32),
+        sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     model = self.create_model()
-    decoder_output = model.encode_decode(
+    decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decoder_input_fn=decoder_input_fn)
+        decode_helper=helper)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -120,23 +118,18 @@ class EncoderDecoderTests(tf.test.TestCase):
     embeddings = tf.get_variable(
         "W_embed", [model.target_vocab_info.total_size, self.input_depth])
 
-    def make_input_fn(outputs):
-      """Looks up the predictions in the embeddings.
-      """
-      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
+    helper = decode_helper.GreedyEmbeddingHelper(
+        embedding=embeddings,
+        start_tokens=[0] * self.batch_size,
+        end_token=-1)
 
-    decoder_input_fn = DynamicDecoderInputs(
-        initial_inputs=tf.zeros(
-            [self.batch_size, self.input_depth], dtype=tf.float32),
-        make_input_fn=make_input_fn,
-        max_decode_length=self.max_decode_length)
-
-    decoder_output = model.encode_decode(
+    decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decoder_input_fn=decoder_input_fn)
+        decode_helper=helper,
+        mode=tf.contrib.learn.ModeKeys.INFER)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -155,31 +148,27 @@ class EncoderDecoderTests(tf.test.TestCase):
       and using beam search to decode
     """
     self.batch_size = 1
+    beam_width = 10
+
     ex = self._create_example()
 
-    beam_width = 10
     model = self.create_model({"inference.beam_search.beam_width": beam_width})
 
     embeddings = tf.get_variable(
         "W_embed", [model.target_vocab_info.total_size, self.input_depth])
 
-    def make_input_fn(outputs):
-      """Looks up the predictions in the embeddings.
-      """
-      return tf.nn.embedding_lookup(embeddings, outputs.predicted_ids)
+    helper = decode_helper.GreedyEmbeddingHelper(
+        embedding=embeddings,
+        start_tokens=[0] * beam_width,
+        end_token=-1)
 
-    decoder_input_fn = DynamicDecoderInputs(
-        initial_inputs=tf.zeros(
-            [self.batch_size, self.input_depth], dtype=tf.float32),
-        make_input_fn=make_input_fn,
-        max_decode_length=self.max_decode_length)
-
-    decoder_output = model.encode_decode(
+    decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decoder_input_fn=decoder_input_fn)
+        decode_helper=helper,
+        mode=tf.contrib.learn.ModeKeys.INFER)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -207,19 +196,18 @@ class EncoderDecoderTests(tf.test.TestCase):
     """Ensures the parameter gradients can be computed and are not NaN
     """
     ex = self._create_example()
-    decoder_input_fn = FixedDecoderInputs(
-        inputs=tf.convert_to_tensor(
-            ex.target, dtype=tf.float32),
-        sequence_length=tf.convert_to_tensor(
-            ex.target_len, dtype=tf.int32))
+
+    helper = decode_helper.TrainingHelper(
+        inputs=tf.convert_to_tensor(ex.target, dtype=tf.float32),
+        sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     model = self.create_model()
-    decoder_output = model.encode_decode(
+    decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decoder_input_fn=decoder_input_fn)
+        decode_helper=helper)
 
     # Get a loss to optimize
     losses = seq2seq_losses.cross_entropy_sequence_loss(
@@ -347,6 +335,7 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
         "bridge_spec": {
             "class": "PassThroughBridge",
         },
+        "inference.max_decode_length": self.max_decode_length,
         "encoder.rnn_cell.dropout_input_keep_prob": 0.8,
         "encoder.rnn_cell.num_layers": 2,
         "encoder.rnn_cell.residual_connections": True,
@@ -374,6 +363,7 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
   def create_model(self, params=None):
     params_ = AttentionSeq2Seq.default_params().copy()
     params_.update({
+        "inference.max_decode_length": self.max_decode_length,
         "source.reverse": True
     })
     params_.update(params or {})

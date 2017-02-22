@@ -21,6 +21,7 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
+from tensorflow.python.util import nest
 
 from seq2seq import training
 from seq2seq import encoders
@@ -118,7 +119,7 @@ class BasicSeq2Seq(Seq2SeqBase):
   def encode_decode(self,
                     source,
                     source_len,
-                    decoder_input_fn,
+                    decode_helper,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     # Create Encoder
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
@@ -131,21 +132,30 @@ class BasicSeq2Seq(Seq2SeqBase):
     # Define the bridge between encoder and decoder
     bridge = self._create_bridge(
         encoder_outputs=encoder_output,
-        decoder_cell=decoder_cell,
-        input_fn=decoder_input_fn)
-    new_decoder_input_fn, decoder_initial_state = bridge()
+        decoder_cell=decoder_cell)
+    decoder_initial_state = bridge()
+
+    max_decode_length = None
+    if  mode == tf.contrib.learn.ModeKeys.INFER:
+      max_decode_length = self.params["inference.max_decode_length"]
+
+    if self.use_beam_search:
+      beam_width = self.params["inference.beam_search.beam_width"]
+      decoder_initial_state = nest.map_structure(
+          lambda x: tf.tile(x, [beam_width, 1]),
+          decoder_initial_state)
 
     decoder_fn = decoders.BasicDecoder(
         cell=decoder_cell,
-        input_fn=new_decoder_input_fn,
+        helper=decode_helper,
+        initial_state=decoder_initial_state,
         vocab_size=self.target_vocab_info.total_size,
-        max_decode_length=self.params["inference.max_decode_length"])
+        max_decode_length=max_decode_length)
 
     if self.use_beam_search:
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
           decoder_fn)
 
-    decoder_output, _, _ = decoder_fn(
-        initial_state=decoder_initial_state)
+    decoder_output, final_state = decoder_fn()
 
-    return decoder_output
+    return decoder_output, final_state
