@@ -211,6 +211,7 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
         initial_state=self.cell.zero_state(self.batch_size, dtype=tf.float32),
         vocab_size=self.vocab_size,
         attention_inputs=attention_inputs,
+        attention_inputs_length=np.arange(self.batch_size) + 1,
         attention_fn=attention_fn,
         max_decode_length=self.max_decode_length)
 

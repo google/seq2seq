@@ -43,9 +43,10 @@ class AttentionLayerTest(tf.test.TestCase):
   def _test_with_score_type(self, score_type):
     """Tests Attention layer with a  given score type"""
     inputs_pl = tf.placeholder(tf.float32, (None, None, self.input_dim))
+    inputs_length_pl = tf.placeholder(tf.int32, [None])
     state_pl = tf.placeholder(tf.float32, (None, self.state_dim))
     attention_fn = AttentionLayer(self.attention_dim, score_type=score_type)
-    scores, context = attention_fn(state_pl, inputs_pl)
+    scores, context = attention_fn(state_pl, inputs_pl, inputs_length_pl)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -53,12 +54,19 @@ class AttentionLayerTest(tf.test.TestCase):
       feed_dict[inputs_pl] = np.random.randn(self.batch_size, self.seq_len,
                                              self.input_dim)
       feed_dict[state_pl] = np.random.randn(self.batch_size, self.state_dim)
+      feed_dict[inputs_length_pl] = np.arange(self.batch_size) + 1
       scores_, context_ = sess.run([scores, context], feed_dict)
 
-    np.testing.assert_array_equal(scores_.shape,
-                                  [self.batch_size, self.seq_len])
-    np.testing.assert_array_equal(context_.shape,
-                                  [self.batch_size, self.input_dim])
+    np.testing.assert_array_equal(
+        scores_.shape,
+        [self.batch_size, self.seq_len])
+    np.testing.assert_array_equal(
+        context_.shape,
+        [self.batch_size, self.input_dim])
+
+    for idx, batch in enumerate(scores_, 1):
+      # All scores that are padded should be zero
+      np.testing.assert_array_equal(batch[idx:], np.zeros_like(batch[idx:]))
 
     # Scores should sum to 1
     scores_sum = np.sum(scores_, axis=1)

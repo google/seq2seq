@@ -19,6 +19,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import numpy as np
+
 from seq2seq.graph_module import GraphModule
 import tensorflow as tf
 from tensorflow.python.framework import function
@@ -68,7 +70,7 @@ class AttentionLayer(GraphModule):
     """
     return att_sum_dot(keys, query)
 
-  def _build(self, state, inputs):
+  def _build(self, state, inputs, inputs_length):
     """Computes attention scores and outputs.
 
     Args:
@@ -78,6 +80,8 @@ class AttentionLayer(GraphModule):
       inputs: The elements to compute attention *over*. In seq2seq this is
         typically the sequence of encoder outputs.
         A tensor of shape `[B, T, input_dim]`
+      inputs_length: An int32 tensor of shape `[B]` defining the sequence
+        length of the attention inputs
 
     Returns:
       A tuple `(scores, context)`.
@@ -103,6 +107,14 @@ class AttentionLayer(GraphModule):
         scope="att_query")
 
     scores = self.score_fn(att_keys, att_query)
+
+    # Replace all scores for padded inputs with tf.float32.min
+    num_scores = tf.shape(scores)[1]
+    scores_mask = tf.sequence_mask(
+        lengths=tf.to_int32(inputs_length),
+        maxlen=tf.to_int32(num_scores),
+        dtype=tf.float32)
+    scores = scores * scores_mask + ((1.0 - scores_mask) * tf.float32.min)
 
     # Show, Attend, Spell type of attention
     # Take the dot product of state for each time step in inputs
