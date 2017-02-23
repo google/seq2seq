@@ -17,6 +17,8 @@ IMPORTANT: This code is taken directly from Tensorflow
 (https://github.com/tensorflow/tensorflow) and is copied temporarily
 until it is available in a packaged Tensorflow version on pypi.
 
+TODO(dennybritz): Delete this code when it becomes available in TF.
+
 Seq2seq layer operations for use in neural networks.
 """
 
