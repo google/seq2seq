@@ -37,7 +37,7 @@ class Bridge(object):
   between encoder and decoder.
 
   All logic is contained in the `_create` method, which returns an
-  and initial state for the decoder.
+  initial state for the decoder.
 
   Args:
     encoder_outputs: A namedtuple that corresponds to the the encoder outputs.
@@ -141,4 +141,4 @@ class InitialStateBridge(Bridge):
 
       initial_state = nest.map_structure(map_fn, self.decoder_cell.state_size)
 
-    return  initial_state
+    return initial_state

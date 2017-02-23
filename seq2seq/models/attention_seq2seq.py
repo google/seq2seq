@@ -86,7 +86,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
             multiples=[self.params["inference.beam_search.beam_width"]])
 
     max_decode_length = None
-    if  mode == tf.contrib.learn.ModeKeys.INFER:
+    if mode == tf.contrib.learn.ModeKeys.INFER:
       max_decode_length = self.params["inference.max_decode_length"]
 
     if self.use_beam_search:

@@ -103,7 +103,6 @@ class DecoderTests(object):
     return grads_and_vars_
 
   def test_with_dynamic_inputs(self):
-    # initial_input = tf.random_normal([self.batch_size, self.input_depth])
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
     helper = decode_helper.GreedyEmbeddingHelper(
