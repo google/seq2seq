@@ -66,6 +66,7 @@ class AttentionDecoder(RNNDecoder):
                initial_state,
                vocab_size,
                attention_inputs,
+               attention_inputs_length,
                attention_fn,
                max_decode_length,
                reverse_scores_lengths=None,
@@ -75,6 +76,7 @@ class AttentionDecoder(RNNDecoder):
         cell, helper, initial_state, max_decode_length, name)
     self.vocab_size = vocab_size
     self.attention_inputs = attention_inputs
+    self.attention_inputs_length = attention_inputs_length
     self.attention_fn = attention_fn
     self.attention_inputs_max_len = attention_inputs_max_len
     self.reverse_scores_lengths = reverse_scores_lengths
@@ -136,7 +138,9 @@ class AttentionDecoder(RNNDecoder):
 
     # Compute attention
     att_scores, attention_context = self.attention_fn(
-        cell_output, self.attention_inputs)
+        state=cell_output,
+        inputs=self.attention_inputs,
+        inputs_length=self.attention_inputs_length)
 
     # TODO: Make this a parameter: We may or may not want this.
     # Transform attention context.
