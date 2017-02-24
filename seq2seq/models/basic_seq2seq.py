@@ -123,8 +123,8 @@ class BasicSeq2Seq(Seq2SeqBase):
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     # Create Encoder
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
-    encoder_cell = self._create_encoder_cell(enable_dropout)
-    encoder_fn = self.encoder_class(encoder_cell)
+    encoder_cell_fn = lambda: self._create_encoder_cell(enable_dropout)
+    encoder_fn = self.encoder_class(encoder_cell_fn)
     encoder_output = encoder_fn(source, source_len)
 
     # Create Decoder
