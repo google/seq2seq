@@ -30,21 +30,7 @@ from seq2seq.models import featurizers, bridges
 from seq2seq.training import utils as training_utils
 
 from seq2seq.contrib.seq2seq import helper as tf_decode_helper
-
-def time_to_batch(tensor, name=None):
-  """Transposes the first two dimensions of a tensor. Leaves the remaining
-  dimensions unchanged.
-
-  Args:
-    tensor: Input tensor to be transposed.
-
-  Returns:
-    A tensor of the same type as `tensor` with the first two dimensions
-    swapped.
-  """
-  ndims = tensor.get_shape().ndims
-  perm = [1, 0] + list(range(ndims))[2:]
-  return tf.transpose(tensor, perm, name=name)
+from seq2seq.contrib.seq2seq.decoder import _transpose_batch_time
 
 
 def _flatten_dict(dict_, parent_key="", sep="."):
@@ -194,14 +180,14 @@ class Seq2SeqBase(ModelBase):
       predictions.update(_flatten_dict({"labels": labels}))
 
     if losses is not None:
-      predictions["losses"] = time_to_batch(losses)
+      predictions["losses"] = _transpose_batch_time(losses)
 
     # Decoders returns output in time-major form [T, B, ...]
     # Here we transpose everything back to batch-major for the user
     # print(predictions)
     decoder_output_flat = _flatten_dict(decoder_output._asdict())
     decoder_output_flat = {
-        k: time_to_batch(v) for k, v in  decoder_output_flat.items()
+        k: _transpose_batch_time(v) for k, v in  decoder_output_flat.items()
     }
     predictions.update(decoder_output_flat)
 
