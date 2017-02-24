@@ -163,7 +163,8 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
         [self.batch_size, cell.output_size])
 
   def test_encode_with_multi_cell(self):
-    cell = tf.contrib.rnn.MultiRNNCell([tf.contrib.rnn.LSTMCell(32)] * 4)
+    cell = tf.contrib.rnn.MultiRNNCell(
+        [tf.contrib.rnn.LSTMCell(32) for _ in range(4)])
     encoder_output_ = self._test_encode_with_cell(cell)
 
     for layer_idx in range(4):
