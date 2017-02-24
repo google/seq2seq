@@ -39,12 +39,12 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
 
     with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
       standard_cell = tf.contrib.rnn.MultiRNNCell(
-          [tf.contrib.rnn.GRUCell(2)] * 2,
+          [tf.contrib.rnn.GRUCell(2) for _ in range(2)],
           state_is_tuple=True)
       res_standard = standard_cell(inputs, state, scope="standard")
 
       test_cell = rnn_cell.ExtendedMultiRNNCell(
-          [tf.contrib.rnn.GRUCell(2)] * 2)
+          [tf.contrib.rnn.GRUCell(2) for _ in range(2)])
       res_test = test_cell(inputs, state, scope="test")
 
     with self.test_session() as sess:
@@ -65,7 +65,7 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
 
     with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
       test_cell = rnn_cell.ExtendedMultiRNNCell(
-          [tf.contrib.rnn.GRUCell(2)] * 2,
+          [tf.contrib.rnn.GRUCell(2) for _ in range(2)],
           residual_connections=True, **kwargs)
       res_test = test_cell(inputs, state, scope="test")
 

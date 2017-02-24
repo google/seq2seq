@@ -174,7 +174,7 @@ def get_rnn_cell(cell_spec,
 
   if len(cells) > 1:
     final_cell = rnn_cell.ExtendedMultiRNNCell(
-        cells=[cell] * num_layers,
+        cells=cells,
         residual_connections=residual_connections,
         residual_combiner=residual_combiner,
         residual_dense=residual_dense)
