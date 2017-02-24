@@ -40,13 +40,13 @@ class UnidirectionalRNNEncoder(GraphModule):
     name: A name for the encoder
   """
 
-  def __init__(self, cell, name="forward_rnn_encoder"):
+  def __init__(self, cell_fn, name="forward_rnn_encoder"):
     super(UnidirectionalRNNEncoder, self).__init__(name)
-    self.cell = cell
+    self.cell_fn = cell_fn
 
   def _build(self, inputs, sequence_length, **kwargs):
     outputs, state = tf.nn.dynamic_rnn(
-        cell=self.cell,
+        cell=self.cell_fn(),
         inputs=inputs,
         sequence_length=sequence_length,
         dtype=tf.float32,
@@ -65,14 +65,14 @@ class BidirectionalRNNEncoder(GraphModule):
     name: A name for the encoder
   """
 
-  def __init__(self, cell, name="bidi_rnn_encoder"):
+  def __init__(self, cell_fn, name="bidi_rnn_encoder"):
     super(BidirectionalRNNEncoder, self).__init__(name)
-    self.cell = cell
+    self.cell_fn = cell_fn
 
   def _build(self, inputs, sequence_length, **kwargs):
     outputs, states = tf.nn.bidirectional_dynamic_rnn(
-        cell_fw=self.cell,
-        cell_bw=self.cell,
+        cell_fw=self.cell_fn(),
+        cell_bw=self.cell_fn(),
         inputs=inputs,
         sequence_length=sequence_length,
         dtype=tf.float32,
@@ -95,21 +95,26 @@ class StackBidirectionalRNNEncoder(GraphModule):
     name: A name for the encoder
   """
 
-  def __init__(self, cell, name="stacked_bidi_rnn_encoder"):
+  def __init__(self, cell_fn, name="stacked_bidi_rnn_encoder"):
     super(StackBidirectionalRNNEncoder, self).__init__(name)
-    self.cell = cell
+    self.cell_fn = cell_fn
+
+  def _unpack_cell(self, cell):
+    """Unpack the cells because the stack_bidirectional_dynamic_rnn
+    expects a list of cells, one per layer."""
+    if isinstance(cell, tf.contrib.rnn.MultiRNNCell):
+      return cell._cells #pylint: disable=W0212
+    else:
+      return [cell]
 
   def _build(self, inputs, sequence_length, **kwargs):
-    # "Unpack" the cells because the stack_bidirectional_dynamic_rnn
-    # expects a list of cells, one per layer.
-    if isinstance(self.cell, tf.contrib.rnn.MultiRNNCell):
-      cells = self.cell._cells #pylint: disable=W0212
-    else:
-      cells = [self.cell]
+
+    fw_cell = self._unpack_cell(self.cell_fn())
+    bw_cell = self._unpack_cell(self.cell_fn())
 
     result = rnn.stack_bidirectional_dynamic_rnn(
-        cells_fw=cells,
-        cells_bw=cells,
+        cells_fw=fw_cell,
+        cells_bw=bw_cell,
         inputs=inputs,
         dtype=tf.float32,
         sequence_length=sequence_length,

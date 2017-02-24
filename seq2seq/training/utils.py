@@ -143,7 +143,7 @@ def get_rnn_cell(cell_spec,
                  residual_connections=False,
                  residual_combiner="add",
                  residual_dense=False):
-  """Creates a new RNN Cell.
+  """Creates a new RNN Cell
 
   Args:
     cell_spec: A JSON string that defines how to create a cell instance.
@@ -160,23 +160,28 @@ def get_rnn_cell(cell_spec,
   Returns:
     An instance of `tf.contrib.rnn.RNNCell`.
   """
+
   #pylint: disable=redefined-variable-type
-  cell = cell_from_spec(cell_spec)
+  cells = []
+  for _ in range(num_layers):
+    cell = cell_from_spec(cell_spec)
+    if dropout_input_keep_prob < 1.0 or dropout_output_keep_prob < 1.0:
+      cell = tf.contrib.rnn.DropoutWrapper(
+          cell=cell,
+          input_keep_prob=dropout_input_keep_prob,
+          output_keep_prob=dropout_output_keep_prob)
+    cells.append(cell)
 
-  if dropout_input_keep_prob < 1.0 or dropout_output_keep_prob < 1.0:
-    cell = tf.contrib.rnn.DropoutWrapper(
-        cell=cell,
-        input_keep_prob=dropout_input_keep_prob,
-        output_keep_prob=dropout_output_keep_prob)
-
-  if num_layers > 1:
-    cell = rnn_cell.ExtendedMultiRNNCell(
+  if len(cells) > 1:
+    final_cell = rnn_cell.ExtendedMultiRNNCell(
         cells=[cell] * num_layers,
         residual_connections=residual_connections,
         residual_combiner=residual_combiner,
         residual_dense=residual_dense)
+  else:
+    final_cell = cells[0]
 
-  return cell
+  return final_cell
 
 
 def create_learning_rate_decay_fn(decay_type,

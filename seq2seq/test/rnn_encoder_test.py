@@ -45,7 +45,7 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.UnidirectionalRNNEncoder(self.cell)
+    encode_fn = rnn_encoder.UnidirectionalRNNEncoder(lambda: self.cell)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:
@@ -82,7 +82,7 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.BidirectionalRNNEncoder(self.cell)
+    encode_fn = rnn_encoder.BidirectionalRNNEncoder(lambda: self.cell)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:
@@ -126,7 +126,7 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.StackBidirectionalRNNEncoder(cell)
+    encode_fn = rnn_encoder.StackBidirectionalRNNEncoder(lambda: cell)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:
