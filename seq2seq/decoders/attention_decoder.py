@@ -70,7 +70,6 @@ class AttentionDecoder(RNNDecoder):
                attention_fn,
                max_decode_length,
                reverse_scores_lengths=None,
-               attention_inputs_max_len=500,
                name="attention_decoder"):
     super(AttentionDecoder, self).__init__(
         cell, helper, initial_state, max_decode_length, name)
@@ -78,7 +77,6 @@ class AttentionDecoder(RNNDecoder):
     self.attention_inputs = attention_inputs
     self.attention_inputs_length = attention_inputs_length
     self.attention_fn = attention_fn
-    self.attention_inputs_max_len = attention_inputs_max_len
     self.reverse_scores_lengths = reverse_scores_lengths
 
     def att_next_inputs(time, outputs, state, sample_ids, name=None):
@@ -103,7 +101,7 @@ class AttentionDecoder(RNNDecoder):
         logits=self.vocab_size,
         predicted_ids=tf.TensorShape([]),
         cell_output=self.cell.output_size,
-        attention_scores=self.attention_inputs_max_len,
+        attention_scores=tf.expand_dims(tf.shape(self.attention_inputs)[1], 0),
         attention_context=self.attention_inputs.get_shape()[2])
 
   @property
@@ -125,13 +123,6 @@ class AttentionDecoder(RNNDecoder):
     first_inputs = tf.concat([first_inputs, attention_context], 1)
 
     return finished, first_inputs, self.initial_state
-
-  def finalize(self, outputs, final_state):
-    # Slice attention scores to actual length
-    source_len = tf.shape(self.attention_inputs)[1]
-    outputs = outputs._replace(
-        attention_scores=outputs.attention_scores[:, :, :source_len])
-    return (outputs, final_state)
 
   def compute_output(self, cell_output):
     """Computes the decoder outputs."""
@@ -162,20 +153,10 @@ class AttentionDecoder(RNNDecoder):
 
     return softmax_input, logits, att_scores, attention_context
 
-  def _pad_att_scores(self, scores):
-    """Pads attention scores to fixed length. This is a hack because raw_rnn
-    requirs a fully defined shape for all outputs."""
-    # TODO: File a tensorflow bug and get rid of this hack
-    max_len = self.attention_inputs_max_len
-    scores = tf.pad(scores, [[0, 0], [0, max_len - tf.shape(scores)[1]]])
-    scores.set_shape([None, max_len])
-    return scores
-
   def step(self, time_, inputs, state, name=None):
     cell_output, cell_state = self.cell(inputs, state)
-    cell_output_new, logits, att_scores, attention_context = \
+    cell_output_new, logits, attention_scores, attention_context = \
       self.compute_output(cell_output)
-    attention_scores = self._pad_att_scores(att_scores)
 
     if self.reverse_scores_lengths is not None:
       attention_scores = tf.reverse_sequence(
