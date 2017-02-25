@@ -56,11 +56,11 @@ class Seq2SeqFeaturizer(GraphModule):
 
   def _build(self, features, labels):
     # Create vocabulary lookup for source
-    source_vocab_to_id, source_id_to_vocab, _ = \
+    source_vocab_to_id, source_id_to_vocab, source_word_to_count, _ = \
       vocab.create_vocabulary_lookup_table(self.source_vocab_info.path)
 
     # Create vocabulary look for target
-    target_vocab_to_id, target_id_to_vocab, _ = \
+    target_vocab_to_id, target_id_to_vocab, target_word_to_count, _ = \
       vocab.create_vocabulary_lookup_table(self.target_vocab_info.path)
 
     # Add vocab tables to graph colection so that we can access them in
@@ -68,8 +68,10 @@ class Seq2SeqFeaturizer(GraphModule):
     graph_utils.add_dict_to_collection({
         "source_vocab_to_id": source_vocab_to_id,
         "source_id_to_vocab": source_id_to_vocab,
+        "source_word_to_count": source_word_to_count,
         "target_vocab_to_id": target_vocab_to_id,
-        "target_id_to_vocab": target_id_to_vocab
+        "target_id_to_vocab": target_id_to_vocab,
+        "target_word_to_count": target_word_to_count
     }, "vocab_tables")
 
     # Slice source to max_len
