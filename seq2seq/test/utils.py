@@ -69,7 +69,7 @@ def create_temp_tfrecords(sources, targets):
   return output_file
 
 
-def create_temporary_vocab_file(words):
+def create_temporary_vocab_file(words, counts=None):
   """
   Creates a temporary vocabulary file.
 
@@ -80,7 +80,11 @@ def create_temporary_vocab_file(words):
     A temporary file object with one word per line
   """
   vocab_file = tempfile.NamedTemporaryFile()
-  for token in words:
-    vocab_file.write((token + "\n").encode("utf-8"))
+  if counts is None:
+    for token in words:
+      vocab_file.write((token + "\n").encode("utf-8"))
+  else:
+    for token, count in zip(words, counts):
+      vocab_file.write("{}\t{}\n".format(token, count).encode("utf-8"))
   vocab_file.flush()
   return vocab_file

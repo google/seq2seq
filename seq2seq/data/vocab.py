@@ -71,8 +71,9 @@ def create_vocabulary_lookup_table(filename, default_value=None):
       If None, UNK tokens will be mapped to [vocab_size]
 
     Returns:
-     A tuple (hash_table, reverse_hash_table, vocab_size). The vocab size
-      does not include the UNK token.
+      A tuple (vocab_to_id_table, id_to_vocab_table,
+      word_to_count_table, vocab_size). The vocab size does not include
+      the UNK token.
     """
   if not gfile.Exists(filename):
     raise ValueError("File does not exist: {}".format(filename))
@@ -82,10 +83,19 @@ def create_vocabulary_lookup_table(filename, default_value=None):
     vocab = list(line.strip("\n") for line in file)
   vocab_size = len(vocab)
 
+  has_counts = len(vocab[0].split("\t")) == 2
+  if has_counts:
+    vocab, counts = zip(*[_.split("\t") for _ in vocab])
+    counts = [int(_) for _ in counts]
+    vocab = list(vocab)
+  else:
+    counts = [-1 for _ in vocab]
+
   # Add special vocabulary items
   special_vocab = get_special_vocab(vocab_size)
   vocab += list(special_vocab._fields)
   vocab_size += len(special_vocab)
+  counts += [-1 for _ in list(special_vocab._fields)]
 
   if default_value is None:
     default_value = special_vocab.UNK
@@ -93,6 +103,7 @@ def create_vocabulary_lookup_table(filename, default_value=None):
   tf.logging.info("Creating vocabulary lookup table of size %d", vocab_size)
 
   vocab_tensor = tf.constant(vocab)
+  count_tensor = tf.constant(counts, dtype=tf.int64)
   vocab_idx_tensor = tf.range(vocab_size, dtype=tf.int64)
 
   # Create ID -> word mapping
@@ -103,7 +114,12 @@ def create_vocabulary_lookup_table(filename, default_value=None):
   # Create word -> id mapping
   vocab_to_id_init = tf.contrib.lookup.KeyValueTensorInitializer(
       vocab_tensor, vocab_idx_tensor, tf.string, tf.int64)
-  vocab_to_id_table = tf.contrib.lookup.HashTable(vocab_to_id_init,
-                                                  default_value)
+  vocab_to_id_table = tf.contrib.lookup.HashTable(
+      vocab_to_id_init, default_value)
 
-  return vocab_to_id_table, id_to_vocab_table, vocab_size
+  # Create word -> count mapping
+  word_to_count_init = tf.contrib.lookup.KeyValueTensorInitializer(
+      vocab_tensor, count_tensor, tf.string, tf.int64)
+  word_to_count_table = tf.contrib.lookup.HashTable(word_to_count_init, -1)
+
+  return vocab_to_id_table, id_to_vocab_table, word_to_count_table, vocab_size

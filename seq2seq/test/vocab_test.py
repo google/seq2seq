@@ -57,20 +57,12 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
   Tests Vocabulary lookup table operations.
   """
 
-  def setUp(self):
-    super(CreateVocabularyLookupTableTest, self).setUp()
-    tf.logging.set_verbosity(tf.logging.INFO)
-    self.vocab_list = ["Hello", ".", "笑"]
-    self.vocab_file = test_utils.create_temporary_vocab_file(self.vocab_list)
+  def test_without_counts(self):
+    vocab_list = ["Hello", ".", "笑"]
+    vocab_file = test_utils.create_temporary_vocab_file(vocab_list)
 
-  def tearDown(self):
-    super(CreateVocabularyLookupTableTest, self).tearDown()
-    self.vocab_file.close()
-
-  def test_lookup_table(self):
-
-    vocab_to_id_table, id_to_vocab_table, vocab_size = \
-      vocab.create_vocabulary_lookup_table(self.vocab_file.name)
+    vocab_to_id_table, id_to_vocab_table, _, vocab_size = \
+      vocab.create_vocabulary_lookup_table(vocab_file.name)
 
     self.assertEqual(vocab_size, 6)
 
@@ -92,6 +84,40 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
           np.char.decode(words.astype("S"), "utf-8"),
           ["Hello", ".", "笑", "UNK"])
 
+
+  def test_with_counts(self):
+    vocab_list = ["Hello", ".", "笑"]
+    vocab_counts = [100, 200, 300]
+    vocab_file = test_utils.create_temporary_vocab_file(
+        vocab_list, vocab_counts)
+
+    vocab_to_id_table, id_to_vocab_table, word_to_count_table, vocab_size = \
+      vocab.create_vocabulary_lookup_table(vocab_file.name)
+
+    self.assertEqual(vocab_size, 6)
+
+    with self.test_session() as sess:
+      sess.run(tf.global_variables_initializer())
+      sess.run(tf.local_variables_initializer())
+      sess.run(tf.tables_initializer())
+
+      ids = vocab_to_id_table.lookup(
+          tf.convert_to_tensor(["Hello", ".", "笑", "??", "xxx"]))
+      ids = sess.run(ids)
+      np.testing.assert_array_equal(ids, [0, 1, 2, 3, 3])
+
+      words = id_to_vocab_table.lookup(
+          tf.convert_to_tensor(
+              [0, 1, 2, 3], dtype=tf.int64))
+      words = sess.run(words)
+      np.testing.assert_array_equal(
+          np.char.decode(words.astype("S"), "utf-8"),
+          ["Hello", ".", "笑", "UNK"])
+
+      counts = word_to_count_table.lookup(
+          tf.convert_to_tensor(["Hello", ".", "笑", "??", "xxx"]))
+      counts = sess.run(counts)
+      np.testing.assert_array_equal(counts, [100, 200, 300, -1, -1])
 
 if __name__ == "__main__":
   tf.test.main()
