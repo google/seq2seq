@@ -50,7 +50,7 @@ class BasicSeq2Seq(Seq2SeqBase):
                name="basic_seq2seq"):
     super(BasicSeq2Seq, self).__init__(source_vocab_info, target_vocab_info,
                                        params, name)
-    self.encoder_class = locate(self.params["encoder_class"])
+    self.encoder_class = locate(self.params["encoder.class"])
 
   def _create_decoder_cell(self, enable_dropout):
     """Creates a cell instance for the decoder based on the model parameters"""
@@ -75,8 +75,8 @@ class BasicSeq2Seq(Seq2SeqBase):
         "bridge_spec": {
             "class": "InitialStateBridge",
         },
-        "encoder_class": "seq2seq.encoders.UnidirectionalRNNEncoder",
-        "encoder": {}, # Arbitrary parameters for the encoder
+        "encoder.class": "seq2seq.encoders.UnidirectionalRNNEncoder",
+        "encoder.params": {}, # Arbitrary parameters for the encoder
         "decoder.rnn_cell.cell_spec": {
             "class": "BasicLSTMCell",
             "num_units": 128
@@ -97,7 +97,7 @@ class BasicSeq2Seq(Seq2SeqBase):
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     # Create Encoder
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
-    encoder_fn = self.encoder_class(self.params["encoder"])
+    encoder_fn = self.encoder_class(self.params["encoder.params"])
     encoder_output = encoder_fn(source, source_len)
 
     # Create Decoder

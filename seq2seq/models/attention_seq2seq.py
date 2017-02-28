@@ -64,7 +64,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
                     decode_helper,
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
-    encoder_fn = self.encoder_class(self.params["encoder"])
+    encoder_fn = self.encoder_class(self.params["encoder.params"])
     encoder_output = encoder_fn(source, source_len)
 
     decoder_cell = self._create_decoder_cell(enable_dropout)

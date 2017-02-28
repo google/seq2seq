@@ -336,7 +336,7 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
             "class": "PassThroughBridge",
         },
         "inference.max_decode_length": self.max_decode_length,
-        "encoder": {
+        "encoder.params": {
             "rnn_cell": {
                 "dropout_input_keep_prob": 0.8,
                 "num_layers": 2,
