@@ -336,10 +336,14 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
             "class": "PassThroughBridge",
         },
         "inference.max_decode_length": self.max_decode_length,
-        "encoder.rnn_cell.dropout_input_keep_prob": 0.8,
-        "encoder.rnn_cell.num_layers": 2,
-        "encoder.rnn_cell.residual_connections": True,
-        "encoder.rnn_cell.cell_spec":  {"class": "LSTMCell", "num_units": 12},
+        "encoder": {
+            "rnn_cell": {
+                "dropout_input_keep_prob": 0.8,
+                "num_layers": 2,
+                "residual_connections": True,
+                "cell_spec":  {"class": "LSTMCell", "num_units": 12},
+            }
+        },
         "decoder.rnn_cell.num_layers": 2,
         "decoder.rnn_cell.cell_spec":  {"class": "LSTMCell", "num_units": 12}
     })

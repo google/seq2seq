@@ -22,6 +22,7 @@ import copy
 import collections
 import tensorflow as tf
 
+from seq2seq.configurable import Configurable
 from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
 from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
@@ -58,7 +59,7 @@ def _flatten_dict(dict_, parent_key="", sep="."):
   return dict(items)
 
 
-class ModelBase(object):
+class ModelBase(Configurable):
   """Abstract base class for models.
 
   Args:
@@ -68,17 +69,7 @@ class ModelBase(object):
 
   def __init__(self, params, name):
     self.name = name
-    self.params = params
-
-    # Cast parameters to correct types
-    default_params = self.default_params()
-    for key, value in self.params.items():
-      # If param is unknown, drop it. We do this to stay compatible with
-      # past versions
-      if key not in default_params:
-        tf.logging.warning("%s is not a valid model parameter, dropping", key)
-        continue
-      self.params[key] = type(default_params[key])(value)
+    Configurable.__init__(self, params)
 
   def create_featurizer(self):
     """"Returns a new featurizer instance to be used by this model"""

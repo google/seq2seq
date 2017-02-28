@@ -20,6 +20,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from pydoc import locate
 import tensorflow as tf
 from tensorflow.python.util import nest
 
@@ -49,25 +50,7 @@ class BasicSeq2Seq(Seq2SeqBase):
                name="basic_seq2seq"):
     super(BasicSeq2Seq, self).__init__(source_vocab_info, target_vocab_info,
                                        params, name)
-    assert hasattr(encoders, params["encoder.type"]), (
-        "Invalid encoder type: {}".format(params["encoder.type"]))
-    self.encoder_class = getattr(encoders, params["encoder.type"])
-
-  def _create_encoder_cell(self, enable_dropout):
-    """Creates a cell instance for the encoder based on the model parameters"""
-    return training.utils.get_rnn_cell(
-        cell_spec=self.params["encoder.rnn_cell.cell_spec"],
-        num_layers=self.params["encoder.rnn_cell.num_layers"],
-        dropout_input_keep_prob=(
-            self.params["encoder.rnn_cell.dropout_input_keep_prob"]
-            if enable_dropout else 1.0),
-        dropout_output_keep_prob=(
-            self.params["encoder.rnn_cell.dropout_output_keep_prob"]
-            if enable_dropout else 1.0),
-        residual_connections=self.params[
-            "encoder.rnn_cell.residual_connections"],
-        residual_combiner=self.params["encoder.rnn_cell.residual_combiner"],
-        residual_dense=self.params["encoder.rnn_cell.residual_dense"])
+    self.encoder_class = locate(self.params["encoder_class"])
 
   def _create_decoder_cell(self, enable_dropout):
     """Creates a cell instance for the decoder based on the model parameters"""
@@ -92,17 +75,8 @@ class BasicSeq2Seq(Seq2SeqBase):
         "bridge_spec": {
             "class": "InitialStateBridge",
         },
-        "encoder.type": "UnidirectionalRNNEncoder",
-        "encoder.rnn_cell.cell_spec": {
-            "class": "BasicLSTMCell",
-            "num_units": 128
-        },
-        "encoder.rnn_cell.dropout_input_keep_prob": 1.0,
-        "encoder.rnn_cell.dropout_output_keep_prob": 1.0,
-        "encoder.rnn_cell.num_layers": 1,
-        "encoder.rnn_cell.residual_connections": False,
-        "encoder.rnn_cell.residual_combiner": "add",
-        "encoder.rnn_cell.residual_dense": False,
+        "encoder_class": "seq2seq.encoders.UnidirectionalRNNEncoder",
+        "encoder": {}, # Arbitrary parameters for the encoder
         "decoder.rnn_cell.cell_spec": {
             "class": "BasicLSTMCell",
             "num_units": 128
@@ -123,8 +97,7 @@ class BasicSeq2Seq(Seq2SeqBase):
                     mode=tf.contrib.learn.ModeKeys.TRAIN):
     # Create Encoder
     enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
-    encoder_cell_fn = lambda: self._create_encoder_cell(enable_dropout)
-    encoder_fn = self.encoder_class(encoder_cell_fn)
+    encoder_fn = self.encoder_class(self.params["encoder"])
     encoder_output = encoder_fn(source, source_len)
 
     # Create Decoder
