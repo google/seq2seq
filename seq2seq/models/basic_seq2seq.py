@@ -64,7 +64,7 @@ class BasicSeq2Seq(Seq2SeqBase):
         "encoder.class": "seq2seq.encoders.UnidirectionalRNNEncoder",
         "encoder.params": {}, # Arbitrary parameters for the encoder
         "decoder.class": "seq2seq.decoders.BasicDecoder",
-        "decoder.params": {}
+        "decoder.params": {} # Arbitrary parameters for the decoder
     })
     return params
 
