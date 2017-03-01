@@ -29,7 +29,7 @@ from seq2seq import models
 from seq2seq.data import input_pipeline, vocab
 from seq2seq.training import utils as training_utils
 
-def load_model(model_dir, params=None):
+def load_model(model_dir, mode, params=None):
   """Loads a model class from a given directory
   """
 
@@ -56,7 +56,8 @@ def load_model(model_dir, params=None):
   model = model_class(
       source_vocab_info=source_vocab_info,
       target_vocab_info=target_vocab_info,
-      params=hparams)
+      params=hparams,
+      mode=mode)
 
   return model
 
@@ -107,7 +108,8 @@ def create_inference_graph(
     (predictions, loss, train_op).
   """
 
-  model = load_model(model_dir, params_overrides)
+  model = load_model(
+      model_dir, tf.contrib.learn.ModeKeys.INFER, params_overrides)
 
   if model.params["inference.beam_search.beam_width"] > 1:
     tf.logging.info("Setting batch size to 1 for beam search.")
@@ -133,8 +135,7 @@ def create_inference_graph(
   return model(
       features=features,
       labels=labels,
-      params=None,
-      mode=tf.contrib.learn.ModeKeys.INFER)
+      params=None)
 
 
 def unk_replace(source_tokens, predicted_tokens, attention_scores,

@@ -38,9 +38,9 @@ class Encoder(GraphModule, Configurable):
     params: A dictionary of hyperparameters for the encoder.
     name: A variable scope for the encoder graph.
   """
-  def __init__(self, params, name):
+  def __init__(self, params, mode, name):
     GraphModule.__init__(self, name)
-    Configurable.__init__(self, params)
+    Configurable.__init__(self, params, mode)
 
   def _build(self, inputs, sequence_length, **kwargs):
     return self.encode(inputs, sequence_length, **kwargs)

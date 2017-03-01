@@ -37,6 +37,7 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
+    self.mode = tf.contrib.learn.ModeKeys.TRAIN
     self.params = rnn_encoder.UnidirectionalRNNEncoder.default_params()
     self.params["rnn_cell"]["cell_spec"]["num_units"] = 32
     self.params["rnn_cell"]["cell_spec"]["class"] = "BasicLSTMCell"
@@ -47,7 +48,7 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.UnidirectionalRNNEncoder(self.params)
+    encode_fn = rnn_encoder.UnidirectionalRNNEncoder(self.params, self.mode)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:
@@ -79,6 +80,7 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
     self.params = rnn_encoder.BidirectionalRNNEncoder.default_params()
     self.params["rnn_cell"]["cell_spec"]["num_units"] = 32
     self.params["rnn_cell"]["cell_spec"]["class"] = "BasicLSTMCell"
+    self.mode = tf.contrib.learn.ModeKeys.TRAIN
 
   def test_encode(self):
     inputs = tf.random_normal(
@@ -86,7 +88,7 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.BidirectionalRNNEncoder(self.params)
+    encode_fn = rnn_encoder.BidirectionalRNNEncoder(self.params, self.mode)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:
@@ -122,6 +124,7 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
+    self.mode = tf.contrib.learn.ModeKeys.TRAIN
 
   def _test_encode_with_params(self, params):
     """Tests the StackBidirectionalRNNEncoder with a specific cell"""
@@ -130,7 +133,7 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.StackBidirectionalRNNEncoder(params)
+    encode_fn = rnn_encoder.StackBidirectionalRNNEncoder(params, self.mode)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:

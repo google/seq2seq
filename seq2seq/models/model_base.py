@@ -67,9 +67,9 @@ class ModelBase(Configurable):
     name: A name for this model to be used as a variable scope
   """
 
-  def __init__(self, params, name):
+  def __init__(self, params, mode, name):
     self.name = name
-    Configurable.__init__(self, params)
+    Configurable.__init__(self, params, mode)
 
   def create_featurizer(self):
     """"Returns a new featurizer instance to be used by this model"""
@@ -80,15 +80,15 @@ class ModelBase(Configurable):
     """Returns a dictionary of default parameters for this model."""
     return {}
 
-  def __call__(self, features, labels, params, mode):
+  def __call__(self, features, labels, params):
     """Creates the model graph. See the model_fn documentation in
     tf.contrib.learn.Estimator class for a more detailed explanation.
     """
     with tf.variable_scope("model"):
       with tf.variable_scope(self.name):
-        return self._build(features, labels, params, mode)
+        return self._build(features, labels, params)
 
-  def _build(self, features, labels, params, mode):
+  def _build(self, features, labels, params):
     """Subclasses should implement this method. See the `model_fn` documentation
     in tf.contrib.learn.Estimator class for a more detailed explanation.
     """
@@ -103,8 +103,8 @@ class Seq2SeqBase(ModelBase):
   Maybe we can somehow put it in the features?
   """
 
-  def __init__(self, source_vocab_info, target_vocab_info, params, name):
-    super(Seq2SeqBase, self).__init__(params, name)
+  def __init__(self, source_vocab_info, target_vocab_info, params, mode, name):
+    super(Seq2SeqBase, self).__init__(params, mode, name)
     self.source_vocab_info = source_vocab_info
     self.target_vocab_info = target_vocab_info
 
@@ -155,8 +155,7 @@ class Seq2SeqBase(ModelBase):
   def encode_decode(self,
                     source,
                     source_len,
-                    decode_helper,
-                    mode=tf.contrib.learn.ModeKeys.TRAIN):
+                    decode_helper):
     """Should be implemented by child classes"""
     raise NotImplementedError
 
@@ -218,7 +217,7 @@ class Seq2SeqBase(ModelBase):
     """
     return self.params["inference.beam_search.beam_width"] > 1
 
-  def _build(self, features, labels, params, mode):
+  def _build(self, features, labels, params):
     # Pre-process features and labels
     features, labels = self.create_featurizer()(features, labels)
 
@@ -252,7 +251,7 @@ class Seq2SeqBase(ModelBase):
     source_embedded = tf.nn.embedding_lookup(source_embedding, source_ids)
 
     # Graph used for inference
-    if mode == tf.contrib.learn.ModeKeys.INFER:
+    if self.mode == tf.contrib.learn.ModeKeys.INFER:
       target_start_id = self.target_vocab_info.special_vocab.SEQUENCE_START
 
       batch_size = tf.shape(source_embedded)[0]
@@ -268,8 +267,7 @@ class Seq2SeqBase(ModelBase):
       decoder_output, _ = self.encode_decode(
           source=source_embedded,
           source_len=features["source_len"],
-          decode_helper=helper_infer,
-          mode=mode)
+          decode_helper=helper_infer)
 
       predictions = self._create_predictions(
           decoder_output=decoder_output,
@@ -290,8 +288,7 @@ class Seq2SeqBase(ModelBase):
     decoder_output, _ = self.encode_decode(
         source=source_embedded,
         source_len=features["source_len"],
-        decode_helper=helper_train,
-        mode=mode)
+        decode_helper=helper_train)
 
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(
@@ -321,7 +318,7 @@ class Seq2SeqBase(ModelBase):
         optimizer=self.params["optimizer.name"],
         summaries=["learning_rate", "loss", "gradients", "gradient_norm"])
 
-    if mode == tf.contrib.learn.ModeKeys.EVAL:
+    if self.mode == tf.contrib.learn.ModeKeys.EVAL:
       train_op = None
 
     predictions = self._create_predictions(

@@ -57,7 +57,7 @@ class EncoderDecoderTests(tf.test.TestCase):
   def tearDown(self):
     self.vocab_file.close()
 
-  def create_model(self, _params=None):
+  def create_model(self, mode, _params=None):
     """Creates model class to be tested. Subclasses must implement this method.
     """
     self.skipTest("Base module should not be tested.")
@@ -85,7 +85,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         inputs=tf.convert_to_tensor(ex.target, dtype=tf.float32),
         sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
-    model = self.create_model()
+    model = self.create_model(tf.contrib.learn.ModeKeys.TRAIN)
     decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
@@ -112,7 +112,7 @@ class EncoderDecoderTests(tf.test.TestCase):
   def test_inference(self):
     """Tests model inference by feeding dynamic inputs based on an embedding
     """
-    model = self.create_model()
+    model = self.create_model(tf.contrib.learn.ModeKeys.INFER)
     ex = self._create_example()
 
     embeddings = tf.get_variable(
@@ -128,8 +128,7 @@ class EncoderDecoderTests(tf.test.TestCase):
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decode_helper=helper,
-        mode=tf.contrib.learn.ModeKeys.INFER)
+        decode_helper=helper)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -152,7 +151,9 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     ex = self._create_example()
 
-    model = self.create_model({"inference.beam_search.beam_width": beam_width})
+    model = self.create_model(
+        tf.contrib.learn.ModeKeys.INFER,
+        {"inference.beam_search.beam_width": beam_width})
 
     embeddings = tf.get_variable(
         "W_embed", [model.target_vocab_info.total_size, self.input_depth])
@@ -167,8 +168,7 @@ class EncoderDecoderTests(tf.test.TestCase):
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
             ex.source_len, dtype=tf.int32),
-        decode_helper=helper,
-        mode=tf.contrib.learn.ModeKeys.INFER)
+        decode_helper=helper)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -201,7 +201,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         inputs=tf.convert_to_tensor(ex.target, dtype=tf.float32),
         sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
-    model = self.create_model()
+    model = self.create_model(tf.contrib.learn.ModeKeys.TRAIN)
     decoder_output, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
@@ -240,13 +240,13 @@ class EncoderDecoderTests(tf.test.TestCase):
         sources=[source], targets=[target])
 
     # Build model graph
-    model = self.create_model(params)
+    model = self.create_model(mode, params)
     input_pipeline_ = input_pipeline.ParallelTextInputPipeline(
         [sources_file.name], [targets_file.name])
     input_fn = training_utils.create_input_fn(
         pipeline=input_pipeline_, batch_size=self.batch_size)
     features, labels = input_fn()
-    fetches = model(features, labels, None, mode)
+    fetches = model(features, labels, None)
     fetches = [_ for _ in fetches if _ is not None]
 
     with self.test_session() as sess:
@@ -329,7 +329,7 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
   def setUp(self):
     super(TestBasicSeq2Seq, self).setUp()
 
-  def create_model(self, params=None):
+  def create_model(self, mode, params=None):
     params_ = BasicSeq2Seq.default_params().copy()
     params_.update({
         "bridge_spec": {
@@ -344,14 +344,19 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
                 "cell_spec":  {"class": "LSTMCell", "num_units": 12},
             }
         },
-        "decoder.rnn_cell.num_layers": 2,
-        "decoder.rnn_cell.cell_spec":  {"class": "LSTMCell", "num_units": 12}
+        "decoder.params": {
+            "rnn_cell": {
+                "num_layers": 2,
+                "cell_spec":  {"class": "LSTMCell", "num_units": 12}
+            }
+        }
     })
     params_.update(params or {})
     return BasicSeq2Seq(
         source_vocab_info=self.vocab_info,
         target_vocab_info=self.vocab_info,
-        params=params_)
+        params=params_,
+        mode=mode)
 
 
 class TestAttentionSeq2Seq(EncoderDecoderTests):
@@ -364,7 +369,7 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
     self.decoder_rnn_cell = tf.contrib.rnn.LSTMCell(32)
     self.attention_dim = 128
 
-  def create_model(self, params=None):
+  def create_model(self, mode, params=None):
     params_ = AttentionSeq2Seq.default_params().copy()
     params_.update({
         "inference.max_decode_length": self.max_decode_length,
@@ -374,7 +379,8 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
     return AttentionSeq2Seq(
         source_vocab_info=self.vocab_info,
         target_vocab_info=self.vocab_info,
-        params=params_)
+        params=params_,
+        mode=mode)
 
 
 if __name__ == "__main__":

@@ -79,8 +79,7 @@ class BeamSearchDecoder(RNNDecoder):
 
   def __init__(self, decoder, config):
     super(BeamSearchDecoder, self).__init__(
-        decoder.cell, decoder.helper, decoder.initial_state,
-        decoder.max_decode_length, decoder.name)
+        decoder.params, decoder.mode, decoder.max_decode_length, decoder.name)
     self.decoder = decoder
     self.config = config
 
@@ -137,6 +136,12 @@ class BeamSearchDecoder(RNNDecoder):
         beam_search_output=outputs)
 
     return final_outputs, final_state
+
+  def _build(self, initial_state, helper):
+    self.decoder._setup(initial_state, helper) #pylint: disable=W0212
+    return super(BeamSearchDecoder, self)._build(
+        self.decoder.initial_state, self.decoder.helper)
+
 
   def step(self, time_, inputs, state, name=None):
     decoder_state, beam_state = state

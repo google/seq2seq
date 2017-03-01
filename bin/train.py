@@ -182,12 +182,6 @@ def create_experiment(output_dir):
         target_vocab_path=target_vocab_path)
     train_options.dump(output_dir)
 
-  # Create model
-  model = model_class(
-      source_vocab_info=source_vocab_info,
-      target_vocab_info=target_vocab_info,
-      params=hparams)
-
   bucket_boundaries = None
   if FLAGS.buckets:
     bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
@@ -232,12 +226,18 @@ def create_experiment(output_dir):
 
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
-    return model(features, labels, params, mode)
+    model = model_class(
+        source_vocab_info=source_vocab_info,
+        target_vocab_info=target_vocab_info,
+        params=params,
+        mode=mode)
+    return model(features, labels, params)
 
   estimator = tf.contrib.learn.Estimator(
       model_fn=model_fn,
       model_dir=output_dir,
-      config=config)
+      config=config,
+      params=hparams)
 
   train_hooks = training_utils.create_default_training_hooks(
       estimator=estimator,

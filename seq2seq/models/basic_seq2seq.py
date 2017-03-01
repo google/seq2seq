@@ -47,26 +47,12 @@ class BasicSeq2Seq(Seq2SeqBase):
                source_vocab_info,
                target_vocab_info,
                params,
+               mode,
                name="basic_seq2seq"):
     super(BasicSeq2Seq, self).__init__(source_vocab_info, target_vocab_info,
-                                       params, name)
+                                       params, mode, name)
     self.encoder_class = locate(self.params["encoder.class"])
-
-  def _create_decoder_cell(self, enable_dropout):
-    """Creates a cell instance for the decoder based on the model parameters"""
-    return training.utils.get_rnn_cell(
-        cell_spec=self.params["decoder.rnn_cell.cell_spec"],
-        num_layers=self.params["decoder.rnn_cell.num_layers"],
-        dropout_input_keep_prob=(
-            self.params["decoder.rnn_cell.dropout_input_keep_prob"]
-            if enable_dropout else 1.0),
-        dropout_output_keep_prob=(
-            self.params["decoder.rnn_cell.dropout_output_keep_prob"]
-            if enable_dropout else 1.0),
-        residual_connections=self.params[
-            "decoder.rnn_cell.residual_connections"],
-        residual_combiner=self.params["decoder.rnn_cell.residual_combiner"],
-        residual_dense=self.params["decoder.rnn_cell.residual_dense"])
+    self.decoder_class = locate(self.params["decoder.class"])
 
   @staticmethod
   def default_params():
@@ -77,51 +63,26 @@ class BasicSeq2Seq(Seq2SeqBase):
         },
         "encoder.class": "seq2seq.encoders.UnidirectionalRNNEncoder",
         "encoder.params": {}, # Arbitrary parameters for the encoder
-        "decoder.rnn_cell.cell_spec": {
-            "class": "BasicLSTMCell",
-            "num_units": 128
-        },
-        "decoder.rnn_cell.dropout_input_keep_prob": 1.0,
-        "decoder.rnn_cell.dropout_output_keep_prob": 1.0,
-        "decoder.rnn_cell.num_layers": 1,
-        "decoder.rnn_cell.residual_connections": False,
-        "decoder.rnn_cell.residual_combiner": "add",
-        "decoder.rnn_cell.residual_dense": False
+        "decoder.class": "seq2seq.decoders.BasicDecoder",
+        "decoder.params": {}
     })
     return params
 
   def encode_decode(self,
                     source,
                     source_len,
-                    decode_helper,
-                    mode=tf.contrib.learn.ModeKeys.TRAIN):
+                    decode_helper):
     # Create Encoder
-    enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
-    encoder_fn = self.encoder_class(self.params["encoder.params"])
+    encoder_fn = self.encoder_class(self.params["encoder.params"], self.mode)
     encoder_output = encoder_fn(source, source_len)
 
-    # Create Decoder
-    decoder_cell = self._create_decoder_cell(enable_dropout)
-    # Define the bridge between encoder and decoder
-    bridge = self._create_bridge(
-        encoder_outputs=encoder_output,
-        decoder_cell=decoder_cell)
-    decoder_initial_state = bridge()
-
     max_decode_length = None
-    if  mode == tf.contrib.learn.ModeKeys.INFER:
+    if  self.mode == tf.contrib.learn.ModeKeys.INFER:
       max_decode_length = self.params["inference.max_decode_length"]
 
-    if self.use_beam_search:
-      beam_width = self.params["inference.beam_search.beam_width"]
-      decoder_initial_state = nest.map_structure(
-          lambda x: tf.tile(x, [beam_width, 1]),
-          decoder_initial_state)
-
-    decoder_fn = decoders.BasicDecoder(
-        cell=decoder_cell,
-        helper=decode_helper,
-        initial_state=decoder_initial_state,
+    decoder_fn = self.decoder_class(
+        params=self.params["decoder.params"],
+        mode=self.mode,
         vocab_size=self.target_vocab_info.total_size,
         max_decode_length=max_decode_length)
 
@@ -129,6 +90,19 @@ class BasicSeq2Seq(Seq2SeqBase):
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
           decoder_fn)
 
-    decoder_output, final_state = decoder_fn()
+    # Bridge between encoder and decoder
+    bridge = self._create_bridge(
+        encoder_outputs=encoder_output,
+        decoder_cell=decoder_fn.cell)
+    decoder_initial_state = bridge()
+
+    if self.use_beam_search:
+      beam_width = self.params["inference.beam_search.beam_width"]
+      decoder_initial_state = nest.map_structure(
+          lambda x: tf.tile(x, [beam_width, 1]),
+          decoder_initial_state)
+
+    decoder_output, final_state = decoder_fn(
+        decoder_initial_state, decode_helper)
 
     return decoder_output, final_state

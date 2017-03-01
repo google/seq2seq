@@ -20,6 +20,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import copy
 import tensorflow as tf
 from tensorflow.contrib.rnn.python.ops import rnn
 
@@ -41,6 +42,13 @@ def _default_rnn_cell_params():
   }
 
 
+def _toggle_dropout(cell_params, mode):
+  cell_params = copy.deepcopy(cell_params)
+  if mode != tf.contrib.learn.ModeKeys.TRAIN:
+    cell_params["dropout_input_keep_prob"] = 1.0
+    cell_params["dropout_output_keep_prob"] = 1.0
+  return cell_params
+
 class UnidirectionalRNNEncoder(Encoder):
   """
   A unidirectional RNN encoder. Stacking should be performed as
@@ -51,8 +59,9 @@ class UnidirectionalRNNEncoder(Encoder):
     name: A name for the encoder
   """
 
-  def __init__(self, params, name="forward_rnn_encoder"):
-    super(UnidirectionalRNNEncoder, self).__init__(params, name)
+  def __init__(self, params, mode, name="forward_rnn_encoder"):
+    super(UnidirectionalRNNEncoder, self).__init__(params, mode, name)
+    self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
 
   @staticmethod
   def default_params():
@@ -82,8 +91,9 @@ class BidirectionalRNNEncoder(Encoder):
     name: A name for the encoder
   """
 
-  def __init__(self, params, name="bidi_rnn_encoder"):
-    super(BidirectionalRNNEncoder, self).__init__(params, name)
+  def __init__(self, params, mode, name="bidi_rnn_encoder"):
+    super(BidirectionalRNNEncoder, self).__init__(params, mode, name)
+    self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
 
   @staticmethod
   def default_params():
@@ -119,8 +129,9 @@ class StackBidirectionalRNNEncoder(Encoder):
     name: A name for the encoder
   """
 
-  def __init__(self, params, name="stacked_bidi_rnn_encoder"):
-    super(StackBidirectionalRNNEncoder, self).__init__(params, name)
+  def __init__(self, params, mode, name="stacked_bidi_rnn_encoder"):
+    super(StackBidirectionalRNNEncoder, self).__init__(params, mode, name)
+    self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
 
   @staticmethod
   def default_params():

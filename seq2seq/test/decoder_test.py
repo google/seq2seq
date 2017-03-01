@@ -39,11 +39,10 @@ class DecoderTests(object):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
-    self.cell = tf.contrib.rnn.LSTMCell(32)
     self.vocab_size = 100
     self.max_decode_length = 20
 
-  def create_decoder(self, helper):
+  def create_decoder(self, helper, mode):
     """Creates the decoder module.
 
     This must be implemented by child classes and instantiate the appropriate
@@ -58,8 +57,11 @@ class DecoderTests(object):
 
     helper = decode_helper.TrainingHelper(
         inputs=inputs, sequence_length=seq_length)
-    decoder_fn = self.create_decoder(helper=helper)
-    decoder_output, _ = decoder_fn()
+    decoder_fn = self.create_decoder(
+        helper=helper, mode=tf.contrib.learn.ModeKeys.TRAIN)
+    initial_state = decoder_fn.cell.zero_state(
+        self.batch_size, dtype=tf.float32)
+    decoder_output, _ = decoder_fn(initial_state, helper)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -83,8 +85,11 @@ class DecoderTests(object):
 
     helper = decode_helper.TrainingHelper(
         inputs=inputs, sequence_length=seq_length)
-    decoder_fn = self.create_decoder(helper=helper)
-    decoder_output, _ = decoder_fn()
+    decoder_fn = self.create_decoder(
+        helper=helper, mode=tf.contrib.learn.ModeKeys.TRAIN)
+    initial_state = decoder_fn.cell.zero_state(
+        self.batch_size, dtype=tf.float32)
+    decoder_output, _ = decoder_fn(initial_state, helper)
 
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
         logits=decoder_output.logits,
@@ -109,8 +114,11 @@ class DecoderTests(object):
         embedding=embeddings,
         start_tokens=[0] * self.batch_size,
         end_token=-1)
-    decoder_fn = self.create_decoder(helper=helper)
-    decoder_output, _ = decoder_fn()
+    decoder_fn = self.create_decoder(
+        helper=helper, mode=tf.contrib.learn.ModeKeys.INFER)
+    initial_state = decoder_fn.cell.zero_state(
+        self.batch_size, dtype=tf.float32)
+    decoder_output, _ = decoder_fn(initial_state, helper)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -140,11 +148,14 @@ class DecoderTests(object):
         embedding=embeddings,
         start_tokens=[0] * config.beam_width,
         end_token=-1)
-    decoder_fn = self.create_decoder(helper=helper)
+    decoder_fn = self.create_decoder(
+        helper=helper, mode=tf.contrib.learn.ModeKeys.INFER)
     decoder_fn = beam_search_decoder.BeamSearchDecoder(
         decoder=decoder_fn, config=config)
 
-    decoder_output, _ = decoder_fn()
+    initial_state = decoder_fn.cell.zero_state(
+        self.batch_size, dtype=tf.float32)
+    decoder_output, _ = decoder_fn(initial_state, helper)
 
     #pylint: disable=E1101
     with self.test_session() as sess:
@@ -179,13 +190,15 @@ class BasicDecoderTest(tf.test.TestCase, DecoderTests):
     tf.logging.set_verbosity(tf.logging.INFO)
     DecoderTests.__init__(self)
 
-  def create_decoder(self, helper):
-    return BasicDecoder(
-        cell=self.cell,
-        helper=helper,
-        initial_state=self.cell.zero_state(self.batch_size, dtype=tf.float32),
+  def create_decoder(self, helper, mode):
+    decoder = BasicDecoder(
+        params=BasicDecoder.default_params(),
+        mode=mode,
         vocab_size=self.vocab_size,
         max_decode_length=self.max_decode_length)
+
+    return decoder
+
 
 
 class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
@@ -199,15 +212,14 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
     self.attention_dim = 64
     self.input_seq_len = 10
 
-  def create_decoder(self, helper):
+  def create_decoder(self, helper, mode):
     attention_fn = AttentionLayer(self.attention_dim)
     attention_inputs = tf.convert_to_tensor(
         np.random.randn(self.batch_size, self.input_seq_len, 32),
         dtype=tf.float32)
     return AttentionDecoder(
-        cell=self.cell,
-        helper=helper,
-        initial_state=self.cell.zero_state(self.batch_size, dtype=tf.float32),
+        params=AttentionDecoder.default_params(),
+        mode=mode,
         vocab_size=self.vocab_size,
         attention_inputs=attention_inputs,
         attention_inputs_length=np.arange(self.batch_size) + 1,
