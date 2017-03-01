@@ -26,7 +26,7 @@ from tensorflow.contrib.rnn.python.ops import rnn
 from seq2seq.encoders.encoder import Encoder, EncoderOutput
 from seq2seq.training import utils as training_utils
 
-def _rnn_cell_params():
+def _default_rnn_cell_params():
   return {
       "cell_spec": {
           "class": "BasicLSTMCell",
@@ -57,7 +57,7 @@ class UnidirectionalRNNEncoder(Encoder):
   @staticmethod
   def default_params():
     return {
-        "rnn_cell": _rnn_cell_params()
+        "rnn_cell": _default_rnn_cell_params()
     }
 
   def encode(self, inputs, sequence_length, **kwargs):
@@ -88,7 +88,7 @@ class BidirectionalRNNEncoder(Encoder):
   @staticmethod
   def default_params():
     return {
-        "rnn_cell": _rnn_cell_params()
+        "rnn_cell": _default_rnn_cell_params()
     }
 
   def encode(self, inputs, sequence_length, **kwargs):
@@ -125,7 +125,7 @@ class StackBidirectionalRNNEncoder(Encoder):
   @staticmethod
   def default_params():
     return {
-        "rnn_cell": _rnn_cell_params()
+        "rnn_cell": _default_rnn_cell_params()
     }
 
   def _unpack_cell(self, cell):

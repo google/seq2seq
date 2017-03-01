@@ -22,16 +22,16 @@ from __future__ import division
 from __future__ import print_function
 
 import abc
-from collections import namedtuple
 
 import copy
 import six
 
 import tensorflow as tf
 
-from seq2seq.graph_module import GraphModule
-
 def _parse_params(params, default_params):
+  """Parses parameter values to the types defined by the default parameters.
+  Default parameters are used for missing values.
+  """
   # Cast parameters to correct types
   result = copy.deepcopy(default_params)
   for key, value in params.items():
@@ -56,13 +56,25 @@ def _parse_params(params, default_params):
 
 @six.add_metaclass(abc.ABCMeta)
 class Configurable(object):
+  """Interface for all classes that are configurable
+  via a parameters dictionary.
+
+  Args:
+    params: A dictionary of parameters.
+  """
   def __init__(self, params):
     self._params = _parse_params(params, self.default_params())
 
   @property
   def params(self):
+    """Returns a dictionary of parsed parameters.
+    """
     return self._params
 
   @abc.abstractmethod
   def default_params(self):
+    """Returns a dictionary default parameters. The default parameters
+    are used to define the expected type of passed parameters. Missing
+    parameter values are replaced with the defaults returned by this method.
+    """
     raise NotImplementedError

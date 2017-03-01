@@ -37,7 +37,9 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
-    self.cell = tf.contrib.rnn.LSTMCell(32)
+    self.params = rnn_encoder.UnidirectionalRNNEncoder.default_params()
+    self.params["rnn_cell"]["cell_spec"]["num_units"] = 32
+    self.params["rnn_cell"]["cell_spec"]["class"] = "BasicLSTMCell"
 
   def test_encode(self):
     inputs = tf.random_normal(
@@ -45,7 +47,7 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.UnidirectionalRNNEncoder(lambda: self.cell)
+    encode_fn = rnn_encoder.UnidirectionalRNNEncoder(self.params)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:
@@ -54,13 +56,13 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
 
     np.testing.assert_array_equal(
         encoder_output_.outputs.shape,
-        [self.batch_size, self.sequence_length, self.cell.output_size])
+        [self.batch_size, self.sequence_length, 32])
     self.assertIsInstance(encoder_output_.final_state,
                           tf.contrib.rnn.LSTMStateTuple)
     np.testing.assert_array_equal(encoder_output_.final_state.h.shape,
-                                  [self.batch_size, self.cell.output_size])
+                                  [self.batch_size, 32])
     np.testing.assert_array_equal(encoder_output_.final_state.c.shape,
-                                  [self.batch_size, self.cell.output_size])
+                                  [self.batch_size, 32])
 
 
 class BidirectionalRNNEncoderTest(tf.test.TestCase):
@@ -74,7 +76,9 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
-    self.cell_fn = lambda: tf.contrib.rnn.LSTMCell(32)
+    self.params = rnn_encoder.BidirectionalRNNEncoder.default_params()
+    self.params["rnn_cell"]["cell_spec"]["num_units"] = 32
+    self.params["rnn_cell"]["cell_spec"]["class"] = "BasicLSTMCell"
 
   def test_encode(self):
     inputs = tf.random_normal(
@@ -82,10 +86,8 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.BidirectionalRNNEncoder(self.cell_fn)
+    encode_fn = rnn_encoder.BidirectionalRNNEncoder(self.params)
     encoder_output = encode_fn(inputs, example_length)
-
-    cell = self.cell_fn()
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -93,20 +95,20 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
 
     np.testing.assert_array_equal(
         encoder_output_.outputs.shape,
-        [self.batch_size, self.sequence_length, cell.output_size * 2])
+        [self.batch_size, self.sequence_length, 32 * 2])
 
     self.assertIsInstance(encoder_output_.final_state[0],
                           tf.contrib.rnn.LSTMStateTuple)
     self.assertIsInstance(encoder_output_.final_state[1],
                           tf.contrib.rnn.LSTMStateTuple)
     np.testing.assert_array_equal(encoder_output_.final_state[0].h.shape,
-                                  [self.batch_size, cell.output_size])
+                                  [self.batch_size, 32])
     np.testing.assert_array_equal(encoder_output_.final_state[0].c.shape,
-                                  [self.batch_size, cell.output_size])
+                                  [self.batch_size, 32])
     np.testing.assert_array_equal(encoder_output_.final_state[1].h.shape,
-                                  [self.batch_size, cell.output_size])
+                                  [self.batch_size, 32])
     np.testing.assert_array_equal(encoder_output_.final_state[1].c.shape,
-                                  [self.batch_size, cell.output_size])
+                                  [self.batch_size, 32])
 
 
 class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
@@ -121,32 +123,33 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
     self.sequence_length = 16
     self.input_depth = 10
 
-  def _test_encode_with_cell(self, cell_fn):
+  def _test_encode_with_params(self, params):
     """Tests the StackBidirectionalRNNEncoder with a specific cell"""
     inputs = tf.random_normal(
         [self.batch_size, self.sequence_length, self.input_depth])
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = rnn_encoder.StackBidirectionalRNNEncoder(cell_fn)
+    encode_fn = rnn_encoder.StackBidirectionalRNNEncoder(params)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       encoder_output_ = sess.run(encoder_output)
 
-    cell = cell_fn()
+    output_size = encode_fn.params["rnn_cell"]["cell_spec"]["num_units"]
+
     np.testing.assert_array_equal(
         encoder_output_.outputs.shape,
-        [self.batch_size, self.sequence_length, cell.output_size * 2])
+        [self.batch_size, self.sequence_length, output_size * 2])
 
     return encoder_output_
 
   def test_encode_with_single_cell(self):
-    cell_fn = lambda: tf.contrib.rnn.LSTMCell(32)
-    encoder_output_ = self._test_encode_with_cell(cell_fn)
+    encoder_output_ = self._test_encode_with_params({
+        "rnn_cell": {"num_layers": 1, "cell_spec": {"num_units": 32}}
+    })
 
-    cell = cell_fn()
     self.assertIsInstance(
         encoder_output_.final_state[0][0],
         tf.contrib.rnn.LSTMStateTuple)
@@ -155,23 +158,22 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
         tf.contrib.rnn.LSTMStateTuple)
     np.testing.assert_array_equal(
         encoder_output_.final_state[0][0].h.shape,
-        [self.batch_size, cell.output_size])
+        [self.batch_size, 32])
     np.testing.assert_array_equal(
         encoder_output_.final_state[0][0].c.shape,
-        [self.batch_size, cell.output_size])
+        [self.batch_size, 32])
     np.testing.assert_array_equal(
         encoder_output_.final_state[1][0].h.shape,
-        [self.batch_size, cell.output_size])
+        [self.batch_size, 32])
     np.testing.assert_array_equal(
         encoder_output_.final_state[1][0].c.shape,
-        [self.batch_size, cell.output_size])
+        [self.batch_size, 32])
 
   def test_encode_with_multi_cell(self):
-    cell_fn = lambda: tf.contrib.rnn.MultiRNNCell(
-        [tf.contrib.rnn.LSTMCell(32) for _ in range(4)])
-    encoder_output_ = self._test_encode_with_cell(cell_fn)
+    encoder_output_ = self._test_encode_with_params({
+        "rnn_cell": {"num_layers": 4, "cell_spec": {"num_units": 32}}
+    })
 
-    cell = cell_fn()
     for layer_idx in range(4):
       self.assertIsInstance(
           encoder_output_.final_state[0][layer_idx],
@@ -181,16 +183,16 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
           tf.contrib.rnn.LSTMStateTuple)
       np.testing.assert_array_equal(
           encoder_output_.final_state[0][layer_idx].h.shape,
-          [self.batch_size, cell.output_size])
+          [self.batch_size, 32])
       np.testing.assert_array_equal(
           encoder_output_.final_state[0][layer_idx].c.shape,
-          [self.batch_size, cell.output_size])
+          [self.batch_size, 32])
       np.testing.assert_array_equal(
           encoder_output_.final_state[1][layer_idx].h.shape,
-          [self.batch_size, cell.output_size])
+          [self.batch_size, 32])
       np.testing.assert_array_equal(
           encoder_output_.final_state[1][layer_idx].c.shape,
-          [self.batch_size, cell.output_size])
+          [self.batch_size, 32])
 
 
 if __name__ == "__main__":
