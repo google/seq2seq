@@ -18,8 +18,10 @@
 
 import os
 import tempfile
-import yaml
 
+from pydoc import locate
+
+import yaml
 from six import string_types
 
 from seq2seq import models
@@ -152,7 +154,7 @@ def create_experiment(output_dir):
   target_vocab_info = vocab.get_vocab_info(FLAGS.vocab_target)
 
   # Find model class
-  model_class = getattr(models, FLAGS.model)
+  model_class = locate(FLAGS.model) or getattr(models, FLAGS.model)
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()

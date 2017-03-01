@@ -19,6 +19,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from pydoc import locate
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.platform import gfile
@@ -38,7 +40,8 @@ def load_model(model_dir, params=None):
   target_vocab_info = vocab.get_vocab_info(train_options.target_vocab_path)
 
   # Find model class
-  model_class = getattr(models, train_options.model_class)
+  model_class = locate(train_options.model_class) or \
+    getattr(models, train_options.model_class)
 
   # Parse parameter and merge with defaults
   hparams = model_class.default_params()
