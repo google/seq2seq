@@ -69,6 +69,8 @@ class AttentionSeq2Seq(BasicSeq2Seq):
         num_units=self.params["attention.dim"],
         score_type=self.params["attention.score_type"])
 
+    # If the input sequence is reversed we also need to reverse
+    # the attention scores.
     reverse_scores_lengths = None
     if self.params["source.reverse"]:
       reverse_scores_lengths = source_len
