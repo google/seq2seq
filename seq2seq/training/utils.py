@@ -22,9 +22,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from collections import defaultdict
 import inspect
 import os
+from collections import defaultdict
+from pydoc import locate
 
 import json
 
@@ -100,43 +101,36 @@ class TrainOptions(object):
         source_vocab_path=options_dict["source_vocab_path"],
         target_vocab_path=options_dict["target_vocab_path"])
 
-def cell_from_spec(cell_spec):
+def cell_from_spec(cell_classname, cell_params):
   """Create a RNN Cell instance from a JSON string.
 
   Args:
-    cell_spec: A JSON string of the form
-      { "class": "BasicLSTMCell", "num_units": 16, ... }
-      The "class" property is treated in a special way and used
-      to look up the class object in `seq2seq.contrib.rnn_cell`. All other
-      items in the JSON object are passed as parameters to the cell
-      constructor.
+    cell_classname: Name of the cell class, e.g. "BasicLSTMCell".
+    cell_params: A dictionary of parameters to pass to the cell constructor.
 
   Returns:
     A RNNCell instance.
   """
 
-  cell_spec = cell_spec.copy()
-
-  if "class" not in cell_spec:
-    raise ValueError("cell_spec must specify \"class\".")
+  cell_params = cell_params.copy()
 
   # Find the cell class
-  cell_class_name = cell_spec.pop("class")
-  cell_class = getattr(rnn_cell, cell_class_name)
+  cell_class = locate(cell_classname) or getattr(rnn_cell, cell_classname)
 
   # Make sure additional arguments are valid
   cell_args = set(inspect.getargspec(cell_class.__init__).args[1:])
-  for key in cell_spec.keys():
+  for key in cell_params.keys():
     if key not in cell_args:
       raise ValueError(
           """{} is not a valid argument for {} class. Available arguments
           are: {}""".format(key, cell_class.__name__, cell_args))
 
   # Create cell
-  return cell_class(**cell_spec)
+  return cell_class(**cell_params)
 
 
-def get_rnn_cell(cell_spec,
+def get_rnn_cell(cell_class,
+                 cell_params,
                  num_layers=1,
                  dropout_input_keep_prob=1.0,
                  dropout_output_keep_prob=1.0,
@@ -146,8 +140,8 @@ def get_rnn_cell(cell_spec,
   """Creates a new RNN Cell
 
   Args:
-    cell_spec: A JSON string that defines how to create a cell instance.
-      See `cell_from_spec` for more details.
+    cell_class: Name of the cell class, e.g. "BasicLSTMCell".
+    cell_params: A dictionary of parameters to pass to the cell constructor.
     num_layers: Number of layers. The cell will be wrapped with
       `tf.contrib.rnn.MultiRNNCell`
     dropout_input_keep_prob: Dropout keep probability applied
@@ -164,7 +158,7 @@ def get_rnn_cell(cell_spec,
   #pylint: disable=redefined-variable-type
   cells = []
   for _ in range(num_layers):
-    cell = cell_from_spec(cell_spec)
+    cell = cell_from_spec(cell_class, cell_params)
     if dropout_input_keep_prob < 1.0 or dropout_output_keep_prob < 1.0:
       cell = tf.contrib.rnn.DropoutWrapper(
           cell=cell,
@@ -335,14 +329,3 @@ def create_default_training_hooks(
   training_hooks.append(tokens_per_sec_counter)
 
   return training_hooks
-
-def print_hparams(hparams):
-  """Prints hyperparameter values in sorted order.
-
-  Args:
-    hparams: A dictionary of hyperparameters.
-  """
-  tf.logging.info("=" * 50)
-  for param, value in sorted(hparams.items()):
-    tf.logging.info("%s=%s", param, value)
-  tf.logging.info("=" * 50)

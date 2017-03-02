@@ -50,7 +50,7 @@ hparams:
 output_dir: /tmp/nmt_toy_reverse
 ```
 
-Note that environment variables in configuration files are not yet supported. Flags defined as both command line arguments and configuration file values are overwritten by configuration file values. Command line flags not present in the configuration file will be merged. Parameters that   as JSON objects on the command like (e.g. `cell_spec`) can be defined as key-value pairs directly in the YAML file.
+Note that environment variables in configuration files are not yet supported. Flags defined as both command line arguments and configuration file values are overwritten by configuration file values. Command line flags not present in the configuration file will be merged. Parameters that are JSON objects on the command like (e.g. `cell_params`) can be defined as key-value pairs directly in the YAML file.
 
 
 ### Distributed Training

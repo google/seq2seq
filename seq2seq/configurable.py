@@ -25,6 +25,7 @@ import abc
 
 import copy
 import six
+import yaml
 
 import tensorflow as tf
 
@@ -66,6 +67,13 @@ class Configurable(object):
   def __init__(self, params, mode):
     self._params = _parse_params(params, self.default_params())
     self._mode = mode
+    self._print_params()
+
+  def _print_params(self):
+    """Logs parameter values"""
+    classname = self.__class__.__name__
+    tf.logging.info("Creating %s in mode=%s", classname, self._mode)
+    tf.logging.info("\n%s", yaml.dump({classname: self._params}))
 
   @property
   def mode(self):

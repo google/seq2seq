@@ -163,9 +163,6 @@ def create_experiment(output_dir):
   elif isinstance(FLAGS.hparams, dict):
     hparams.update(FLAGS.hparams)
 
-  # Print hparams
-  training_utils.print_hparams(hparams)
-
   # One the main worker, save training options and vocabulary
   if config.is_chief:
      # Copy vocabulary to output directory
