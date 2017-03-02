@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Models - seq2seq</title>
+  <title>Model Reference - seq2seq</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -18,7 +18,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Models";
+    var mkdocs_page_name = "Model Reference";
     var mkdocs_page_input_path = "models.md";
     var mkdocs_page_url = "/models/";
   </script>
@@ -69,8 +69,22 @@
 <li>
           
             <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../training/">Training</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../inference/">Inference</a>
+        
+    </li>
+<li>
+          
+            <li>
     <li class="toctree-l1 current">
-        <a class="current" href="./">Models</a>
+        <a class="current" href="./">Model Reference</a>
         
             <ul>
             
@@ -90,14 +104,14 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../training/">Training</a>
+        <a class="" href="../encoders/">Encoder Reference</a>
         
     </li>
 <li>
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../inference/">Inference</a>
+        <a class="" href="../decoders/">Decoder Reference</a>
         
     </li>
 <li>
@@ -145,7 +159,7 @@
     
       
     
-    <li>Models</li>
+    <li>Model Reference</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -276,59 +290,24 @@
 <td>A dictionary that defines how state is passed between encoder and decoder. The <code>class</code> property corresponds to a name of bridge class defined in <code>seq2seq.models.bridges</code>. All additional properties in the dictinary are passed to the bridge class constructor, e.g. <code>{"class": "InitialStateBridge", "activation_fn": "tanh"}</code>.</td>
 </tr>
 <tr>
-<td><code>encoder.type</code></td>
-<td><code>UnidirectionalRNNEncoder</code></td>
-<td>Type of encoder to use. This is the class name of an encoder defined in <code>seq2seq.encoder</code>. Currently the supported value are <code>BidirectionalRNNEncoder</code>, <code>UnidirectionalRNNEncoder</code> and <code>StackBidirectionalRNNEncoder</code>.</td>
+<td><code>encoder.class</code></td>
+<td><code>seq2seq.encoders.UnidirectionalRNNEncoder</code></td>
+<td>Type of encoder to use. See the <a href="../encoders/">Encoder Reference</a> for more details and available encoders.</td>
 </tr>
 <tr>
-<td><code>encoder.rnn_cell.cell_spec</code></td>
-<td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
-<td>A dictioanry that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The dictionary object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
+<td><code>encoder.params</code></td>
+<td><code>{}</code></td>
+<td>Parameters passed to the encoder during construction. See the <a href="../encoders/">Encoder Reference</a> for more details.</td>
 </tr>
 <tr>
-<td><code>encoder.rnn_cell.dropout_input_keep_prob</code></td>
-<td><code>1.0</code></td>
-<td>Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout.</td>
+<td><code>decoder.class</code></td>
+<td><code>seq2seq.decoders.BasicDecoder</code></td>
+<td>Type of decoder to use. See the <a href="../decoders/">Decoder Reference</a> for more details and available encoders.</td>
 </tr>
 <tr>
-<td><code>encoder.rnn_cell.dropout_output_keep_prob</code></td>
-<td><code>1.0</code></td>
-<td>Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout.</td>
-</tr>
-<tr>
-<td><code>encoder.rnn_cell.num_layers</code></td>
-<td><code>1</code></td>
-<td>Number of RNN layers.</td>
-</tr>
-<tr>
-<td><code>encoder.rnn_cell.residual_connections</code></td>
-<td><code>False</code></td>
-<td>If true, add residual connections between all RNN layers in the encoder.</td>
-</tr>
-<tr>
-<td><code>decoder.rnn_cell.cell_spec</code></td>
-<td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
-<td>Same as <code>encoder.rnn_cell.cell_spec</code>, but for the decoder cell.</td>
-</tr>
-<tr>
-<td><code>decoder.rnn_cell.dropout_input_keep_prob</code></td>
-<td><code>1.0</code></td>
-<td>Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout.</td>
-</tr>
-<tr>
-<td><code>decoder.rnn_cell.dropout_output_keep_prob</code></td>
-<td><code>1.0</code></td>
-<td>Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of <code>1.0</code> disables dropout.</td>
-</tr>
-<tr>
-<td><code>decoder.rnn_cell.num_layers</code></td>
-<td><code>1</code></td>
-<td>Number of RNN layers.</td>
-</tr>
-<tr>
-<td><code>decoder.rnn_cell.residual_connections</code></td>
-<td><code>False</code></td>
-<td>If true, add residual connections between all RNN layers in the decoder.</td>
+<td><code>decoder.params</code></td>
+<td><code>{}</code></td>
+<td>Parameters passed to the decoder during construction. See the <a href="../decoders/">Decoder Reference</a> for more details.</td>
 </tr>
 </tbody>
 </table>
@@ -353,6 +332,16 @@
 <td><code>dot</code></td>
 <td>The formula used to calculate attention scores. Available values are <code>bahdanau</code> and <code>dot</code>. <code>bahdanau</code> is described in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>. <code>dot</code> is described in <a href="https://arxiv.org/abs/1508.04025">Effective Approaches to Attention-based Neural Machine Translation</a>.</td>
 </tr>
+<tr>
+<td><code>encoder.class</code></td>
+<td><code>seq2seq.encoders.BidirectionalRNNEncoder</code></td>
+<td>Type of encoder to use. See the <a href="../encoders/">Encoder Reference</a> for more details and available encoders.</td>
+</tr>
+<tr>
+<td><code>decoder.class</code></td>
+<td><code>seq2seq.decoders.AttentionDecoder</code></td>
+<td>Type of decoder to use. See the <a href="../decoders/">Decoder Reference</a> for more details and available encoders.</td>
+</tr>
 </tbody>
 </table>
               
@@ -362,10 +351,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../training/" class="btn btn-neutral float-right" title="Training">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../encoders/" class="btn btn-neutral float-right" title="Encoder Reference">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../data/" class="btn btn-neutral" title="Data"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../inference/" class="btn btn-neutral" title="Inference"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -391,10 +380,10 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../data/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../inference/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../training/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../encoders/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
