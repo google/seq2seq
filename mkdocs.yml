@@ -5,9 +5,11 @@ pages:
     - Overview: index.md
     - Getting Started: getting_started.md
     - Data: data.md
-    - Models: models.md
     - Training: training.md
     - Inference: inference.md
+    - Model Reference: models.md
+    - Encoder Reference: encoders.md
+    - Decoder Reference: decoders.md
     - Tools: tools.md
     - Benchmarks: benchmarks.md
     - Contributing: contributing.md
