@@ -341,13 +341,15 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
                 "dropout_input_keep_prob": 0.8,
                 "num_layers": 2,
                 "residual_connections": True,
-                "cell_spec":  {"class": "LSTMCell", "num_units": 12},
+                "cell_class": "LSTMCell",
+                "cell_params":  {"num_units": 12},
             }
         },
         "decoder.params": {
             "rnn_cell": {
                 "num_layers": 2,
-                "cell_spec":  {"class": "LSTMCell", "num_units": 12}
+                "cell_class": "LSTMCell",
+                "cell_params":  {"num_units": 12}
             }
         }
     })

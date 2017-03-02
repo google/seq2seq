@@ -39,8 +39,8 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
     self.input_depth = 10
     self.mode = tf.contrib.learn.ModeKeys.TRAIN
     self.params = rnn_encoder.UnidirectionalRNNEncoder.default_params()
-    self.params["rnn_cell"]["cell_spec"]["num_units"] = 32
-    self.params["rnn_cell"]["cell_spec"]["class"] = "BasicLSTMCell"
+    self.params["rnn_cell"]["cell_params"]["num_units"] = 32
+    self.params["rnn_cell"]["cell_class"] = "BasicLSTMCell"
 
   def test_encode(self):
     inputs = tf.random_normal(
@@ -78,8 +78,8 @@ class BidirectionalRNNEncoderTest(tf.test.TestCase):
     self.sequence_length = 16
     self.input_depth = 10
     self.params = rnn_encoder.BidirectionalRNNEncoder.default_params()
-    self.params["rnn_cell"]["cell_spec"]["num_units"] = 32
-    self.params["rnn_cell"]["cell_spec"]["class"] = "BasicLSTMCell"
+    self.params["rnn_cell"]["cell_params"]["num_units"] = 32
+    self.params["rnn_cell"]["cell_class"] = "BasicLSTMCell"
     self.mode = tf.contrib.learn.ModeKeys.TRAIN
 
   def test_encode(self):
@@ -140,7 +140,7 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
       sess.run(tf.global_variables_initializer())
       encoder_output_ = sess.run(encoder_output)
 
-    output_size = encode_fn.params["rnn_cell"]["cell_spec"]["num_units"]
+    output_size = encode_fn.params["rnn_cell"]["cell_params"]["num_units"]
 
     np.testing.assert_array_equal(
         encoder_output_.outputs.shape,
@@ -150,7 +150,7 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
 
   def test_encode_with_single_cell(self):
     encoder_output_ = self._test_encode_with_params({
-        "rnn_cell": {"num_layers": 1, "cell_spec": {"num_units": 32}}
+        "rnn_cell": {"num_layers": 1, "cell_params": {"num_units": 32}}
     })
 
     self.assertIsInstance(
@@ -174,7 +174,7 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
 
   def test_encode_with_multi_cell(self):
     encoder_output_ = self._test_encode_with_params({
-        "rnn_cell": {"num_layers": 4, "cell_spec": {"num_units": 32}}
+        "rnn_cell": {"num_layers": 4, "cell_params": {"num_units": 32}}
     })
 
     for layer_idx in range(4):
