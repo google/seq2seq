@@ -180,9 +180,14 @@
 </thead>
 <tbody>
 <tr>
-<td><code>rnn_cell.cell_spec</code></td>
-<td><code>{ "class": "BasicLSTMCell", "num_units": 128}</code></td>
-<td>A dictionary that specifies the cell class and parameters, for example <code>{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }</code>. The dictionary object must contain a <code>class</code> property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
+<td><code>rnn_cell.cell_class</code></td>
+<td><code>BasicLSTMCell</code></td>
+<td>The class of the rnn cell. Cell classes can be fully defined (e.g. <code>tensorflow.contrib.rnn.BasicRNNCell</code>) or must be in <code>tf.contrib.rnn</code> or <code>seq2seq.contrib.rnn_cell</code>.</td>
+</tr>
+<tr>
+<td><code>rnn_cell.cell_params</code></td>
+<td><code>{"num_units": 128}</code></td>
+<td>A dictionary of parameters to pass to the cell class constructor.</td>
 </tr>
 <tr>
 <td><code>rnn_cell.dropout_input_keep_prob</code></td>
