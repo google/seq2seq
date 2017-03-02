@@ -141,7 +141,7 @@ def get_rnn_cell(cell_class,
 
   Args:
     cell_class: Name of the cell class, e.g. "BasicLSTMCell".
-    cell_params: A dictionary of parameter to pass to the cell constructor.
+    cell_params: A dictionary of parameters to pass to the cell constructor.
     num_layers: Number of layers. The cell will be wrapped with
       `tf.contrib.rnn.MultiRNNCell`
     dropout_input_keep_prob: Dropout keep probability applied

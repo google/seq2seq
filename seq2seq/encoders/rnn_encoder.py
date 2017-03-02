@@ -43,7 +43,7 @@ def _default_rnn_cell_params():
 
 
 def _toggle_dropout(cell_params, mode):
-  """Disabled dropout during eval/infernce mode
+  """Disables dropout during eval/inference mode
   """
   cell_params = copy.deepcopy(cell_params)
   if mode != tf.contrib.learn.ModeKeys.TRAIN:
