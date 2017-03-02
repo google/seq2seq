@@ -19,10 +19,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from seq2seq.graph_module import GraphModule
+import abc
+import six
+
 import tensorflow as tf
 from tensorflow.python.framework import function
 from tensorflow.python.ops import math_ops
+
+from seq2seq.graph_module import GraphModule
+from seq2seq.configurable import Configurable
 
 @function.Defun(
     tf.float32, tf.float32, tf.float32,
@@ -39,7 +44,8 @@ def att_sum_dot(keys, query):
   return tf.reduce_sum(keys * tf.expand_dims(query, 1), [2])
 
 
-class AttentionLayer(GraphModule):
+@six.add_metaclass(abc.ABCMeta)
+class AttentionLayer(GraphModule, Configurable):
   """
   Attention layer according to https://arxiv.org/abs/1409.0473.
 
@@ -48,38 +54,36 @@ class AttentionLayer(GraphModule):
     name: Name for this graph module
   """
 
-  def __init__(self, num_units, score_type="bahdanau", name="attention"):
-    super(AttentionLayer, self).__init__(name=name)
-    self.num_units = num_units
+  def __init__(self, params, mode, name="attention"):
+    GraphModule.__init__(self, name)
+    Configurable.__init__(self, params, mode)
 
-    score_fn_name = "_{}_score".format(score_type)
-    if not hasattr(self, score_fn_name):
-      raise ValueError("Invalid attention score type: " + score_type)
-    self.score_fn = getattr(self, score_fn_name)
+  def default_params(self):
+    return {
+      "num_units": 128
+    }
 
-  def _bahdanau_score(self, keys, query):
-    """Computes Bahdanau-style attention scores.
-    """
-    v_att = tf.get_variable("v_att", shape=[self.num_units], dtype=tf.float32)
-    return att_sum_bahdanau(v_att, keys, query)
+  @abc.abstractmethod
+  def score_fn(self, keys, query):
+    """Computes the attention score"""
+    raise NotImplementedError
 
-  def _dot_score(self, keys, query):
-    """Computes Bahdanau-style attention scores.
-    """
-    return att_sum_dot(keys, query)
-
-  def _build(self, state, inputs, inputs_length):
+  def _build(self, query, keys, values, values_length):
     """Computes attention scores and outputs.
 
     Args:
-      state: The state based on which to calculate attention scores.
+      query: The query used calculate attention scores.
         In seq2seq this is typically the current state of the decoder.
         A tensor of shape `[B, ...]`
-      inputs: The elements to compute attention *over*. In seq2seq this is
+      keys: The keys used to calculate attention scores. In seq2seq these
+        are typically the outputs of the encoder and equivalent to `values`.
+        A tensor of shape `[B, T, ...]` where each element in the `T`
+        dimension corresponds to the key for that value.
+      values: The elements to compute attention over. In seq2seq theis is
         typically the sequence of encoder outputs.
-        A tensor of shape `[B, T, input_dim]`
-      inputs_length: An int32 tensor of shape `[B]` defining the sequence
-        length of the attention inputs
+        A tensor of shape `[B, T, input_dim]`.
+      values_length: An int32 tensor of shape `[B]` defining the sequence
+        length of the attention values.
 
     Returns:
       A tuple `(scores, context)`.
@@ -89,18 +93,18 @@ class AttentionLayer(GraphModule):
       the weighted inputs.
       A tensor fo shape `[B, input_dim]`.
     """
-    inputs_dim = inputs.get_shape().as_list()[-1]
+    values_depth = keys.get_shape().as_list()[-1]
 
-    # Fully connected layers to transform both inputs and state
+    # Fully connected layers to transform both keys and query
     # into a tensor with `num_units` units
     att_keys = tf.contrib.layers.fully_connected(
-        inputs=inputs,
-        num_outputs=self.num_units,
+        inputs=keys,
+        num_outputs=self.params["num_units"],
         activation_fn=None,
         scope="att_keys")
     att_query = tf.contrib.layers.fully_connected(
-        inputs=state,
-        num_outputs=self.num_units,
+        inputs=query,
+        num_outputs=self.params["num_units"],
         activation_fn=None,
         scope="att_query")
 
@@ -109,29 +113,29 @@ class AttentionLayer(GraphModule):
     # Replace all scores for padded inputs with tf.float32.min
     num_scores = tf.shape(scores)[1]
     scores_mask = tf.sequence_mask(
-        lengths=tf.to_int32(inputs_length),
+        lengths=tf.to_int32(values_length),
         maxlen=tf.to_int32(num_scores),
         dtype=tf.float32)
     scores = scores * scores_mask + ((1.0 - scores_mask) * tf.float32.min)
-
-    # Show, Attend, Spell type of attention
-    # Take the dot product of state for each time step in inputs
-    # Result: A tensor of shape [B, T]
-    # att_keys_flat = tf.reshape(att_keys, [-1, self.num_units])
-    # att_query_flat = tf.reshape(
-    #     tf.tile(att_query, [1, inputs_timesteps]),
-    #     [inputs_timesteps * batch_size, self.num_units])
-    # scores = tf.matmul(
-    #     tf.expand_dims(att_keys_flat, 1), tf.expand_dims(att_query_flat, 2))
-    # scores = tf.reshape(scores, [batch_size, inputs_timesteps], name="scores")
 
     # Normalize the scores
     scores_normalized = tf.nn.softmax(scores, name="scores_normalized")
 
     # Calculate the weighted average of the attention inputs
     # according to the scores
-    context = tf.expand_dims(scores_normalized, 2) * inputs
+    context = tf.expand_dims(scores_normalized, 2) * values
     context = tf.reduce_sum(context, 1, name="context")
-    context.set_shape([None, inputs_dim])
+    context.set_shape([None, values_depth])
 
     return (scores_normalized, context)
+
+
+class AttentionLayerDot(AttentionLayer):
+  def score_fn(self, keys, query):
+    return att_sum_dot(keys, query)
+
+class AttentionLayerBahdanau(AttentionLayer):
+  def score_fn(self, keys, query):
+    v_att = tf.get_variable(
+        "v_att", shape=[self.params["num_units"]], dtype=tf.float32)
+    return att_sum_bahdanau(v_att, keys, query)

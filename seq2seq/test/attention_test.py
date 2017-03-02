@@ -23,7 +23,8 @@ from __future__ import print_function
 import tensorflow as tf
 import numpy as np
 
-from seq2seq.decoders.attention import AttentionLayer
+from seq2seq.decoders.attention import AttentionLayerDot
+from seq2seq.decoders.attention import AttentionLayerBahdanau
 
 
 class AttentionLayerTest(tf.test.TestCase):
@@ -40,13 +41,21 @@ class AttentionLayerTest(tf.test.TestCase):
     self.seq_len = 10
     self.state_dim = 32
 
-  def _test_with_score_type(self, score_type):
+  def _create_layer(self):
+    """Creates the attention layer. Should be implemented by child classes"""
+    raise NotImplementedError
+
+  def _test_layer(self):
     """Tests Attention layer with a  given score type"""
     inputs_pl = tf.placeholder(tf.float32, (None, None, self.input_dim))
     inputs_length_pl = tf.placeholder(tf.int32, [None])
     state_pl = tf.placeholder(tf.float32, (None, self.state_dim))
-    attention_fn = AttentionLayer(self.attention_dim, score_type=score_type)
-    scores, context = attention_fn(state_pl, inputs_pl, inputs_length_pl)
+    attention_fn = self._create_layer()
+    scores, context = attention_fn(
+        query=state_pl,
+        keys=inputs_pl,
+        values=inputs_pl,
+        values_length=inputs_length_pl)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -72,11 +81,27 @@ class AttentionLayerTest(tf.test.TestCase):
     scores_sum = np.sum(scores_, axis=1)
     np.testing.assert_array_almost_equal(scores_sum, np.ones([self.batch_size]))
 
-  def test_bahdanau(self):
-    return self._test_with_score_type("bahdanau")
 
-  def test_dot(self):
-    return self._test_with_score_type("dot")
+class AttentionLayerDotTest(AttentionLayerTest):
+  """Tests the AttentionLayerDot class"""
+  def _create_layer(self):
+    return AttentionLayerDot(
+        params={"num_units": self.attention_dim},
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
+
+  def test_layer(self):
+    self._test_layer()
+
+
+class AttentionLayerBahdanauTest(AttentionLayerTest):
+  """Tests the AttentionLayerBahdanau class"""
+  def _create_layer(self):
+    return AttentionLayerBahdanau(
+        params={"num_units": self.attention_dim},
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
+
+  def test_layer(self):
+    self._test_layer()
 
 
 if __name__ == "__main__":

@@ -77,7 +77,8 @@ class UnidirectionalRNNEncoder(Encoder):
         sequence_length=sequence_length,
         dtype=tf.float32,
         **kwargs)
-    return EncoderOutput(outputs=outputs, final_state=state)
+    return EncoderOutput(
+        outputs=outputs, final_state=state, attention_keys=outputs)
 
 
 class BidirectionalRNNEncoder(Encoder):
@@ -115,7 +116,10 @@ class BidirectionalRNNEncoder(Encoder):
     # Concatenate outputs and states of the forward and backward RNNs
     outputs_concat = tf.concat(outputs, 2)
 
-    return EncoderOutput(outputs=outputs_concat, final_state=states)
+    return EncoderOutput(
+        outputs=outputs_concat,
+        final_state=states,
+        attention_keys=outputs_concat)
 
 
 class StackBidirectionalRNNEncoder(Encoder):
@@ -163,4 +167,7 @@ class StackBidirectionalRNNEncoder(Encoder):
         **kwargs)
     outputs_concat, _output_state_fw, _output_state_bw = result
     final_state = (_output_state_fw, _output_state_bw)
-    return EncoderOutput(outputs=outputs_concat, final_state=final_state)
+    return EncoderOutput(
+        outputs=outputs_concat,
+        final_state=final_state,
+        attention_keys=outputs_concat)
