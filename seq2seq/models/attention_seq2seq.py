@@ -42,9 +42,10 @@ class AttentionSeq2Seq(BasicSeq2Seq):
                source_vocab_info,
                target_vocab_info,
                params,
+               mode,
                name="att_seq2seq"):
     super(AttentionSeq2Seq, self).__init__(
-        source_vocab_info, target_vocab_info, params, name)
+        source_vocab_info, target_vocab_info, params, mode, name)
 
   @staticmethod
   def default_params():
@@ -55,28 +56,21 @@ class AttentionSeq2Seq(BasicSeq2Seq):
         "bridge_spec": {
             "class": "ZeroBridge",
         },
+        "encoder.class": "seq2seq.encoders.BidirectionalRNNEncoder",
+        "encoder.params": {}, # Arbitrary parameters for the encoder
+        "decoder.class": "seq2seq.decoders.AttentionDecoder",
+        "decoder.params": {} # Arbitrary parameters for the decoder
     })
     return params
 
-  def encode_decode(self,
-                    source,
-                    source_len,
-                    decode_helper,
-                    mode=tf.contrib.learn.ModeKeys.TRAIN):
-    enable_dropout = (mode == tf.contrib.learn.ModeKeys.TRAIN)
-    encoder_cell_fn = lambda: self._create_encoder_cell(enable_dropout)
-    encoder_fn = self.encoder_class(encoder_cell_fn)
-    encoder_output = encoder_fn(source, source_len)
 
-    decoder_cell = self._create_decoder_cell(enable_dropout)
-    bridge = self._create_bridge(
-        encoder_outputs=encoder_output,
-        decoder_cell=decoder_cell)
-    decoder_initial_state = bridge()
+  def _create_decoder(self, encoder_output, _source, source_len):
     attention_layer = decoders.AttentionLayer(
         num_units=self.params["attention.dim"],
         score_type=self.params["attention.score_type"])
 
+    # If the input sequence is reversed we also need to reverse
+    # the attention scores.
     reverse_scores_lengths = None
     if self.params["source.reverse"]:
       reverse_scores_lengths = source_len
@@ -86,30 +80,15 @@ class AttentionSeq2Seq(BasicSeq2Seq):
             multiples=[self.params["inference.beam_search.beam_width"]])
 
     max_decode_length = None
-    if mode == tf.contrib.learn.ModeKeys.INFER:
+    if self.mode == tf.contrib.learn.ModeKeys.INFER:
       max_decode_length = self.params["inference.max_decode_length"]
 
-    if self.use_beam_search:
-      beam_width = self.params["inference.beam_search.beam_width"]
-      decoder_initial_state = nest.map_structure(
-          lambda x: tf.tile(x, [beam_width, 1]),
-          decoder_initial_state)
-
-    decoder_fn = decoders.AttentionDecoder(
-        cell=decoder_cell,
-        helper=decode_helper,
-        initial_state=decoder_initial_state,
+    return self.decoder_class(
+        params=self.params["decoder.params"],
+        mode=self.mode,
         vocab_size=self.target_vocab_info.total_size,
+        max_decode_length=max_decode_length,
         attention_inputs=encoder_output.outputs,
         attention_inputs_length=source_len,
         attention_fn=attention_layer,
-        reverse_scores_lengths=reverse_scores_lengths,
-        max_decode_length=max_decode_length)
-
-    if self.use_beam_search:
-      decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
-          decoder_fn)
-
-    decoder_output, final_state = decoder_fn()
-
-    return decoder_output, final_state
+        reverse_scores_lengths=reverse_scores_lengths)

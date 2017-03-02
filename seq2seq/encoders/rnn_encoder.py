@@ -20,17 +20,36 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import collections
+import copy
 import tensorflow as tf
 from tensorflow.contrib.rnn.python.ops import rnn
 
-from seq2seq.graph_module import GraphModule
+from seq2seq.encoders.encoder import Encoder, EncoderOutput
+from seq2seq.training import utils as training_utils
 
-RNNEncoderOutput = collections.namedtuple("RNNEncoderOutput",
-                                          ["outputs", "final_state"])
+def _default_rnn_cell_params():
+  return {
+      "cell_spec": {
+          "class": "BasicLSTMCell",
+          "num_units": 128
+      },
+      "dropout_input_keep_prob": 1.0,
+      "dropout_output_keep_prob": 1.0,
+      "num_layers": 1,
+      "residual_connections": False,
+      "residual_combiner": "add",
+      "residual_dense": False
+  }
 
 
-class UnidirectionalRNNEncoder(GraphModule):
+def _toggle_dropout(cell_params, mode):
+  cell_params = copy.deepcopy(cell_params)
+  if mode != tf.contrib.learn.ModeKeys.TRAIN:
+    cell_params["dropout_input_keep_prob"] = 1.0
+    cell_params["dropout_output_keep_prob"] = 1.0
+  return cell_params
+
+class UnidirectionalRNNEncoder(Encoder):
   """
   A unidirectional RNN encoder. Stacking should be performed as
   part of the cell.
@@ -40,21 +59,28 @@ class UnidirectionalRNNEncoder(GraphModule):
     name: A name for the encoder
   """
 
-  def __init__(self, cell_fn, name="forward_rnn_encoder"):
-    super(UnidirectionalRNNEncoder, self).__init__(name)
-    self.cell_fn = cell_fn
+  def __init__(self, params, mode, name="forward_rnn_encoder"):
+    super(UnidirectionalRNNEncoder, self).__init__(params, mode, name)
+    self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
 
-  def _build(self, inputs, sequence_length, **kwargs):
+  @staticmethod
+  def default_params():
+    return {
+        "rnn_cell": _default_rnn_cell_params()
+    }
+
+  def encode(self, inputs, sequence_length, **kwargs):
+    cell = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     outputs, state = tf.nn.dynamic_rnn(
-        cell=self.cell_fn(),
+        cell=cell,
         inputs=inputs,
         sequence_length=sequence_length,
         dtype=tf.float32,
         **kwargs)
-    return RNNEncoderOutput(outputs=outputs, final_state=state)
+    return EncoderOutput(outputs=outputs, final_state=state)
 
 
-class BidirectionalRNNEncoder(GraphModule):
+class BidirectionalRNNEncoder(Encoder):
   """
   A bidirectional RNN encoder. Uses the same cell for both the
   forward and backward RNN. Stacking should be performed as part of
@@ -65,14 +91,22 @@ class BidirectionalRNNEncoder(GraphModule):
     name: A name for the encoder
   """
 
-  def __init__(self, cell_fn, name="bidi_rnn_encoder"):
-    super(BidirectionalRNNEncoder, self).__init__(name)
-    self.cell_fn = cell_fn
+  def __init__(self, params, mode, name="bidi_rnn_encoder"):
+    super(BidirectionalRNNEncoder, self).__init__(params, mode, name)
+    self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
 
-  def _build(self, inputs, sequence_length, **kwargs):
+  @staticmethod
+  def default_params():
+    return {
+        "rnn_cell": _default_rnn_cell_params()
+    }
+
+  def encode(self, inputs, sequence_length, **kwargs):
+    cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
+    cell_bw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     outputs, states = tf.nn.bidirectional_dynamic_rnn(
-        cell_fw=self.cell_fn(),
-        cell_bw=self.cell_fn(),
+        cell_fw=cell_fw,
+        cell_bw=cell_bw,
         inputs=inputs,
         sequence_length=sequence_length,
         dtype=tf.float32,
@@ -81,10 +115,10 @@ class BidirectionalRNNEncoder(GraphModule):
     # Concatenate outputs and states of the forward and backward RNNs
     outputs_concat = tf.concat(outputs, 2)
 
-    return RNNEncoderOutput(outputs=outputs_concat, final_state=states)
+    return EncoderOutput(outputs=outputs_concat, final_state=states)
 
 
-class StackBidirectionalRNNEncoder(GraphModule):
+class StackBidirectionalRNNEncoder(Encoder):
   """
   A stacked bidirectional RNN encoder. Uses the same cell for both the
   forward and backward RNN. Stacking should be performed as part of
@@ -95,9 +129,15 @@ class StackBidirectionalRNNEncoder(GraphModule):
     name: A name for the encoder
   """
 
-  def __init__(self, cell_fn, name="stacked_bidi_rnn_encoder"):
-    super(StackBidirectionalRNNEncoder, self).__init__(name)
-    self.cell_fn = cell_fn
+  def __init__(self, params, mode, name="stacked_bidi_rnn_encoder"):
+    super(StackBidirectionalRNNEncoder, self).__init__(params, mode, name)
+    self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
+
+  @staticmethod
+  def default_params():
+    return {
+        "rnn_cell": _default_rnn_cell_params()
+    }
 
   def _unpack_cell(self, cell):
     """Unpack the cells because the stack_bidirectional_dynamic_rnn
@@ -107,18 +147,20 @@ class StackBidirectionalRNNEncoder(GraphModule):
     else:
       return [cell]
 
-  def _build(self, inputs, sequence_length, **kwargs):
+  def encode(self, inputs, sequence_length, **kwargs):
+    cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
+    cell_bw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
 
-    fw_cell = self._unpack_cell(self.cell_fn())
-    bw_cell = self._unpack_cell(self.cell_fn())
+    cells_fw = self._unpack_cell(cell_fw)
+    cells_bw = self._unpack_cell(cell_bw)
 
     result = rnn.stack_bidirectional_dynamic_rnn(
-        cells_fw=fw_cell,
-        cells_bw=bw_cell,
+        cells_fw=cells_fw,
+        cells_bw=cells_bw,
         inputs=inputs,
         dtype=tf.float32,
         sequence_length=sequence_length,
         **kwargs)
     outputs_concat, _output_state_fw, _output_state_bw = result
     final_state = (_output_state_fw, _output_state_bw)
-    return RNNEncoderOutput(outputs=outputs_concat, final_state=final_state)
+    return EncoderOutput(outputs=outputs_concat, final_state=final_state)

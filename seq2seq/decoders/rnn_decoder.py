@@ -26,7 +26,13 @@ import tensorflow as tf
 from tensorflow.python.util import nest
 
 from seq2seq.graph_module import GraphModule
+from seq2seq.configurable import Configurable
 from seq2seq.contrib.seq2seq.decoder import Decoder, dynamic_decode
+from seq2seq.encoders.rnn_encoder import _default_rnn_cell_params
+from seq2seq.encoders.rnn_encoder import _toggle_dropout
+from seq2seq.training import utils as training_utils
+
+
 
 
 class DecoderOutput(namedtuple(
@@ -40,7 +46,7 @@ class DecoderOutput(namedtuple(
   pass
 
 
-class RNNDecoder(Decoder, GraphModule):
+class RNNDecoder(Decoder, GraphModule, Configurable):
   """Base class for RNN decoders.
 
   Args:
@@ -52,16 +58,25 @@ class RNNDecoder(Decoder, GraphModule):
     name: A name for this module
   """
 
-  def __init__(self, cell, helper, initial_state, max_decode_length, name):
+  def __init__(self, params, mode, max_decode_length, name):
     GraphModule.__init__(self, name)
-    self.cell = cell
+    Configurable.__init__(self, params, mode)
     self.max_decode_length = max_decode_length
-    self.helper = helper
-    self.initial_state = initial_state
+    self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
+    self.cell = training_utils.get_rnn_cell(**self.params["rnn_cell"])
+    # Not initialized yet
+    self.initial_state = None
+    self.helper = None
 
   @property
   def batch_size(self):
     return tf.shape(nest.flatten([self.initial_state])[0])[0]
+
+  def _setup(self, initial_state, helper):
+    """Sets the initial state and helper for the decoder.
+    """
+    self.initial_state = initial_state
+    self.helper = helper
 
   def finalize(self, outputs, final_state):
     """Applies final transformation to the decoder output once decoding is
@@ -69,7 +84,16 @@ class RNNDecoder(Decoder, GraphModule):
     """
     return (outputs, final_state)
 
-  def _build(self):
+  @staticmethod
+  def default_params():
+    return {
+        "rnn_cell": _default_rnn_cell_params()
+    }
+
+  def _build(self, initial_state, helper):
+    if not self.initial_state:
+      self._setup(initial_state, helper)
+
     outputs, final_state = dynamic_decode(
         decoder=self,
         output_time_major=True,

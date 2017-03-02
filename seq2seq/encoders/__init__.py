@@ -14,4 +14,7 @@
 
 """Collection of encoders"""
 
+import seq2seq.encoders.encoder
+import seq2seq.encoders.rnn_encoder
+
 from seq2seq.encoders.rnn_encoder import *

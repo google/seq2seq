@@ -39,14 +39,13 @@ class BasicDecoder(RNNDecoder):
   """
 
   def __init__(self,
-               cell,
-               helper,
-               initial_state,
+               params,
+               mode,
                vocab_size,
                max_decode_length,
                name="basic_decoder"):
     super(BasicDecoder, self).__init__(
-        cell, helper, initial_state, max_decode_length, name)
+        params, mode, max_decode_length, name)
     self.vocab_size = vocab_size
 
   def compute_output(self, cell_output):

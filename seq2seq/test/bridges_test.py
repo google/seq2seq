@@ -26,7 +26,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-from seq2seq.encoders.rnn_encoder import RNNEncoderOutput
+from seq2seq.encoders.encoder import EncoderOutput
 from seq2seq.models.bridges import ZeroBridge, InitialStateBridge
 from seq2seq.models.bridges import PassThroughBridge
 
@@ -46,7 +46,7 @@ class BridgeTest(tf.test.TestCase):
             value=np.random.randn(self.batch_size, x),
             dtype=tf.float32),
         self.encoder_cell.state_size)
-    self.encoder_outputs = RNNEncoderOutput(
+    self.encoder_outputs = EncoderOutput(
         outputs=tf.convert_to_tensor(
             value=np.random.randn(self.batch_size, 10, 16),
             dtype=tf.float32),

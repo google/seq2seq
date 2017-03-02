@@ -61,9 +61,8 @@ class AttentionDecoder(RNNDecoder):
   """
 
   def __init__(self,
-               cell,
-               helper,
-               initial_state,
+               params,
+               mode,
                vocab_size,
                attention_inputs,
                attention_inputs_length,
@@ -72,27 +71,12 @@ class AttentionDecoder(RNNDecoder):
                reverse_scores_lengths=None,
                name="attention_decoder"):
     super(AttentionDecoder, self).__init__(
-        cell, helper, initial_state, max_decode_length, name)
+        params, mode, max_decode_length, name)
     self.vocab_size = vocab_size
     self.attention_inputs = attention_inputs
     self.attention_inputs_length = attention_inputs_length
     self.attention_fn = attention_fn
     self.reverse_scores_lengths = reverse_scores_lengths
-
-    def att_next_inputs(time, outputs, state, sample_ids, name=None):
-      """Wraps the original decoder helper function to append the attention
-      context.
-      """
-      finished, next_inputs, next_state = helper.next_inputs(
-          time=time, outputs=outputs, state=state,
-          sample_ids=sample_ids, name=name)
-      next_inputs = tf.concat([next_inputs, outputs.attention_context], 1)
-      return (finished, next_inputs, next_state)
-
-    self.helper = CustomHelper(
-        initialize_fn=helper.initialize,
-        sample_fn=helper.sample,
-        next_inputs_fn=att_next_inputs)
 
 
   @property
@@ -152,6 +136,23 @@ class AttentionDecoder(RNNDecoder):
         scope="logits")
 
     return softmax_input, logits, att_scores, attention_context
+
+  def _setup(self, initial_state, helper):
+    self.initial_state = initial_state
+    def att_next_inputs(time, outputs, state, sample_ids, name=None):
+      """Wraps the original decoder helper function to append the attention
+      context.
+      """
+      finished, next_inputs, next_state = helper.next_inputs(
+          time=time, outputs=outputs, state=state,
+          sample_ids=sample_ids, name=name)
+      next_inputs = tf.concat([next_inputs, outputs.attention_context], 1)
+      return (finished, next_inputs, next_state)
+
+    self.helper = CustomHelper(
+        initialize_fn=helper.initialize,
+        sample_fn=helper.sample,
+        next_inputs_fn=att_next_inputs)
 
   def step(self, time_, inputs, state, name=None):
     cell_output, cell_state = self.cell(inputs, state)

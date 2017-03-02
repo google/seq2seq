@@ -32,18 +32,10 @@ The `BasicSeq2Seq` model uses an encoder and decoder with no attention mechanism
 | Name | Default | Description |
 | --- | --- | --- |
 | `bridge_spec` | `{ "class": "InitialStateBridge"}` | A dictionary that defines how state is passed between encoder and decoder. The `class` property corresponds to a name of bridge class defined in `seq2seq.models.bridges`. All additional properties in the dictinary are passed to the bridge class constructor, e.g. `{"class": "InitialStateBridge", "activation_fn": "tanh"}`. |
-| `encoder.type` | `UnidirectionalRNNEncoder` | Type of encoder to use. This is the class name of an encoder defined in `seq2seq.encoder`. Currently the supported value are `BidirectionalRNNEncoder`, `UnidirectionalRNNEncoder` and `StackBidirectionalRNNEncoder`. |
-| `encoder.rnn_cell.cell_spec` | `{ "class": "BasicLSTMCell", "num_units": 128}` | A dictioanry that specifies the cell class and parameters, for example `{ "class": "LSTMCell", "num_units": 128, "use_peepholes": true }`. The dictionary object must contain a `class` property as well as arguments that are required by the cell class constructor. Cell classes are assumed to be defined in `tf.contrib.rnn` or `seq2seq.contrib.rnn_cell`.|
-| `encoder.rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. |
-| `encoder.rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. |
-| `encoder.rnn_cell.num_layers` | `1` | Number of RNN layers. |
-| `encoder.rnn_cell.residual_connections` | `False` | If true, add residual connections between all RNN layers in the encoder. |
-| `decoder.rnn_cell.cell_spec` | `{ "class": "BasicLSTMCell", "num_units": 128}` | Same as `encoder.rnn_cell.cell_spec`, but for the decoder cell. |
-| `decoder.rnn_cell.dropout_input_keep_prob` | `1.0` | Apply dropout to the (non-recurrent) inputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. |
-| `decoder.rnn_cell.dropout_output_keep_prob` | `1.0`| Apply dropout to the (non-recurrent) outputs of each RNN layer using this keep probability. A value of `1.0` disables dropout. |
-| `decoder.rnn_cell.num_layers` | `1` | Number of RNN layers. |
-| `decoder.rnn_cell.residual_connections` | `False` | If true, add residual connections between all RNN layers in the decoder. |
-
+| `encoder.class` | `seq2seq.encoders.UnidirectionalRNNEncoder` | Type of encoder to use. See the [Encoder Reference](encoders/) for more details and available encoders. |
+| `encoder.params` | `{}` | Parameters passed to the encoder during construction. See the [Encoder Reference](encoders/) for more details.|
+| `decoder.class` | `seq2seq.decoders.BasicDecoder` | Type of decoder to use. See the [Decoder Reference](decoders/) for more details and available encoders. |
+| `decoder.params` | `{}` | Parameters passed to the decoder during construction. See the [Decoder Reference](decoders/) for more details.|
 
 
 ## AttentionSeq2seq
@@ -54,5 +46,6 @@ The `BasicSeq2Seq` model uses an encoder and decoder with no attention mechanism
 | --- | --- | --- |
 | `attention.dim` | `128` | Number of units in the attention layer. |
 | `attention.score_type` | `dot` | The formula used to calculate attention scores. Available values are `bahdanau` and `dot`. `bahdanau` is described in [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473). `dot` is described in [Effective Approaches to Attention-based Neural Machine Translation](https://arxiv.org/abs/1508.04025).  |
-
+| `encoder.class` | `seq2seq.encoders.BidirectionalRNNEncoder` | Type of encoder to use. See the [Encoder Reference](encoders/) for more details and available encoders. |
+| `decoder.class` | `seq2seq.decoders.AttentionDecoder` | Type of decoder to use. See the [Decoder Reference](decoders/) for more details and available encoders. |
 
