@@ -72,14 +72,14 @@ class AttentionLayer(GraphModule, Configurable):
     """Computes attention scores and outputs.
 
     Args:
-      query: The query used calculate attention scores.
+      query: The query used to calculate attention scores.
         In seq2seq this is typically the current state of the decoder.
         A tensor of shape `[B, ...]`
-      keys: The keys used to calculate attention scores. In seq2seq these
+      keys: The keys used to calculate attention scores. In seq2seq, these
         are typically the outputs of the encoder and equivalent to `values`.
         A tensor of shape `[B, T, ...]` where each element in the `T`
         dimension corresponds to the key for that value.
-      values: The elements to compute attention over. In seq2seq theis is
+      values: The elements to compute attention over. In seq2seq, this is
         typically the sequence of encoder outputs.
         A tensor of shape `[B, T, input_dim]`.
       values_length: An int32 tensor of shape `[B]` defining the sequence
