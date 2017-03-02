@@ -44,12 +44,12 @@ def _parse_params(params, default_params):
       default_dict = default_params[key]
       if not isinstance(default_dict, dict):
         raise ValueError("%s should not be a dictionary", key)
-      elif len(default_dict) == 0:
+      if default_dict:
+        value = _parse_params(value, default_dict)
+      else:
         # If the default is an empty dict we do not typecheck it
         # and assume it's done downstream
         pass
-      else:
-        value = _parse_params(value, default_params[key])
     result[key] = type(default_params[key])(value)
   return result
 
@@ -69,7 +69,7 @@ class Configurable(object):
 
   @property
   def mode(self):
-    """Returns a dictionary of parsed parameters.
+    """Returns a value in tf.contrib.learn.ModeKeys.
     """
     return self._mode
 
@@ -81,7 +81,7 @@ class Configurable(object):
 
   @abc.abstractmethod
   def default_params(self):
-    """Returns a dictionary default parameters. The default parameters
+    """Returns a dictionary of default parameters. The default parameters
     are used to define the expected type of passed parameters. Missing
     parameter values are replaced with the defaults returned by this method.
     """

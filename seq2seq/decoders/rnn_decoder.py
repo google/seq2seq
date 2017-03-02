@@ -29,7 +29,7 @@ from seq2seq.graph_module import GraphModule
 from seq2seq.configurable import Configurable
 from seq2seq.contrib.seq2seq.decoder import Decoder, dynamic_decode
 from seq2seq.encoders.rnn_encoder import _default_rnn_cell_params
-from seq2seq.encoders.rnn_encoder  import _toggle_dropout
+from seq2seq.encoders.rnn_encoder import _toggle_dropout
 from seq2seq.training import utils as training_utils
 
 
