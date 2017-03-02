@@ -49,8 +49,10 @@ class AttentionDecoder(RNNDecoder):
       in the softmax layer
     attention_values: The sequence used to calculate attention scores.
       A tensor of shape `[B, T, ...]`.
-    attention_values: The sequence to take attention over.
+    attention_values: The sequence to attend over.
       A tensor of shape `[B, T, ...]`.
+    attention_values_length: Sequence length of the attention values.
+      An int32 Tensor of shape `[B]`.
     attention_fn: The attention function to use. This function map from
       `(state, inputs)` to `(attention_scores, attention_context)`.
       For an example, see `seq2seq.decoder.attention.AttentionLayer`.
