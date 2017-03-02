@@ -29,8 +29,8 @@ from seq2seq.training import utils as training_utils
 
 def _default_rnn_cell_params():
   return {
-      "cell_spec": {
-          "class": "BasicLSTMCell",
+      "cell_class": "BasicLSTMCell",
+      "cell_params": {
           "num_units": 128
       },
       "dropout_input_keep_prob": 1.0,
@@ -43,6 +43,8 @@ def _default_rnn_cell_params():
 
 
 def _toggle_dropout(cell_params, mode):
+  """Disables dropout during eval/inference mode
+  """
   cell_params = copy.deepcopy(cell_params)
   if mode != tf.contrib.learn.ModeKeys.TRAIN:
     cell_params["dropout_input_keep_prob"] = 1.0

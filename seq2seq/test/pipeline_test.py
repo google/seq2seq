@@ -97,12 +97,12 @@ class PipelineTest(tf.test.TestCase):
           "hparams": {
               "embedding.dim": 10,
               "attention.dim": 16,
-              "decoder.rnn_cell.cell_spec": {
-                  "class": "GRUCell",
+              "decoder.rnn_cell.cell_class": "GRUCell",
+              "decoder.rnn_cell.cell_params": {
                   "num_units": 8
               },
-              "encoder.rnn_cell.cell_spec": {
-                  "class": "GRUCell",
+              "encoder.rnn_cell.cell_class": "GRUCell",
+              "encoder.rnn_cell.cell_params": {
                   "num_units": 8
               }
           }}, config_file)
