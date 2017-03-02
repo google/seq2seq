@@ -68,23 +68,30 @@ class BasicSeq2Seq(Seq2SeqBase):
     })
     return params
 
+  def _create_encoder(self, _source, _source_len):
+    """Creates the encoder function for this model"""
+    return self.encoder_class(self.params["encoder.params"], self.mode)
+
+  def _create_decoder(self, _encoder_output, _source, _source_len):
+    """Creates the decoder function for this model"""
+    max_decode_length = None
+    if  self.mode == tf.contrib.learn.ModeKeys.INFER:
+      max_decode_length = self.params["inference.max_decode_length"]
+
+    return self.decoder_class(
+        params=self.params["decoder.params"],
+        mode=self.mode,
+        vocab_size=self.target_vocab_info.total_size,
+        max_decode_length=max_decode_length)
+
   def encode_decode(self,
                     source,
                     source_len,
                     decode_helper):
     # Create Encoder
-    encoder_fn = self.encoder_class(self.params["encoder.params"], self.mode)
+    encoder_fn = self._create_encoder(source, source_len)
     encoder_output = encoder_fn(source, source_len)
-
-    max_decode_length = None
-    if  self.mode == tf.contrib.learn.ModeKeys.INFER:
-      max_decode_length = self.params["inference.max_decode_length"]
-
-    decoder_fn = self.decoder_class(
-        params=self.params["decoder.params"],
-        mode=self.mode,
-        vocab_size=self.target_vocab_info.total_size,
-        max_decode_length=max_decode_length)
+    decoder_fn = self._create_decoder(encoder_output, source, source_len)
 
     if self.use_beam_search:
       decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204

@@ -63,13 +63,8 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     })
     return params
 
-  def encode_decode(self,
-                    source,
-                    source_len,
-                    decode_helper):
-    encoder_fn = self.encoder_class(self.params["encoder.params"], self.mode)
-    encoder_output = encoder_fn(source, source_len)
 
+  def _create_decoder(self, encoder_output, _source, source_len):
     attention_layer = decoders.AttentionLayer(
         num_units=self.params["attention.dim"],
         score_type=self.params["attention.score_type"])
@@ -86,7 +81,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     if self.mode == tf.contrib.learn.ModeKeys.INFER:
       max_decode_length = self.params["inference.max_decode_length"]
 
-    decoder_fn = self.decoder_class(
+    return self.decoder_class(
         params=self.params["decoder.params"],
         mode=self.mode,
         vocab_size=self.target_vocab_info.total_size,
@@ -95,24 +90,3 @@ class AttentionSeq2Seq(BasicSeq2Seq):
         attention_inputs_length=source_len,
         attention_fn=attention_layer,
         reverse_scores_lengths=reverse_scores_lengths)
-
-    if self.use_beam_search:
-      decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
-          decoder_fn)
-
-    # Bridge between encoder and decoder
-    bridge = self._create_bridge(
-        encoder_outputs=encoder_output,
-        decoder_cell=decoder_fn.cell)
-    decoder_initial_state = bridge()
-
-    if self.use_beam_search:
-      beam_width = self.params["inference.beam_search.beam_width"]
-      decoder_initial_state = nest.map_structure(
-          lambda x: tf.tile(x, [beam_width, 1]),
-          decoder_initial_state)
-
-    decoder_output, final_state = decoder_fn(
-        decoder_initial_state, decode_helper)
-
-    return decoder_output, final_state
