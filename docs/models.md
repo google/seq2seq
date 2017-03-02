@@ -44,8 +44,8 @@ The `BasicSeq2Seq` model uses an encoder and decoder with no attention mechanism
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `attention.dim` | `128` | Number of units in the attention layer. |
-| `attention.score_type` | `dot` | The formula used to calculate attention scores. Available values are `bahdanau` and `dot`. `bahdanau` is described in [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473). `dot` is described in [Effective Approaches to Attention-based Neural Machine Translation](https://arxiv.org/abs/1508.04025).  |
+| `attention.class` | `AttentionLayerBahdanau` | Class name of the attention layer. Can be a fully-qualified name or is assumed to be defined in `seq2seq.decoders.attention`. Currently available layers are `AttentionLayerBahdanau` and `AttentionLayerDot`. |
+| `attention.params` | `{"num_units": 128}` | A dictionary of  parameters passed to the attention class constructor. |
 | `encoder.class` | `seq2seq.encoders.BidirectionalRNNEncoder` | Type of encoder to use. See the [Encoder Reference](encoders/) for more details and available encoders. |
 | `decoder.class` | `seq2seq.decoders.AttentionDecoder` | Type of decoder to use. See the [Decoder Reference](decoders/) for more details and available encoders. |
 

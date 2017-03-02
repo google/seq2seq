@@ -20,8 +20,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from pydoc import locate
+
 import tensorflow as tf
-from tensorflow.python.util import nest
 
 from seq2seq import decoders
 from seq2seq.models.basic_seq2seq import BasicSeq2Seq
@@ -51,8 +52,8 @@ class AttentionSeq2Seq(BasicSeq2Seq):
   def default_params():
     params = BasicSeq2Seq.default_params().copy()
     params.update({
-        "attention.dim": 128,
-        "attention.score_type": "dot",
+        "attention.class": "AttentionLayerBahdanau",
+        "attention.params": {"num_units": 128},
         "bridge_spec": {
             "class": "ZeroBridge",
         },
@@ -63,12 +64,12 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     })
     return params
 
-
   def _create_decoder(self, encoder_output, _source, source_len):
-    attention_layer = decoders.AttentionLayer(
-        num_units=self.params["attention.dim"],
-        score_type=self.params["attention.score_type"])
-
+    attention_class = locate(self.params["attention.class"]) or \
+      getattr(decoders.attention, self.params["attention.class"])
+    attention_layer = attention_class(
+        params=self.params["attention.params"],
+        mode=self.mode)
     # If the input sequence is reversed we also need to reverse
     # the attention scores.
     reverse_scores_lengths = None
@@ -88,7 +89,8 @@ class AttentionSeq2Seq(BasicSeq2Seq):
         mode=self.mode,
         vocab_size=self.target_vocab_info.total_size,
         max_decode_length=max_decode_length,
-        attention_inputs=encoder_output.outputs,
-        attention_inputs_length=source_len,
+        attention_values=encoder_output.outputs,
+        attention_values_length=source_len,
+        attention_keys=encoder_output.attention_keys,
         attention_fn=attention_layer,
         reverse_scores_lengths=reverse_scores_lengths)

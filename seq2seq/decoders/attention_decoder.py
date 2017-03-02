@@ -47,8 +47,12 @@ class AttentionDecoder(RNNDecoder):
       state.
     vocab_size: Output vocabulary size, i.e. number of units
       in the softmax layer
-    attention_inputs: The sequence to take attentio over.
-      A tensor of shaoe `[B, T, ...]`.
+    attention_values: The sequence used to calculate attention scores.
+      A tensor of shape `[B, T, ...]`.
+    attention_values: The sequence to attend over.
+      A tensor of shape `[B, T, ...]`.
+    attention_values_length: Sequence length of the attention values.
+      An int32 Tensor of shape `[B]`.
     attention_fn: The attention function to use. This function map from
       `(state, inputs)` to `(attention_scores, attention_context)`.
       For an example, see `seq2seq.decoder.attention.AttentionLayer`.
@@ -64,8 +68,9 @@ class AttentionDecoder(RNNDecoder):
                params,
                mode,
                vocab_size,
-               attention_inputs,
-               attention_inputs_length,
+               attention_keys,
+               attention_values,
+               attention_values_length,
                attention_fn,
                max_decode_length,
                reverse_scores_lengths=None,
@@ -73,8 +78,9 @@ class AttentionDecoder(RNNDecoder):
     super(AttentionDecoder, self).__init__(
         params, mode, max_decode_length, name)
     self.vocab_size = vocab_size
-    self.attention_inputs = attention_inputs
-    self.attention_inputs_length = attention_inputs_length
+    self.attention_keys = attention_keys
+    self.attention_values = attention_values
+    self.attention_values_length = attention_values_length
     self.attention_fn = attention_fn
     self.reverse_scores_lengths = reverse_scores_lengths
 
@@ -85,8 +91,8 @@ class AttentionDecoder(RNNDecoder):
         logits=self.vocab_size,
         predicted_ids=tf.TensorShape([]),
         cell_output=self.cell.output_size,
-        attention_scores=tf.expand_dims(tf.shape(self.attention_inputs)[1], 0),
-        attention_context=self.attention_inputs.get_shape()[2])
+        attention_scores=tf.expand_dims(tf.shape(self.attention_values)[1], 0),
+        attention_context=self.attention_values.get_shape()[2])
 
   @property
   def output_dtype(self):
@@ -103,7 +109,7 @@ class AttentionDecoder(RNNDecoder):
     # Concat empty attention context
     attention_context = tf.zeros([
         tf.shape(first_inputs)[0],
-        self.attention_inputs.get_shape().as_list()[2]])
+        self.attention_values.get_shape().as_list()[2]])
     first_inputs = tf.concat([first_inputs, attention_context], 1)
 
     return finished, first_inputs, self.initial_state
@@ -113,9 +119,10 @@ class AttentionDecoder(RNNDecoder):
 
     # Compute attention
     att_scores, attention_context = self.attention_fn(
-        state=cell_output,
-        inputs=self.attention_inputs,
-        inputs_length=self.attention_inputs_length)
+        query=cell_output,
+        keys=self.attention_keys,
+        values=self.attention_values,
+        values_length=self.attention_values_length)
 
     # TODO: Make this a parameter: We may or may not want this.
     # Transform attention context.

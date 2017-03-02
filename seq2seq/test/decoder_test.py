@@ -23,7 +23,7 @@ from __future__ import print_function
 import tensorflow as tf
 import numpy as np
 
-from seq2seq.decoders import BasicDecoder, AttentionDecoder, AttentionLayer
+from seq2seq.decoders import BasicDecoder, AttentionDecoder, AttentionLayerDot
 from seq2seq.decoders import beam_search_decoder
 from seq2seq.inference import beam_search
 from seq2seq.contrib.seq2seq import helper as decode_helper
@@ -213,16 +213,22 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
     self.input_seq_len = 10
 
   def create_decoder(self, helper, mode):
-    attention_fn = AttentionLayer(self.attention_dim)
-    attention_inputs = tf.convert_to_tensor(
+    attention_fn = AttentionLayerDot(
+        params={"num_units": self.attention_dim},
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
+    attention_values = tf.convert_to_tensor(
+        np.random.randn(self.batch_size, self.input_seq_len, 32),
+        dtype=tf.float32)
+    attention_keys = tf.convert_to_tensor(
         np.random.randn(self.batch_size, self.input_seq_len, 32),
         dtype=tf.float32)
     return AttentionDecoder(
         params=AttentionDecoder.default_params(),
         mode=mode,
         vocab_size=self.vocab_size,
-        attention_inputs=attention_inputs,
-        attention_inputs_length=np.arange(self.batch_size) + 1,
+        attention_keys=attention_keys,
+        attention_values=attention_values,
+        attention_values_length=np.arange(self.batch_size) + 1,
         attention_fn=attention_fn,
         max_decode_length=self.max_decode_length)
 
