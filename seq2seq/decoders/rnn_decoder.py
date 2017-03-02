@@ -33,8 +33,6 @@ from seq2seq.encoders.rnn_encoder import _toggle_dropout
 from seq2seq.training import utils as training_utils
 
 
-
-
 class DecoderOutput(namedtuple(
     "DecoderOutput", ["logits", "predicted_ids", "cell_output"])):
   """Output of an RNN decoder.

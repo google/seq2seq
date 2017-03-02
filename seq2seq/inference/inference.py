@@ -50,8 +50,6 @@ def load_model(model_dir, mode, params=None):
   if params is not None:
     hparams.update(params)
 
-  training_utils.print_hparams(hparams)
-
   # Create model instance
   model = model_class(
       source_vocab_info=source_vocab_info,
