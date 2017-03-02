@@ -335,14 +335,3 @@ def create_default_training_hooks(
   training_hooks.append(tokens_per_sec_counter)
 
   return training_hooks
-
-def print_hparams(hparams):
-  """Prints hyperparameter values in sorted order.
-
-  Args:
-    hparams: A dictionary of hyperparameters.
-  """
-  tf.logging.info("=" * 50)
-  for param, value in sorted(hparams.items()):
-    tf.logging.info("%s=%s", param, value)
-  tf.logging.info("=" * 50)
