@@ -323,14 +323,14 @@
 </thead>
 <tbody>
 <tr>
-<td><code>attention.dim</code></td>
-<td><code>128</code></td>
-<td>Number of units in the attention layer.</td>
+<td><code>attention.class</code></td>
+<td><code>AttentionLayerBahdanau</code></td>
+<td>Class name of the attention layer. Can be a fully-qualified name or is assumed to be defined in <code>seq2seq.decoders.attention</code>. Currently available layers are <code>AttentionLayerBahdanau</code> and <code>AttentionLayerDot</code>.</td>
 </tr>
 <tr>
-<td><code>attention.score_type</code></td>
-<td><code>dot</code></td>
-<td>The formula used to calculate attention scores. Available values are <code>bahdanau</code> and <code>dot</code>. <code>bahdanau</code> is described in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>. <code>dot</code> is described in <a href="https://arxiv.org/abs/1508.04025">Effective Approaches to Attention-based Neural Machine Translation</a>.</td>
+<td><code>attention.params</code></td>
+<td><code>{"num_units": 128}</code></td>
+<td>A dictionary of  parameters passed to the attention class constructor.</td>
 </tr>
 <tr>
 <td><code>encoder.class</code></td>
