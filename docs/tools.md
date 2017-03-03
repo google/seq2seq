@@ -9,7 +9,7 @@ python -m bin.infer \
   --dump_attention_dir ${TMPDIR:-/tmp}/attention_plots > /dev/null
 ```
 
-By default, this script generates an `attention_score.npy` array file and one attention plot per example. The array file can be [loaded used numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html) and will contain a list of arrays with shape `[target_length, source_length]`. If you only want the raw attention score data without the plots you can pass the `--dump_atention_no_plot` flag. For more details and additional options, see the [`infer.py`](https://github.com/dennybritz/seq2seq/blob/master/bin/infer.py) script.
+By default, this script generates an `attention_score.npy` array file and one attention plot per example. The array file can be [loaded used numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html) and will contain a list of arrays with shape `[target_length, source_length]`. If you only want the raw attention score data without the plots you can pass the `--dump_atention_no_plot` flag. For more details and additional options, see the [`infer.py`](https://github.com/google/seq2seq/blob/master/bin/infer.py) script.
 
 
 ## Visualizing Beam Search
@@ -43,12 +43,12 @@ python -m bin.tools.generate_beam_viz  \
 
 ## Model Performance Profiling
 
-During training, the [MetadataCaptureHook](https://github.com/dennybritz/seq2seq/blob/master/seq2seq/training/hooks.py) saves a full trace and timeline information for a single training step (step 10 by default) into a `metadata` subdirectory of your model directory. You can view the generated `timeline.json` file in Chrome:
+During training, the [MetadataCaptureHook](https://github.com/google/seq2seq/blob/master/seq2seq/training/hooks.py) saves a full trace and timeline information for a single training step (step 10 by default) into a `metadata` subdirectory of your model directory. You can view the generated `timeline.json` file in Chrome:
 
 1. Go to `chrome://tracing`
 2. Load the `timeline.json` file that was saved in `/path/to/model/dir/metadata`
 
-For large complicated graphs, the timeline files can become quite large and analyzing them using Chrome may be slow, which is why we also provide a [`profile.py`](https://github.com/dennybritz/seq2seq/blob/master/bin/tools/profile.py) script that generates useful profiling information:
+For large complicated graphs, the timeline files can become quite large and analyzing them using Chrome may be slow, which is why we also provide a [`profile.py`](https://github.com/google/seq2seq/blob/master/bin/tools/profile.py) script that generates useful profiling information:
 
 ```shell
 python -m bin.tools.profile --model_dir=${TMPDIR:-/tmp}/nmt_toy_reverse

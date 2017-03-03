@@ -1,6 +1,6 @@
 ### Input Files
 
-In order to train a model, you need the following files. Refer to [Data](https://github.com/dennybritz/seq2seq/wiki/Data) for more details on each of these.
+In order to train a model, you need the following files. Refer to [Data](https://github.com/google/seq2seq/wiki/Data) for more details on each of these.
 
 - Training data: Two parallel (aligned line by line) tokenized text files with tokens separated by spaces.
 - Development data: Same format as the training data, but used for validation.
@@ -68,7 +68,7 @@ tensorboard --logdir=/path/to/model/dir
 
 ### Training script arguments
 
-The [train.py](https://github.com/dennybritz/seq2seq/blob/master/bin/train.py) script has many more options. Bold arguments are required.
+The [train.py](https://github.com/google/seq2seq/blob/master/bin/train.py) script has many more options. Bold arguments are required.
 
 | Argument | Default | Description |
 | --- | --- | --- |

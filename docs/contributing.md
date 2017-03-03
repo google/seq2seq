@@ -4,7 +4,7 @@
 
 ```bash
 # Clone this repository.
-git clone https://github.com/dennybritz/seq2seq.git
+git clone https://github.com/google/seq2seq.git
 cd seq2seq
 
 # Create a new virtual environment and activate it.
