@@ -206,6 +206,42 @@ class Seq2SeqBase(ModelBase):
     """
     return self.params["inference.beam_search.beam_width"] > 1
 
+  def _build_train_op(self, loss):
+    """Creates the training operation"""
+    learning_rate_decay_fn = training_utils.create_learning_rate_decay_fn(
+        decay_type=self.params["optimizer.lr_decay_type"] or None,
+        decay_steps=self.params["optimizer.lr_decay_steps"],
+        decay_rate=self.params["optimizer.lr_decay_rate"],
+        start_decay_at=self.params["optimizer.lr_start_decay_at"],
+        stop_decay_at=self.params["optimizer.lr_stop_decay_at"],
+        min_learning_rate=self.params["optimizer.lr_min_learning_rate"],
+        staircase=self.params["optimizer.lr_staircase"])
+
+    return tf.contrib.layers.optimize_loss(
+        loss=loss,
+        global_step=tf.contrib.framework.get_global_step(),
+        learning_rate=self.params["optimizer.learning_rate"],
+        learning_rate_decay_fn=learning_rate_decay_fn,
+        clip_gradients=self.params["optimizer.clip_gradients"],
+        optimizer=self.params["optimizer.name"],
+        summaries=["learning_rate", "loss", "gradients", "gradient_norm"])
+
+
+  def _build_embeddings(self):
+    """Create embeddings"""
+    source_embedding = tf.get_variable(
+        "source_embedding",
+        [self.source_vocab_info.total_size, self.params["embedding.dim"]])
+
+    if self.params["embedding.share"]:
+      target_embedding = source_embedding
+    else:
+      target_embedding = tf.get_variable(
+          "target_embedding",
+          [self.target_vocab_info.total_size, self.params["embedding.dim"]])
+
+    return source_embedding, target_embedding
+
   def _build(self, features, labels, params):
     # Pre-process features and labels
     features, labels = self.create_featurizer()(features, labels)
@@ -224,17 +260,7 @@ class Seq2SeqBase(ModelBase):
           batch_dim=0,
           name=None)
 
-    # Create embedddings
-    source_embedding = tf.get_variable(
-        "source_embedding",
-        [self.source_vocab_info.total_size, self.params["embedding.dim"]])
-
-    if self.params["embedding.share"]:
-      target_embedding = source_embedding
-    else:
-      target_embedding = tf.get_variable(
-          "target_embedding",
-          [self.target_vocab_info.total_size, self.params["embedding.dim"]])
+    source_embedding, target_embedding = self._build_embeddings()
 
     # Embed source
     source_embedded = tf.nn.embedding_lookup(source_embedding, source_ids)
@@ -252,8 +278,7 @@ class Seq2SeqBase(ModelBase):
           start_tokens=tf.fill([batch_size], target_start_id),
           end_token=self.target_vocab_info.special_vocab.SEQUENCE_END)
 
-      # Decode
-      decoder_output, _ = self.encode_decode(
+      decoder_output, _, _ = self.encode_decode(
           source=source_embedded,
           source_len=features["source_len"],
           decode_helper=helper_infer)
@@ -262,11 +287,13 @@ class Seq2SeqBase(ModelBase):
           decoder_output=decoder_output,
           features=features,
           labels=labels)
+
       return predictions, None, None
 
+    # Graph used for train/eval
     # Embed target
-    target_embedded = tf.nn.embedding_lookup(target_embedding,
-                                             labels["target_ids"])
+    target_embedded = tf.nn.embedding_lookup(
+        target_embedding, labels["target_ids"])
 
     # During training/eval, we have labels and use them for teacher forcing
     # We don't feed the last SEQUENCE_END token
@@ -274,7 +301,7 @@ class Seq2SeqBase(ModelBase):
         inputs=target_embedded[:, :-1],
         sequence_length=labels["target_len"] - 1)
 
-    decoder_output, _ = self.encode_decode(
+    decoder_output, _, _ = self.encode_decode(
         source=source_embedded,
         source_len=features["source_len"],
         decode_helper=helper_train)
@@ -289,26 +316,9 @@ class Seq2SeqBase(ModelBase):
     loss = tf.reduce_sum(losses) / tf.to_float(
         tf.reduce_sum(labels["target_len"] - 1))
 
-    learning_rate_decay_fn = training_utils.create_learning_rate_decay_fn(
-        decay_type=self.params["optimizer.lr_decay_type"] or None,
-        decay_steps=self.params["optimizer.lr_decay_steps"],
-        decay_rate=self.params["optimizer.lr_decay_rate"],
-        start_decay_at=self.params["optimizer.lr_start_decay_at"],
-        stop_decay_at=self.params["optimizer.lr_stop_decay_at"],
-        min_learning_rate=self.params["optimizer.lr_min_learning_rate"],
-        staircase=self.params["optimizer.lr_staircase"])
-
-    train_op = tf.contrib.layers.optimize_loss(
-        loss=loss,
-        global_step=tf.contrib.framework.get_global_step(),
-        learning_rate=self.params["optimizer.learning_rate"],
-        learning_rate_decay_fn=learning_rate_decay_fn,
-        clip_gradients=self.params["optimizer.clip_gradients"],
-        optimizer=self.params["optimizer.name"],
-        summaries=["learning_rate", "loss", "gradients", "gradient_norm"])
-
-    if self.mode == tf.contrib.learn.ModeKeys.EVAL:
-      train_op = None
+    train_op = None
+    if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
+      train_op = self._build_train_op(loss)
 
     predictions = self._create_predictions(
         decoder_output=decoder_output,

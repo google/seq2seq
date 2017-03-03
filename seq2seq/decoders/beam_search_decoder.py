@@ -138,6 +138,10 @@ class BeamSearchDecoder(RNNDecoder):
     return final_outputs, final_state
 
   def _build(self, initial_state, helper):
+    # Tile initial state
+    initial_state = nest.map_structure(
+        lambda x: tf.tile(x, [self.batch_size, 1]),
+        initial_state)
     self.decoder._setup(initial_state, helper) #pylint: disable=W0212
     return super(BeamSearchDecoder, self)._build(
         self.decoder.initial_state, self.decoder.helper)
