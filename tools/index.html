@@ -177,7 +177,7 @@
   --dump_attention_dir ${TMPDIR:-/tmp}/attention_plots &gt; /dev/null
 </code></pre>
 
-<p>By default, this script generates an <code>attention_score.npy</code> array file and one attention plot per example. The array file can be <a href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html">loaded used numpy</a> and will contain a list of arrays with shape <code>[target_length, source_length]</code>. If you only want the raw attention score data without the plots you can pass the <code>--dump_atention_no_plot</code> flag. For more details and additional options, see the <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/infer.py"><code>infer.py</code></a> script.</p>
+<p>By default, this script generates an <code>attention_score.npy</code> array file and one attention plot per example. The array file can be <a href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html">loaded used numpy</a> and will contain a list of arrays with shape <code>[target_length, source_length]</code>. If you only want the raw attention score data without the plots you can pass the <code>--dump_atention_no_plot</code> flag. For more details and additional options, see the <a href="https://github.com/google/seq2seq/blob/master/bin/infer.py"><code>infer.py</code></a> script.</p>
 <h2 id="visualizing-beam-search">Visualizing Beam Search</h2>
 <p>To dump beam search debugging information you can pass the <code>--dump_beams</code> flag to the <code>infer.py script</code>. This will
 write a numpy npz with the raw beam search data.</p>
@@ -200,12 +200,12 @@ write a numpy npz with the raw beam search data.</p>
 
 <p><img alt="Beam Search Visualization" src="http://i.imgur.com/kLec8l4l.png" /></p>
 <h2 id="model-performance-profiling">Model Performance Profiling</h2>
-<p>During training, the <a href="https://github.com/dennybritz/seq2seq/blob/master/seq2seq/training/hooks.py">MetadataCaptureHook</a> saves a full trace and timeline information for a single training step (step 10 by default) into a <code>metadata</code> subdirectory of your model directory. You can view the generated <code>timeline.json</code> file in Chrome:</p>
+<p>During training, the <a href="https://github.com/google/seq2seq/blob/master/seq2seq/training/hooks.py">MetadataCaptureHook</a> saves a full trace and timeline information for a single training step (step 10 by default) into a <code>metadata</code> subdirectory of your model directory. You can view the generated <code>timeline.json</code> file in Chrome:</p>
 <ol>
 <li>Go to <code>chrome://tracing</code></li>
 <li>Load the <code>timeline.json</code> file that was saved in <code>/path/to/model/dir/metadata</code></li>
 </ol>
-<p>For large complicated graphs, the timeline files can become quite large and analyzing them using Chrome may be slow, which is why we also provide a <a href="https://github.com/dennybritz/seq2seq/blob/master/bin/tools/profile.py"><code>profile.py</code></a> script that generates useful profiling information:</p>
+<p>For large complicated graphs, the timeline files can become quite large and analyzing them using Chrome may be slow, which is why we also provide a <a href="https://github.com/google/seq2seq/blob/master/bin/tools/profile.py"><code>profile.py</code></a> script that generates useful profiling information:</p>
 <pre><code class="shell">python -m bin.tools.profile --model_dir=${TMPDIR:-/tmp}/nmt_toy_reverse
 </code></pre>
 
