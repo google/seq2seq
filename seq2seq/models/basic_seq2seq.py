@@ -20,10 +20,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import copy
 from pydoc import locate
 import tensorflow as tf
 
 from seq2seq.models.model_base import Seq2SeqBase
+from seq2seq.models import bridges
 
 
 class BasicSeq2Seq(Seq2SeqBase):
@@ -54,15 +56,24 @@ class BasicSeq2Seq(Seq2SeqBase):
   def default_params():
     params = Seq2SeqBase.default_params().copy()
     params.update({
-        "bridge_spec": {
-            "class": "InitialStateBridge",
-        },
+        "bridge.class": "seq2seq.models.bridges.InitialStateBridge",
+        "bridge.params": {},
         "encoder.class": "seq2seq.encoders.UnidirectionalRNNEncoder",
         "encoder.params": {}, # Arbitrary parameters for the encoder
         "decoder.class": "seq2seq.decoders.BasicDecoder",
         "decoder.params": {} # Arbitrary parameters for the decoder
     })
     return params
+
+  def _create_bridge(self, encoder_outputs, decoder_state_size):
+    """Creates the bridge to be used between encoder and decoder"""
+    bridge_class = locate(self.params["bridge.class"]) or \
+      getattr(bridges, self.params["bridge.class"])
+    return bridge_class(
+        encoder_outputs=encoder_outputs,
+        decoder_state_size=decoder_state_size,
+        params=self.params["bridge.params"],
+        mode=self.mode)
 
   def _create_encoder(self, _source, _source_len):
     """Creates the encoder function for this model"""
@@ -96,7 +107,7 @@ class BasicSeq2Seq(Seq2SeqBase):
     # Bridge between encoder and decoder
     bridge = self._create_bridge(
         encoder_outputs=encoder_output,
-        decoder_cell=decoder_fn.cell)
+        decoder_state_size=decoder_fn.cell.state_size)
     decoder_initial_state = bridge()
 
     decoder_output, final_state = decoder_fn(

@@ -31,7 +31,8 @@ The `BasicSeq2Seq` model uses an encoder and decoder with no attention mechanism
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `bridge_spec` | `{ "class": "InitialStateBridge"}` | A dictionary that defines how state is passed between encoder and decoder. The `class` property corresponds to a name of bridge class defined in `seq2seq.models.bridges`. All additional properties in the dictinary are passed to the bridge class constructor, e.g. `{"class": "InitialStateBridge", "activation_fn": "tanh"}`. |
+| `bridge.class` | `seq2seq.models.bridges.InitialStateBridge` | Type of bridge to use. The bridge defines how state is passed between the encoder and decoder. Refer to the `seq2seq.models.bridges` module for more details. |
+| `bridge.params` | `{}` | Parameters passed to the bridge during construction. |
 | `encoder.class` | `seq2seq.encoders.UnidirectionalRNNEncoder` | Type of encoder to use. See the [Encoder Reference](encoders/) for more details and available encoders. |
 | `encoder.params` | `{}` | Parameters passed to the encoder during construction. See the [Encoder Reference](encoders/) for more details.|
 | `decoder.class` | `seq2seq.decoders.BasicDecoder` | Type of decoder to use. See the [Decoder Reference](decoders/) for more details and available encoders. |

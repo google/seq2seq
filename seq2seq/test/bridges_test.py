@@ -85,8 +85,9 @@ class TestZeroBridge(BridgeTest):
   def _create_bridge(self, **kwargs):
     return ZeroBridge(
         encoder_outputs=self.encoder_outputs,
-        decoder_cell=self.decoder_cell,
-        **kwargs)
+        decoder_state_size=self.decoder_cell.state_size,
+        params=kwargs,
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
 
   def _assert_correct_outputs(self, initial_state_):
     initial_state_flat_ = nest.flatten(initial_state_)
@@ -101,8 +102,9 @@ class TestPassThroughBridge(BridgeTest):
   def _create_bridge(self, **kwargs):
     return PassThroughBridge(
         encoder_outputs=self.encoder_outputs,
-        decoder_cell=self.decoder_cell,
-        **kwargs)
+        decoder_state_size=self.decoder_cell.state_size,
+        params=kwargs,
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
 
   def _assert_correct_outputs(self, initial_state_):
     nest.assert_same_structure(initial_state_, self.decoder_cell.state_size)
@@ -126,21 +128,20 @@ class TestInitialStateBridge(BridgeTest):
   def _create_bridge(self, **kwargs):
     return InitialStateBridge(
         encoder_outputs=self.encoder_outputs,
-        decoder_cell=self.decoder_cell,
-        **kwargs)
+        decoder_state_size=self.decoder_cell.state_size,
+        params=kwargs,
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
 
   def _assert_correct_outputs(self, initial_state_):
     nest.assert_same_structure(initial_state_, self.decoder_cell.state_size)
 
   def test_with_final_state(self):
     self._assert_correct_outputs(self._run(
-        bridge_input="final_state",
-        activation_fn=None))
+        bridge_input="final_state"))
 
   def test_with_outputs(self):
     self._assert_correct_outputs(self._run(
-        bridge_input="outputs",
-        activation_fn=None))
+        bridge_input="outputs"))
 
   def test_with_activation_fn(self):
     self._assert_correct_outputs(self._run(

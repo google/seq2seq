@@ -18,7 +18,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import copy
 import collections
 import tensorflow as tf
 
@@ -27,7 +26,7 @@ from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
 from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
 from seq2seq.inference import beam_search
-from seq2seq.models import featurizers, bridges
+from seq2seq.models import featurizers
 from seq2seq.training import utils as training_utils
 
 from seq2seq.contrib.seq2seq import helper as tf_decode_helper
@@ -117,16 +116,6 @@ class Seq2SeqBase(ModelBase):
         target_vocab_info=self.target_vocab_info,
         max_seq_len_source=max_seq_len_source,
         max_seq_len_target=max_seq_len_target)
-
-  def _create_bridge(self, encoder_outputs, decoder_cell):
-    """Creates the bridge to be used between encoder and decoder"""
-    bridge_spec = copy.deepcopy(self.params["bridge_spec"])
-    bridge_class_name = bridge_spec.pop("class")
-    bridge_class = getattr(bridges, bridge_class_name)
-    return bridge_class(
-        encoder_outputs=encoder_outputs,
-        decoder_cell=decoder_cell,
-        **bridge_spec)
 
   @staticmethod
   def default_params():

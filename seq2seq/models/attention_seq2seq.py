@@ -54,9 +54,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     params.update({
         "attention.class": "AttentionLayerBahdanau",
         "attention.params": {"num_units": 128},
-        "bridge_spec": {
-            "class": "ZeroBridge",
-        },
+        "bridge.class": "seq2seq.models.bridges.ZeroBridge",
         "encoder.class": "seq2seq.encoders.BidirectionalRNNEncoder",
         "encoder.params": {}, # Arbitrary parameters for the encoder
         "decoder.class": "seq2seq.decoders.AttentionDecoder",
