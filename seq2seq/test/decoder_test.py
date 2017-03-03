@@ -133,6 +133,8 @@ class DecoderTests(object):
 
 
   def test_with_beam_search(self):
+    self.batch_size = 1
+
     # Batch size for beam search must be 1.
     config = beam_search.BeamSearchConfig(
         beam_width=10,
@@ -140,7 +142,6 @@ class DecoderTests(object):
         eos_token=self.vocab_size - 2,
         length_penalty_weight=0.6,
         choose_successors_fn=beam_search.choose_top_k)
-    self.batch_size = config.beam_width
 
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 

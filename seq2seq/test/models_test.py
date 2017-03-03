@@ -86,7 +86,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     model = self.create_model(tf.contrib.learn.ModeKeys.TRAIN)
-    decoder_output, _ = model.encode_decode(
+    decoder_output, _, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
@@ -123,7 +123,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         start_tokens=[0] * self.batch_size,
         end_token=-1)
 
-    decoder_output, _ = model.encode_decode(
+    decoder_output, _, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
@@ -163,7 +163,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         start_tokens=[0] * beam_width,
         end_token=-1)
 
-    decoder_output, _ = model.encode_decode(
+    decoder_output, _, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
@@ -202,7 +202,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
 
     model = self.create_model(tf.contrib.learn.ModeKeys.TRAIN)
-    decoder_output, _ = model.encode_decode(
+    decoder_output, _, _ = model.encode_decode(
         source=tf.convert_to_tensor(
             ex.source, dtype=tf.float32),
         source_len=tf.convert_to_tensor(
