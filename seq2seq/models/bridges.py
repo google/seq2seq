@@ -21,18 +21,22 @@ from __future__ import division
 from __future__ import print_function
 
 import abc
+from pydoc import locate
+
 import six
 import numpy as np
 
 import tensorflow as tf
 from tensorflow.python.util import nest
 
+from seq2seq.configurable import Configurable
+
 def _total_tensor_depth(tensor):
   """Returns the size of a tensor without the first (batch) dimension"""
   return np.prod(tensor.get_shape().as_list()[1:])
 
 @six.add_metaclass(abc.ABCMeta)
-class Bridge(object):
+class Bridge(Configurable):
   """An abstract bridge class. A bridge defines how state is passed
   between encoder and decoder.
 
@@ -41,11 +45,12 @@ class Bridge(object):
 
   Args:
     encoder_outputs: A namedtuple that corresponds to the the encoder outputs.
-    decoder_cell: The RNN cell used in the decoder.
+    decoder_state_size: The RNN cell used in the decoder.
   """
-  def __init__(self, encoder_outputs, decoder_cell):
+  def __init__(self, encoder_outputs, decoder_state_size, params, mode):
+    Configurable.__init__(self, params, mode)
     self.encoder_outputs = encoder_outputs
-    self.decoder_cell = decoder_cell
+    self.decoder_state_size = decoder_state_size
     self.batch_size = tf.shape(
         nest.flatten(self.encoder_outputs.final_state)[0])[0]
 
@@ -72,8 +77,15 @@ class ZeroBridge(Bridge):
   """A bridge that does not pass any information between encoder and decoder
   and sets the initial decoder state to 0. The input function is not modified.
   """
+
+  @staticmethod
+  def default_params():
+    return {}
+
   def _create(self):
-    zero_state = self.decoder_cell.zero_state(self.batch_size, dtype=tf.float32)
+    zero_state = nest.map_structure(
+        lambda x: tf.zeros([self.batch_size, x], dtype=tf.float32),
+        self.decoder_state_size)
     return zero_state
 
 
@@ -82,10 +94,14 @@ class PassThroughBridge(Bridge):
   can only be used if encoder and decoder have the exact same state size, i.e.
   use the same RNN cell.
   """
+  @staticmethod
+  def default_params():
+    return {}
+
   def _create(self):
     nest.assert_same_structure(
         self.encoder_outputs.final_state,
-        self.decoder_cell.state_size)
+        self.decoder_state_size)
     return  self.encoder_outputs.final_state
 
 
@@ -97,7 +113,7 @@ class InitialStateBridge(Bridge):
 
   Args:
     encoder_outputs: A namedtuple that corresponds to the the encoder outputs.
-    decoder_cell: The RNN cell used in the decoder.
+    decoder_state_size: The RNN cell used in the decoder.
     bridge_input: Which attribute of the `encoder_outputs` to use for the
       initial state calculation. For example, "final_state" means that
       `encoder_outputs.final_state` will be used.
@@ -108,19 +124,24 @@ class InitialStateBridge(Bridge):
   def __init__(
       self,
       encoder_outputs,
-      decoder_cell,
-      bridge_input="final_state",
-      activation_fn=None):
+      decoder_state_size,
+      params,
+      mode):
     super(InitialStateBridge, self).__init__(
-        encoder_outputs, decoder_cell)
+        encoder_outputs, decoder_state_size, params, mode)
 
-    if not hasattr(encoder_outputs, bridge_input):
+    if not hasattr(encoder_outputs, self.params["bridge_input"]):
       raise ValueError("Invalid bridge_input not in encoder outputs.")
 
-    self._bridge_input = getattr(encoder_outputs, bridge_input)
-    self._activation_fn = None
-    if activation_fn is not None:
-      self._activation_fn = getattr(tf.nn, activation_fn)
+    self._bridge_input = getattr(encoder_outputs, self.params["bridge_input"])
+    self._activation_fn = locate(self.params["activation_fn"])
+
+  @staticmethod
+  def default_params():
+    return {
+        "bridge_input": "final_state",
+        "activation_fn": "tensorflow.identity",
+    }
 
   def _create(self):
     # Concat bridge inputs on the depth dimensions
@@ -139,6 +160,6 @@ class InitialStateBridge(Bridge):
             num_outputs=output_size,
             activation_fn=self._activation_fn)
 
-      initial_state = nest.map_structure(map_fn, self.decoder_cell.state_size)
+      initial_state = nest.map_structure(map_fn, self.decoder_state_size)
 
     return initial_state
