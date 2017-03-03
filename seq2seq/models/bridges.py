@@ -45,7 +45,8 @@ class Bridge(Configurable):
 
   Args:
     encoder_outputs: A namedtuple that corresponds to the the encoder outputs.
-    decoder_state_size: The RNN cell used in the decoder.
+    decoder_state_size: An integer or tuple of integers defining the
+      state size of the decoder.
   """
   def __init__(self, encoder_outputs, decoder_state_size, params, mode):
     Configurable.__init__(self, params, mode)
@@ -113,7 +114,8 @@ class InitialStateBridge(Bridge):
 
   Args:
     encoder_outputs: A namedtuple that corresponds to the the encoder outputs.
-    decoder_state_size: The RNN cell used in the decoder.
+    decoder_state_size: An integer or tuple of integers defining the
+      state size of the decoder.
     bridge_input: Which attribute of the `encoder_outputs` to use for the
       initial state calculation. For example, "final_state" means that
       `encoder_outputs.final_state` will be used.
