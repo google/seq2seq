@@ -22,11 +22,7 @@ from __future__ import print_function
 
 from pydoc import locate
 import tensorflow as tf
-from tensorflow.python.util import nest
 
-from seq2seq import training
-from seq2seq import encoders
-from seq2seq import decoders
 from seq2seq.models.model_base import Seq2SeqBase
 
 
@@ -103,13 +99,7 @@ class BasicSeq2Seq(Seq2SeqBase):
         decoder_cell=decoder_fn.cell)
     decoder_initial_state = bridge()
 
-    if self.use_beam_search:
-      beam_width = self.params["inference.beam_search.beam_width"]
-      decoder_initial_state = nest.map_structure(
-          lambda x: tf.tile(x, [beam_width, 1]),
-          decoder_initial_state)
-
     decoder_output, final_state = decoder_fn(
         decoder_initial_state, decode_helper)
 
-    return decoder_output, final_state
+    return decoder_output, final_state, encoder_output
