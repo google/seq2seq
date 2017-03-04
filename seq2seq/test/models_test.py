@@ -43,9 +43,9 @@ class EncoderDecoderTests(tf.test.TestCase):
   def setUp(self):
     super(EncoderDecoderTests, self).setUp()
     tf.logging.set_verbosity(tf.logging.INFO)
-    self.batch_size = 4
-    self.input_depth = 32
-    self.max_decode_length = 40
+    self.batch_size = 2
+    self.input_depth = 4
+    self.sequence_length = 10
 
     # Create vocabulary
     self.vocab_list = [str(_) for _ in range(10)]
@@ -64,10 +64,10 @@ class EncoderDecoderTests(tf.test.TestCase):
 
   def _create_example(self):
     """Creates example data for a test"""
-    source = np.random.randn(self.batch_size, self.max_decode_length,
+    source = np.random.randn(self.batch_size, self.sequence_length,
                              self.input_depth)
-    source_len = np.random.randint(0, self.max_decode_length, [self.batch_size])
-    target_len = np.random.randint(0, self.max_decode_length * 2,
+    source_len = np.random.randint(0, self.sequence_length, [self.batch_size])
+    target_len = np.random.randint(0, self.sequence_length * 2,
                                    [self.batch_size])
     target = np.random.randn(self.batch_size,
                              np.max(target_len), self.input_depth)
@@ -135,12 +135,13 @@ class EncoderDecoderTests(tf.test.TestCase):
       decoder_output_ = sess.run(decoder_output)
 
     # Assert shapes are correct
+    expected_decode_len = model.params["inference.max_decode_length"]
     np.testing.assert_array_equal(decoder_output_.logits.shape, [
-        self.max_decode_length, self.batch_size,
+        expected_decode_len, self.batch_size,
         model.target_vocab_info.total_size
     ])
     np.testing.assert_array_equal(decoder_output_.predicted_ids.shape,
-                                  [self.max_decode_length, self.batch_size])
+                                  [expected_decode_len, self.batch_size])
 
   def test_inference_with_beam_search(self):
     """Tests model inference by feeding dynamic inputs based on an embedding
@@ -175,21 +176,22 @@ class EncoderDecoderTests(tf.test.TestCase):
       decoder_output_ = sess.run(decoder_output)
 
     # Assert shapes are correct
+    expected_decode_len = model.params["inference.max_decode_length"]
     np.testing.assert_array_equal(
         decoder_output_.predicted_ids.shape,
-        [self.max_decode_length, 1, beam_width])
+        [expected_decode_len, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.beam_search_output.beam_parent_ids.shape,
-        [self.max_decode_length, 1, beam_width])
+        [expected_decode_len, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.beam_search_output.scores.shape,
-        [self.max_decode_length, 1, beam_width])
+        [expected_decode_len, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.beam_search_output.original_outputs.predicted_ids.shape,
-        [self.max_decode_length, 1, beam_width])
+        [expected_decode_len, 1, beam_width])
     np.testing.assert_array_equal(
         decoder_output_.beam_search_output.original_outputs.logits.shape,
-        [self.max_decode_length, 1, beam_width,
+        [expected_decode_len, 1, beam_width,
          model.target_vocab_info.total_size])
 
   def test_gradients(self):
@@ -232,8 +234,8 @@ class EncoderDecoderTests(tf.test.TestCase):
     """Helper function to test the full model pipeline.
     """
     # Create source and target example
-    source_len = 10
-    target_len = self.max_decode_length + 10
+    source_len = self.sequence_length + 5
+    target_len = self.sequence_length + 10
     source = " ".join(np.random.choice(self.vocab_list, source_len))
     target = " ".join(np.random.choice(self.vocab_list, target_len))
     sources_file, targets_file = test_utils.create_temp_parallel_data(
@@ -265,7 +267,7 @@ class EncoderDecoderTests(tf.test.TestCase):
     model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.TRAIN)
     predictions_, loss_, _ = fetches_
 
-    target_len = self.max_decode_length + 10
+    target_len = self.sequence_length + 10 + 2
     max_decode_length = model.params["target.max_seq_len"]
     expected_decode_len = np.minimum(target_len, max_decode_length)
 
@@ -332,10 +334,7 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
   def create_model(self, mode, params=None):
     params_ = BasicSeq2Seq.default_params().copy()
     params_.update({
-        "bridge_spec": {
-            "class": "PassThroughBridge",
-        },
-        "inference.max_decode_length": self.max_decode_length,
+        "bridge.class": "PassThroughBridge",
         "encoder.params": {
             "rnn_cell": {
                 "dropout_input_keep_prob": 0.8,
@@ -374,7 +373,6 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
   def create_model(self, mode, params=None):
     params_ = AttentionSeq2Seq.default_params().copy()
     params_.update({
-        "inference.max_decode_length": self.max_decode_length,
         "source.reverse": True
     })
     params_.update(params or {})
