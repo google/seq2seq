@@ -153,15 +153,16 @@ class InitialStateBridge(Bridge):
     bridge_input_flat = nest.flatten([bridge_input])
     bridge_input_concat = tf.concat(bridge_input_flat, 1)
 
-    # Pass bridge inputs through a linear layer
-    with tf.variable_scope("initial_state_bridge"):
-      def map_fn(output_size):
-        """Linear layer for bridge inputs"""
-        return tf.contrib.layers.fully_connected(
-            inputs=bridge_input_concat,
-            num_outputs=output_size,
-            activation_fn=self._activation_fn)
+    state_size_splits = nest.flatten(self.decoder_state_size)
+    total_decoder_state_size = sum(state_size_splits)
 
-      initial_state = nest.map_structure(map_fn, self.decoder_state_size)
+    # Pass bridge inputs through a fully connected layer layer
+    initial_state_flat = tf.contrib.layers.fully_connected(
+        inputs=bridge_input_concat,
+        num_outputs=total_decoder_state_size,
+        activation_fn=self._activation_fn)
 
-    return initial_state
+    # Shape back into required state size
+    initial_state = tf.split(initial_state_flat, state_size_splits, axis=1)
+    return nest.pack_sequence_as(
+        self.decoder_state_size, initial_state)

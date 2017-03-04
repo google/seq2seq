@@ -50,7 +50,7 @@ class BridgeTest(tf.test.TestCase):
         outputs=tf.convert_to_tensor(
             value=np.random.randn(self.batch_size, 10, 16),
             dtype=tf.float32),
-        attention_keys=tf.convert_to_tensor(
+        attention_values=tf.convert_to_tensor(
             value=np.random.randn(self.batch_size, 10, 16),
             dtype=tf.float32),
         final_state=final_encoder_state)
