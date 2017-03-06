@@ -87,8 +87,8 @@ class AttentionSeq2Seq(BasicSeq2Seq):
         mode=self.mode,
         vocab_size=self.target_vocab_info.total_size,
         max_decode_length=max_decode_length,
-        attention_values=encoder_output.outputs,
+        attention_values=encoder_output.attention_values,
         attention_values_length=source_len,
-        attention_keys=encoder_output.attention_keys,
+        attention_keys=encoder_output.outputs,
         attention_fn=attention_layer,
         reverse_scores_lengths=reverse_scores_lengths)
