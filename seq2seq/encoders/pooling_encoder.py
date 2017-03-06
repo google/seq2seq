@@ -29,7 +29,7 @@ from seq2seq.encoders.encoder import Encoder, EncoderOutput
 
 
 def _create_position_embedding(embedding_dim, num_positions, lengths, maxlen):
-  """Creates posiiton embeddings.
+  """Creates position embeddings.
 
   Args:
     embedding_dim: Dimensionality of the embeddings. An integer.
@@ -37,12 +37,12 @@ def _create_position_embedding(embedding_dim, num_positions, lengths, maxlen):
       if you have inputs of length up to 100, this should be 100. An integer.
     lengths: The lengths of the inputs to create position embeddings for.
       An int32 tensor of shape `[batch_size]`.
-    maxlen: The maximum length of the input sequence to create positon
+    maxlen: The maximum length of the input sequence to create position
       embeddings for. An int32 tensor.
 
   Returns:
     A tensor of shape `[batch_size, maxlen, embedding_dim]` that contains
-    embeddedings for each position. All elements past `lengths` are zero.
+    embeddings for each position. All elements past `lengths` are zero.
   """
   batch_size = tf.shape(lengths)[0]
   embedding = tf.get_variable(
@@ -68,7 +68,7 @@ class PoolingEncoder(Encoder):
   Params:
     pooling_fn: The 1-d pooling function to use, e.g.
       `tensorflow.layers.average_pooling1d`.
-    pool_size: pooling window size, an inteher
+    pool_size: pooling window size, an integer
     strides: stride used for pooling, an integer
     position_embeddings.enable: If True, add position embeddings to the inputs.
     position_embeddings.num_positions: The size of the position embeddings.
@@ -77,7 +77,7 @@ class PoolingEncoder(Encoder):
       with the inputs. For example, `tensorflow.add`.
   """
 
-  def __init__(self, params, mode, name="poolig_encoder"):
+  def __init__(self, params, mode, name="pooling_encoder"):
     super(PoolingEncoder, self).__init__(params, mode, name)
     self._pooling_fn = locate(self.params["pooling_fn"])
     self._combiner_fn = locate(self.params["position_embeddings.combiner_fn"])
