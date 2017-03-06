@@ -83,7 +83,10 @@ class PipelineTest(tf.test.TestCase):
     tf.app.flags.FLAGS.train_target = targets_train.name
     tf.app.flags.FLAGS.vocab_source = vocab_source.name
     tf.app.flags.FLAGS.vocab_target = vocab_target.name
-    tf.app.flags.FLAGS.hparams = """{"embedding.dim": 10}"""
+    tf.app.flags.FLAGS.hparams = """
+    attention.params:
+      num_units: 10
+    """
     tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
     tf.app.flags.FLAGS.batch_size = 2
 
@@ -96,14 +99,17 @@ class PipelineTest(tf.test.TestCase):
           "train_steps": 50,
           "hparams": {
               "embedding.dim": 10,
-              "attention.dim": 16,
-              "decoder.rnn_cell.cell_class": "GRUCell",
-              "decoder.rnn_cell.cell_params": {
-                  "num_units": 8
+              "decoder.params": {
+                  "rnn_cell": {
+                      "cell_class": "GRUCell",
+                      "cell_params": {"num_units": 8}
+                  }
               },
-              "encoder.rnn_cell.cell_class": "GRUCell",
-              "encoder.rnn_cell.cell_params": {
-                  "num_units": 8
+              "encoder.params": {
+                  "rnn_cell": {
+                      "cell_class": "GRUCell",
+                      "cell_params": {"num_units": 8}
+                  }
               }
           }}, config_file)
 
