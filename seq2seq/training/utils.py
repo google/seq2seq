@@ -50,12 +50,10 @@ class TrainOptions(object):
   def __init__(self,
                hparams=None,
                model_class=None,
-               source_vocab_path=None,
-               target_vocab_path=None):
+               task_params=None):
     self.hparams = hparams
     self.model_class = model_class
-    self.source_vocab_path = source_vocab_path
-    self.target_vocab_path = target_vocab_path
+    self.task_params = task_params
 
   @staticmethod
   def path(model_dir):
@@ -77,8 +75,7 @@ class TrainOptions(object):
     options_dict = {
         "hparams": self.hparams,
         "model_class": self.model_class,
-        "source_vocab_path": self.source_vocab_path,
-        "target_vocab_path": self.target_vocab_path
+        "task_params": self.task_params,
     }
 
     with gfile.GFile(TrainOptions.path(model_dir), "w") as file:
@@ -98,8 +95,7 @@ class TrainOptions(object):
     return TrainOptions(
         hparams=options_dict["hparams"],
         model_class=options_dict["model_class"],
-        source_vocab_path=options_dict["source_vocab_path"],
-        target_vocab_path=options_dict["target_vocab_path"])
+        task_params=options_dict["task_params"])
 
 def cell_from_spec(cell_classname, cell_params):
   """Create a RNN Cell instance from a JSON string.
@@ -290,42 +286,42 @@ def create_input_fn(pipeline,
   return input_fn
 
 
-def create_default_training_hooks(
-    estimator,
-    sample_frequency=500,
-    source_delimiter=" ",
-    target_delimiter=" "):
-  """Creates common SessionRunHooks used for training.
+# def create_default_training_hooks(
+#     estimator,
+#     sample_frequency=500,
+#     source_delimiter=" ",
+#     target_delimiter=" "):
+#   """Creates common SessionRunHooks used for training.
 
-  Args:
-    estimator: The estimator instance
-    sample_frequency: frequency of samples passed to the TrainSampleHook
+#   Args:
+#     estimator: The estimator instance
+#     sample_frequency: frequency of samples passed to the TrainSampleHook
 
-  Returns:
-    An array of `SessionRunHook` items.
-  """
-  output_dir = estimator.model_dir
-  training_hooks = []
+#   Returns:
+#     An array of `SessionRunHook` items.
+#   """
+#   output_dir = estimator.model_dir
+#   training_hooks = []
 
-  model_analysis_hook = hooks.PrintModelAnalysisHook(
-      filename=os.path.join(output_dir, "model_analysis.txt"))
-  training_hooks.append(model_analysis_hook)
+#   model_analysis_hook = hooks.PrintModelAnalysisHook(
+#       filename=os.path.join(output_dir, "model_analysis.txt"))
+#   training_hooks.append(model_analysis_hook)
 
-  train_sample_hook = hooks.TrainSampleHook(
-      every_n_steps=sample_frequency,
-      sample_dir=os.path.join(output_dir, "samples"),
-      source_delimiter=source_delimiter,
-      target_delimiter=target_delimiter)
-  training_hooks.append(train_sample_hook)
+#   metadata_hook = hooks.MetadataCaptureHook(
+#       output_dir=os.path.join(output_dir, "metadata"),
+#       step=10)
+#   training_hooks.append(metadata_hook)
 
-  metadata_hook = hooks.MetadataCaptureHook(
-      output_dir=os.path.join(output_dir, "metadata"),
-      step=10)
-  training_hooks.append(metadata_hook)
+#   train_sample_hook = hooks.TrainSampleHook(
+#       every_n_steps=sample_frequency,
+#       sample_dir=os.path.join(output_dir, "samples"),
+#       source_delimiter=source_delimiter,
+#       target_delimiter=target_delimiter)
+#   training_hooks.append(train_sample_hook)
 
-  tokens_per_sec_counter = hooks.TokensPerSecondCounter(
-      every_n_steps=100,
-      output_dir=output_dir)
-  training_hooks.append(tokens_per_sec_counter)
+#   tokens_per_sec_counter = hooks.TokensPerSecondCounter(
+#       every_n_steps=100,
+#       output_dir=output_dir)
+#   training_hooks.append(tokens_per_sec_counter)
 
-  return training_hooks
+#   return training_hooks

@@ -58,9 +58,10 @@ class AttentionLayer(GraphModule, Configurable):
     GraphModule.__init__(self, name)
     Configurable.__init__(self, params, mode)
 
-  def default_params(self):
+  @staticmethod
+  def default_params():
     return {
-      "num_units": 128
+        "num_units": 128
     }
 
   @abc.abstractmethod

@@ -24,10 +24,9 @@ from pydoc import locate
 import yaml
 from six import string_types
 
-from seq2seq import models
-from seq2seq.data import input_pipeline, vocab
+from seq2seq import models, tasks
+from seq2seq.data import input_pipeline
 from seq2seq.training import utils as training_utils
-from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
@@ -35,39 +34,19 @@ from tensorflow.contrib.learn.python.learn.estimators import run_config
 from tensorflow.python.platform import gfile
 
 
-# Input Data
-tf.flags.DEFINE_string("train_source", None,
-                       """Path to the training data source sentences. A raw
-                       text files with tokens separated by spaces.""")
-tf.flags.DEFINE_string("train_target", None,
-                       """Path to the training data target sentences. A raw
-                       text files with tokens separated by spaces.""")
-tf.flags.DEFINE_string("dev_source", None,
-                       """Path to the development data source sentences.
-                       Same format as training data.""")
-tf.flags.DEFINE_string("dev_target", None,
-                       """Path to the development data target sentences.
-                       Same format as training data.""")
-tf.flags.DEFINE_string("vocab_source", None,
-                       """Path to the source vocabulary.
-                       A raw text file with one word per line.""")
-tf.flags.DEFINE_string("vocab_target", None,
-                       """Path to the target vocabulary.
-                       A raw text file with one word per line.""")
-tf.flags.DEFINE_string("source_delimiter", " ",
-                       """Split source files into tokens on this delimiter.
-                      Defaults to " " (space).""")
-tf.flags.DEFINE_string("target_delimiter", " ",
-                       """Split target files into tokens on this delimiter.
-                      Defaults to " " (space).""")
+tf.flags.DEFINE_string("task", "TextToText",
+                       """TODO""")
+tf.flags.DEFINE_string("task_params", None,
+                       """TODO""")
+
 tf.flags.DEFINE_string("config_path", None,
                        """Path to a YAML configuration file defining FLAG
                        values and hyperparameters. Refer to the documentation
                        for more details.""")
-tf.flags.DEFINE_string("train_input_pipeline_def", None,
+tf.flags.DEFINE_string("input_pipeline_train", None,
                        """Use this to overwrite the training input pipeline.
                        A YAML string.""")
-tf.flags.DEFINE_string("dev_input_pipeline_def", None,
+tf.flags.DEFINE_string("input_pipeline_dev", None,
                        """Use this to overwrite the development input pipeline.
                        A YAML string.""")
 
@@ -107,10 +86,6 @@ tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
 tf.flags.DEFINE_integer("sample_every_n_steps", 500,
                         """Sample and print sequence predictions every N steps
                         during training.""")
-tf.flags.DEFINE_string("metrics", "log_perplexity,bleu",
-                       """Comma-separated list of metrics to evaluate. Each
-                       one must be defined in the `METRIC_SPECS_DICT` in
-                       metric_specs.py""")
 
 # RunConfig Flags
 tf.flags.DEFINE_integer("tf_random_seed", None,
@@ -149,34 +124,30 @@ def create_experiment(output_dir):
       keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
   )
 
-  # Load vocabulary info
-  source_vocab_info = vocab.get_vocab_info(FLAGS.vocab_source)
-  target_vocab_info = vocab.get_vocab_info(FLAGS.vocab_target)
+  # Load the correct task type
+  task_class = locate(FLAGS.task) or getattr(tasks, FLAGS.task)
+  task = task_class(
+      params=yaml.load(FLAGS.task_params))
 
   # Find model class
-  model_class = locate(FLAGS.model) or getattr(models, FLAGS.model)
+  # model_class = locate(FLAGS.model) or getattr(models, FLAGS.model)
 
   # Parse parameter and merge with defaults
-  hparams = model_class.default_params()
-  if isinstance(FLAGS.hparams, string_types):
-    hparams.update(yaml.load(FLAGS.hparams))
-  elif isinstance(FLAGS.hparams, dict):
-    hparams.update(FLAGS.hparams)
+  # hparams = model_class.default_params()
+  # if isinstance(FLAGS.hparams, string_types):
+  #   hparams.update(yaml.load(FLAGS.hparams))
+  # elif isinstance(FLAGS.hparams, dict):
+  #   hparams.update(FLAGS.hparams)
 
   # One the main worker, save training options and vocabulary
   if config.is_chief:
      # Copy vocabulary to output directory
     gfile.MakeDirs(output_dir)
-    source_vocab_path = os.path.join(output_dir, "vocab_source")
-    gfile.Copy(FLAGS.vocab_source, source_vocab_path, overwrite=True)
-    target_vocab_path = os.path.join(output_dir, "vocab_target")
-    gfile.Copy(FLAGS.vocab_target, target_vocab_path, overwrite=True)
     # Save train options
     train_options = training_utils.TrainOptions(
-        hparams=hparams,
-        model_class=FLAGS.model,
-        source_vocab_path=source_vocab_path,
-        target_vocab_path=target_vocab_path)
+        hparams=task.params["model_params"],
+        model_class=task.params["model_class"],
+        task_params=task.params)
     train_options.dump(output_dir)
 
   bucket_boundaries = None
@@ -184,30 +155,15 @@ def create_experiment(output_dir):
     bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
 
   # Define training data input pipeline
-  if FLAGS.train_input_pipeline_def is not None:
-    train_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-        FLAGS.train_input_pipeline_def)
-  else:
-    train_input_pipeline = input_pipeline.ParallelTextInputPipeline(
-        source_files=FLAGS.train_source,
-        target_files=FLAGS.train_target,
-        source_delimiter=FLAGS.source_delimiter,
-        target_delimiter=FLAGS.target_delimiter,
-        shuffle=True,
-        num_epochs=FLAGS.train_epochs)
+  train_input_pipeline = input_pipeline.make_input_pipeline_from_def(
+      def_dict=yaml.load(FLAGS.input_pipeline_train),
+      mode=tf.contrib.learn.ModeKeys.TRAIN)
 
   # Define development data input pipeline
-  if FLAGS.dev_input_pipeline_def is not None:
-    dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-        FLAGS.dev_input_pipeline_def, shuffle=False, num_epochs=1)
-  else:
-    dev_input_pipeline = input_pipeline.ParallelTextInputPipeline(
-        source_files=FLAGS.dev_source,
-        target_files=FLAGS.dev_target,
-        source_delimiter=FLAGS.source_delimiter,
-        target_delimiter=FLAGS.target_delimiter,
-        shuffle=False,
-        num_epochs=1)
+  dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
+      def_dict=yaml.load(FLAGS.input_pipeline_dev),
+      mode=tf.contrib.learn.ModeKeys.EVAL,
+      shuffle=False, num_epochs=1)
 
   # Create training input function
   train_input_fn = training_utils.create_input_fn(
@@ -223,27 +179,17 @@ def create_experiment(output_dir):
 
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
-    model = model_class(
-        source_vocab_info=source_vocab_info,
-        target_vocab_info=target_vocab_info,
-        params=params,
-        mode=mode)
+    model = task.create_model(mode=mode)
     return model(features, labels, params)
 
   estimator = tf.contrib.learn.Estimator(
       model_fn=model_fn,
       model_dir=output_dir,
       config=config,
-      params=hparams)
+      params=task.params["model_params"])
 
-  train_hooks = training_utils.create_default_training_hooks(
-      estimator=estimator,
-      sample_frequency=FLAGS.sample_every_n_steps,
-      source_delimiter=FLAGS.source_delimiter,
-      target_delimiter=FLAGS.target_delimiter)
-
-  metrics_list = [_.strip() for _ in FLAGS.metrics.split(",")]
-  eval_metrics = {m : METRIC_SPECS_DICT[m] for m in metrics_list}
+  train_hooks = task.create_training_hooks(estimator)
+  eval_metrics = task.create_metrics()
 
   experiment = tf.contrib.learn.Experiment(
       estimator=estimator,
