@@ -36,14 +36,14 @@ from seq2seq import models
 EXAMPLE_CONFIG_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../example_configs"))
 
-def _load_model_from_config(config_path, params, vocab_info, mode):
+def _load_model_from_config(config_path, hparam_overrides, vocab_info, mode):
   """Loads model from a configuration file"""
   with gfile.GFile(config_path) as config_file:
     config = yaml.load(config_file)
   model_cls = locate(config["model"]) or getattr(models, config["model"])
   hparams = config["hparams"]
-  if params:
-    hparams.update(params)
+  if hparam_overrides:
+    hparams.update(hparam_overrides)
   # Change the max decode length to make the test run faster
   hparams["inference.max_decode_length"] = 5
   return model_cls(
@@ -72,7 +72,7 @@ class ExampleConfigTest(object):
     """Creates the model"""
     return _load_model_from_config(
         config_path=self._config_path(),
-        params=params,
+        hparam_overrides=params,
         vocab_info=self.vocab_info,
         mode=mode)
 
