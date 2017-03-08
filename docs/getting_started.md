@@ -47,13 +47,21 @@ Given the above input files, you can now train a new model:
 
 ```bash
 python -m bin.train \
-  --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
-  --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
-  --dev_source $HOME/nmt_data/toy_reverse/dev/sources.txt \
-  --dev_target $HOME/nmt_data/toy_reverse/dev/targets.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
-  --model AttentionSeq2Seq \
+  --task TextToText \
+  --task_params "
+      vocab_source: $HOME/nmt_data/toy_reverse/train/vocab.sources.txt
+      vocab_target: $HOME/nmt_data/toy_reverse/train/vocab.targets.txt
+      model_class: AttentionSeq2Seq" \
+  --input_pipeline_train "
+    class: ParallelTextInputPipeline
+    params:
+      source_files: ['${HOME}/nmt_data/toy_reverse/train/sources.txt']
+      target_files: ['${HOME}/nmt_data/toy_reverse/train/targets.txt']" \
+  --input_pipeline_dev "
+    class: ParallelTextInputPipeline
+    params:
+       source_files: ['${HOME}/nmt_data/toy_reverse/dev/sources.txt']
+       target_files: ['${HOME}/nmt_data/toy_reverse/dev/targets.txt']" \
   --batch_size 32 \
   --train_steps 2000 \
   --output_dir ${TMPDIR:-/tmp}/nmt_toy_reverse
@@ -63,9 +71,13 @@ On a CPU, the training may take up to 15 minutes. With the trained model, you ca
 
 ```bash
 python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
+  --task TextToTextInfer \
   --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
+  --input_pipeline "
+    class: ParallelTextInputPipeline
+    params:
+      source_files: ['$HOME/nmt_data/toy_reverse/test/sources.txt']" \
+   > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 
 # Evaluate BLEU score using multi-bleu script from MOSES
 ./bin/tools/multi-bleu.perl $HOME/nmt_data/toy_reverse/test/targets.txt < ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt

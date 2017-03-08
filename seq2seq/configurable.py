@@ -53,7 +53,6 @@ def _deep_merge_dict(dict_x, dict_y, path=None):
       dict_x[key] = dict_y[key]
   return dict_x
 
-
 def _parse_params(params, default_params):
   """Parses parameter values to the types defined by the default parameters.
   Default parameters are used for missing values.

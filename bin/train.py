@@ -43,6 +43,7 @@ tf.flags.DEFINE_string("config_path", None,
                        """Path to a YAML configuration file defining FLAG
                        values and hyperparameters. Refer to the documentation
                        for more details.""")
+
 tf.flags.DEFINE_string("input_pipeline_train", None,
                        """Use this to overwrite the training input pipeline.
                        A YAML string.""")
@@ -50,10 +51,6 @@ tf.flags.DEFINE_string("input_pipeline_dev", None,
                        """Use this to overwrite the development input pipeline.
                        A YAML string.""")
 
-# Model Configuration
-tf.flags.DEFINE_string("model", "AttentionSeq2Seq",
-                       """The model class to use. Refer to the documentation
-                       for all available models.""")
 tf.flags.DEFINE_string("buckets", None,
                        """Buckets input sequences according to these length.
                        A comma-separated list of sequence length buckets, e.g.
@@ -61,12 +58,6 @@ tf.flags.DEFINE_string("buckets", None,
                        <10, 10-20, 20-30, >30. None disabled bucketing. """)
 tf.flags.DEFINE_integer("batch_size", 16,
                         """Batch size used for training and evaluation.""")
-tf.flags.DEFINE_string("hparams", None,
-                       """A comma-separated list of hyeperparameter values that
-                       overwrite the model defaults, e.g.
-                       "optimizer.name=Adam,optimization.learning_rate=0.1".
-                       Refer to the documentation for a detailed list of
-                       available hyperparameters.""")
 tf.flags.DEFINE_string("output_dir", None,
                        """The directory to write model checkpoints and summaries
                        to. If None, a local temporary directory is created.""")
@@ -108,6 +99,14 @@ tf.flags.DEFINE_integer("keep_checkpoint_every_n_hours", 4,
 
 FLAGS = tf.flags.FLAGS
 
+def _maybe_load_yaml(item):
+  if isinstance(item, string_types):
+    return yaml.load(item)
+  elif isinstance(item, dict):
+    return item
+  else:
+    raise ValueError("Got {}, expected YAML string or dict", type(item))
+
 def create_experiment(output_dir):
   """
   Creates a new Experiment instance.
@@ -127,17 +126,7 @@ def create_experiment(output_dir):
   # Load the correct task type
   task_class = locate(FLAGS.task) or getattr(tasks, FLAGS.task)
   task = task_class(
-      params=yaml.load(FLAGS.task_params))
-
-  # Find model class
-  # model_class = locate(FLAGS.model) or getattr(models, FLAGS.model)
-
-  # Parse parameter and merge with defaults
-  # hparams = model_class.default_params()
-  # if isinstance(FLAGS.hparams, string_types):
-  #   hparams.update(yaml.load(FLAGS.hparams))
-  # elif isinstance(FLAGS.hparams, dict):
-  #   hparams.update(FLAGS.hparams)
+      params=_maybe_load_yaml(FLAGS.task_params))
 
   # One the main worker, save training options and vocabulary
   if config.is_chief:
@@ -145,8 +134,7 @@ def create_experiment(output_dir):
     gfile.MakeDirs(output_dir)
     # Save train options
     train_options = training_utils.TrainOptions(
-        hparams=task.params["model_params"],
-        model_class=task.params["model_class"],
+        task=FLAGS.task,
         task_params=task.params)
     train_options.dump(output_dir)
 
@@ -155,13 +143,17 @@ def create_experiment(output_dir):
     bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
 
   # Define training data input pipeline
+  if isinstance(FLAGS.input_pipeline_train, string_types):
+    FLAGS.input_pipeline_train = _maybe_load_yaml(FLAGS.input_pipeline_train)
   train_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-      def_dict=yaml.load(FLAGS.input_pipeline_train),
+      def_dict=FLAGS.input_pipeline_train,
       mode=tf.contrib.learn.ModeKeys.TRAIN)
 
   # Define development data input pipeline
+  if isinstance(FLAGS.input_pipeline_dev, string_types):
+    FLAGS.input_pipeline_dev = _maybe_load_yaml(FLAGS.input_pipeline_dev)
   dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-      def_dict=yaml.load(FLAGS.input_pipeline_dev),
+      def_dict=FLAGS.input_pipeline_dev,
       mode=tf.contrib.learn.ModeKeys.EVAL,
       shuffle=False, num_epochs=1)
 
