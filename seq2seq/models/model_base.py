@@ -101,7 +101,7 @@ class Seq2SeqBase(ModelBase):
 
   def __init__(self, params, mode, name):
     super(Seq2SeqBase, self).__init__(params, mode, name)
-    self.source_vocab_info =  vocab.get_vocab_info(self.params["vocab_source"])
+    self.source_vocab_info = vocab.get_vocab_info(self.params["vocab_source"])
     self.target_vocab_info = vocab.get_vocab_info(self.params["vocab_target"])
 
   def create_featurizer(self):
