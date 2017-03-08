@@ -32,7 +32,7 @@ from seq2seq.configurable import Configurable, _deep_merge_dict
 @six.add_metaclass(abc.ABCMeta)
 class InferenceTask(Configurable):
   """
-  Abstract base class for inference tasks. Defines the logic used make
+  Abstract base class for inference tasks. Defines the logic used to make
   predictions for a specific type of task.
 
   Params:
@@ -81,7 +81,7 @@ class InferenceTask(Configurable):
 
   @abc.abstractmethod
   def prediction_keys(self):
-    """Defines which predictions tensors should be fetched from the model.
+    """Defines which prediction tensors should be fetched from the model.
 
     Returns:
       A set of strings, each corresponding to an item in the model

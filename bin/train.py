@@ -121,7 +121,7 @@ def create_experiment(output_dir):
   task = task_class(
       params=_maybe_load_yaml(FLAGS.task_params))
 
-  # One the main worker, save training options
+  # On the main worker, save training options
   if config.is_chief:
     gfile.MakeDirs(output_dir)
     train_options = training_utils.TrainOptions(

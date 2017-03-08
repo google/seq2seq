@@ -34,7 +34,7 @@ from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
 @six.add_metaclass(abc.ABCMeta)
 class TrainingTask(Configurable):
   """
-  Abstract base class for training tasks. Defines the logic used make
+  Abstract base class for training tasks. Defines the logic used to
   create training models.
 
   Params:

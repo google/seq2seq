@@ -56,7 +56,7 @@ tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
 FLAGS = tf.flags.FLAGS
 
 def main(_argv):
-  """Program entrypoint.
+  """Program entry point.
   """
 
   # Load flags from config file

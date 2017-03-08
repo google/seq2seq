@@ -40,7 +40,7 @@ class TrainOptions(object):
 
   Args:
     task: Name of the training task class.
-    task_params: A dictionary of parametes passed to the training task.
+    task_params: A dictionary of parameters passed to the training task.
   """
   def __init__(self,
                task,

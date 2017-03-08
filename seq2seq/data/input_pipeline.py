@@ -39,7 +39,7 @@ def make_input_pipeline_from_def(def_dict, mode, **kwargs):
 
   Args:
     def_dict: A dictionary defining the input pipeline.
-      It must have "class" and "params" theys that correspond to the class
+      It must have "class" and "params" that correspond to the class
       name and constructor parameters of an InputPipeline, respectively.
     mode: A value in tf.contrib.learn.ModeKeys
 

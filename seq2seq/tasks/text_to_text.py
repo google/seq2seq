@@ -47,8 +47,8 @@ def _get_scores(predictions_dict):
   return predictions_dict["attention_scores"][:prediction_len, :source_len]
 
 def _create_figure(predictions_dict):
-  """Creates an returns a new figure that visualizes
-  attention scors for for a single model predictions.
+  """Creates and returns a new figure that visualizes
+  attention scores for for a single model predictions.
   """
 
   # Find out how long the predicted sequence is
@@ -80,7 +80,7 @@ def _get_unk_mapping(filename):
     filename: path to the mapping file
 
   Returns:
-    A dictinary that maps from source -> target tokens.
+    A dictionary that maps from source -> target tokens.
   """
   with gfile.GFile(filename, "r") as mapping_file:
     lines = mapping_file.readlines()
@@ -99,9 +99,9 @@ def _unk_replace(source_tokens, predicted_tokens, attention_scores,
     attention_scores: A numeric numpy array
       of shape `[prediction_length, source_length]` that contains
       the attention scores.
-    mapping: If not provided, an UNK token is replaced with the the
+    mapping: If not provided, an UNK token is replaced with the
       source token that has the highest attention score. If provided
-      the token is insead replaces with `mapping[chosen_source_token]`.
+      the token is insead replaced with `mapping[chosen_source_token]`.
 
   Returns:
     A new `predicted_tokens` array.
@@ -208,7 +208,7 @@ class TextToTextInfer(InferenceTask):
     # Accumulate attention scores in this array.
     # Shape: [num_examples, target_length, input_length]
     self._attention_scores_accum = []
-    # Accumulate beam search debug information in thse arrays
+    # Accumulate beam search debug information in these arrays
     self._beam_accum = {
         "predicted_ids": [],
         "beam_parent_ids": [],
