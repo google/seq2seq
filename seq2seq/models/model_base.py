@@ -21,9 +21,10 @@ from __future__ import print_function
 import collections
 import tensorflow as tf
 
-from seq2seq.configurable import Configurable
 from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
+from seq2seq.configurable import Configurable
+from seq2seq.data import vocab
 from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
 from seq2seq.inference import beam_search
 from seq2seq.models import featurizers
@@ -96,16 +97,12 @@ class ModelBase(Configurable):
 
 class Seq2SeqBase(ModelBase):
   """Base class for seq2seq models with embeddings
-
-  TODO: Do we really need to pass source/target vocab info here? It seems ugly.
-  It's mostly used to define the output size of the decoder.
-  Maybe we can somehow put it in the features?
   """
 
-  def __init__(self, source_vocab_info, target_vocab_info, params, mode, name):
+  def __init__(self, params, mode, name):
     super(Seq2SeqBase, self).__init__(params, mode, name)
-    self.source_vocab_info = source_vocab_info
-    self.target_vocab_info = target_vocab_info
+    self.source_vocab_info =  vocab.get_vocab_info(self.params["vocab_source"])
+    self.target_vocab_info = vocab.get_vocab_info(self.params["vocab_target"])
 
   def create_featurizer(self):
     max_seq_len_source = self.params["source.max_seq_len"]
@@ -139,6 +136,8 @@ class Seq2SeqBase(ModelBase):
         "optimizer.lr_min_learning_rate": 1e-12,
         "optimizer.lr_staircase": False,
         "optimizer.clip_gradients": 5.0,
+        "vocab_source": "",
+        "vocab_target": "",
     }
 
   def encode_decode(self,

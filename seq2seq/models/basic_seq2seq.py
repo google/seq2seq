@@ -42,13 +42,10 @@ class BasicSeq2Seq(Seq2SeqBase):
   """
 
   def __init__(self,
-               source_vocab_info,
-               target_vocab_info,
                params,
                mode,
                name="basic_seq2seq"):
-    super(BasicSeq2Seq, self).__init__(source_vocab_info, target_vocab_info,
-                                       params, mode, name)
+    super(BasicSeq2Seq, self).__init__(params, mode, name)
     self.encoder_class = locate(self.params["encoder.class"])
     self.decoder_class = locate(self.params["decoder.class"])
 

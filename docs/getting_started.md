@@ -49,9 +49,10 @@ Given the above input files, you can now train a new model:
 python -m bin.train \
   --task TextToTextTrain \
   --task_params "
-      vocab_source: $HOME/nmt_data/toy_reverse/train/vocab.sources.txt
-      vocab_target: $HOME/nmt_data/toy_reverse/train/vocab.targets.txt
-      model_class: AttentionSeq2Seq" \
+      model_class: AttentionSeq2Seq
+      model_params:
+        vocab_source: $HOME/nmt_data/toy_reverse/train/vocab.sources.txt
+        vocab_target: $HOME/nmt_data/toy_reverse/train/vocab.targets.txt" \
   --input_pipeline_train "
     class: ParallelTextInputPipeline
     params:

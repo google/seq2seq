@@ -40,13 +40,10 @@ class AttentionSeq2Seq(BasicSeq2Seq):
   """
 
   def __init__(self,
-               source_vocab_info,
-               target_vocab_info,
                params,
                mode,
                name="att_seq2seq"):
-    super(AttentionSeq2Seq, self).__init__(
-        source_vocab_info, target_vocab_info, params, mode, name)
+    super(AttentionSeq2Seq, self).__init__(params, mode, name)
 
   @staticmethod
   def default_params():

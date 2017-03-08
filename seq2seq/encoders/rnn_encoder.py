@@ -51,6 +51,7 @@ def _toggle_dropout(cell_params, mode):
     cell_params["dropout_output_keep_prob"] = 1.0
   return cell_params
 
+
 class UnidirectionalRNNEncoder(Encoder):
   """
   A unidirectional RNN encoder. Stacking should be performed as

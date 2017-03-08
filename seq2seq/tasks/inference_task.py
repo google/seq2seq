@@ -25,6 +25,7 @@ import abc
 from pydoc import locate
 
 import six
+import tensorflow as tf
 
 from seq2seq import models
 from seq2seq.configurable import Configurable, _deep_merge_dict
@@ -70,14 +71,15 @@ class InferenceTask(Configurable):
         "model_params": {},
     }
 
-  @abc.abstractmethod
   def create_model(self):
     """Creates a model instance in inference mode.
 
     Returns:
       A model instance.
     """
-    raise NotImplementedError()
+    return self._model_cls(
+        params=self.params["model_params"],
+        mode=tf.contrib.learn.ModeKeys.INFER)
 
   @abc.abstractmethod
   def prediction_keys(self):

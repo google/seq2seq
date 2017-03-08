@@ -59,7 +59,6 @@ class TrainingTask(Configurable):
         "model_params": {}
     }
 
-  @abc.abstractmethod
   def create_model(self, mode):
     """Creates a model instance.
 
@@ -69,7 +68,9 @@ class TrainingTask(Configurable):
     Returns:
       A new model instance.
     """
-    raise NotImplementedError()
+    return self._model_cls(
+        params=self.params["model_params"],
+        mode=mode)
 
   @abc.abstractmethod
   def create_training_hooks(self, estimator):

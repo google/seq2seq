@@ -25,7 +25,6 @@ from matplotlib import pyplot as plt
 import tensorflow as tf
 from tensorflow.python.platform import gfile
 
-from seq2seq.data import vocab
 from seq2seq.tasks.training_task import TrainingTask
 from seq2seq.tasks.inference_task import InferenceTask
 from seq2seq.training import hooks
@@ -131,14 +130,9 @@ class TextToTextTrain(TrainingTask):
     metrics: A list of metrics to be tracked during evaluation.
     train_sample_frequency: Sample generated responses during training every
       N steps.
-    vocab_source: Path to vocabulary file used for the source sequence.
-    vocab_target: Path to vocabulary file used for the target sequence.
   """
   def __init__(self, params):
     super(TextToTextTrain, self).__init__(params)
-    # Load vocabulary info
-    self._source_vocab_info = vocab.get_vocab_info(self.params["vocab_source"])
-    self._target_vocab_info = vocab.get_vocab_info(self.params["vocab_target"])
 
   @staticmethod
   def default_params():
@@ -150,18 +144,9 @@ class TextToTextTrain(TrainingTask):
                     "rouge_1/f_score", "rouge_1/r_score", "rouge_1/p_score",
                     "rouge_2/f_score", "rouge_2/r_score", "rouge_2/p_score",
                     "rouge_l/f_score"],
-        "train_sample_frequency": 1000,
-        "vocab_source": "",
-        "vocab_target": ""
+        "train_sample_frequency": 1000
     })
     return params
-
-  def create_model(self, mode):
-    return self._model_cls(
-        source_vocab_info=self._source_vocab_info,
-        target_vocab_info=self._target_vocab_info,
-        params=self.params["model_params"],
-        mode=mode)
 
   def create_training_hooks(self, estimator):
     training_hooks = super(
@@ -215,11 +200,6 @@ class TextToTextInfer(InferenceTask):
         "scores": [],
         "log_probs": []
     }
-    # Use vocab from training
-    self._source_vocab_info = vocab.get_vocab_info(
-        self._train_options.task_params["vocab_source"])
-    self._target_vocab_info = vocab.get_vocab_info(
-        self._train_options.task_params["vocab_target"])
 
   @staticmethod
   def default_params():
@@ -233,13 +213,6 @@ class TextToTextInfer(InferenceTask):
         "dump_beams": None,
     })
     return params
-
-  def create_model(self):
-    return self._model_cls(
-        source_vocab_info=self._source_vocab_info,
-        target_vocab_info=self._target_vocab_info,
-        params=self.params["model_params"],
-        mode=tf.contrib.learn.ModeKeys.INFER)
 
   def prediction_keys(self):
     prediction_keys = set([
