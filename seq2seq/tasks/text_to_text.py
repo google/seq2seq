@@ -13,11 +13,11 @@
 # limitations under the License.
 
 """
-Text to Text Task.
+Task where both the input and output sequence are plain text.
 """
 
-import os
 import functools
+import os
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -120,6 +120,20 @@ def _unk_replace(source_tokens, predicted_tokens, attention_scores,
   return np.array(result)
 
 class TextToTextTrain(TrainingTask):
+  """Defines training for tasks where both the input and output sequences
+    are plain text.
+
+  Params:
+    delimiter_source: Character by which source tokens are delimited.
+      Defaults to space.
+    delimiter_target: Character by which target tokens are delimited.
+      Defaults to space.
+    metrics: A list of metrics to be tracked during evaluation.
+    train_sample_frequency: Sample generated responses during training every
+      N steps.
+    vocab_source: Path to vocabulary file used for the source sequence.
+    vocab_target: Path to vocabulary file used for the target sequence.
+  """
   def __init__(self, params):
     super(TextToTextTrain, self).__init__(params)
     # Load vocabulary info
@@ -150,8 +164,10 @@ class TextToTextTrain(TrainingTask):
         mode=mode)
 
   def create_training_hooks(self, estimator):
+    training_hooks = super(
+        TextToTextTrain, self).create_training_hooks(estimator)
+
     output_dir = estimator.model_dir
-    training_hooks = super(TextToTextTrain, self).create_training_hooks(estimator)
 
     train_sample_hook = hooks.TrainSampleHook(
         every_n_steps=self.params["train_sample_frequency"],
@@ -169,6 +185,21 @@ class TextToTextTrain(TrainingTask):
 
 
 class TextToTextInfer(InferenceTask):
+  """Defines inference for tasks where both the input and output sequences
+  are plain text.
+
+  Params:
+    delimiter: Character by which tokens are delimited. Defaults to space.
+    unk_replace: If true, enable unknown token replacement based on attention
+      scores.
+    unk_mapping: If `unk_replace` is true, this can be the path to a file
+      defining a dictionary to improve UNK token replacement. Refer to the
+      documentation for more details.
+    dump_attention_dir: Save attention scores and plots to this directory.
+    dump_attention_no_plot: If true, only save attention scores, not
+      attention plots.
+    dump_beams: Write beam search debugging information to this file.
+  """
 
   def __init__(self, params, train_options):
     super(TextToTextInfer, self).__init__(params, train_options)
@@ -233,7 +264,6 @@ class TextToTextInfer(InferenceTask):
 
     if self.params["dump_attention_dir"] is not None:
       gfile.MakeDirs(self.params["dump_attention_dir"])
-
 
   def process_batch(self, idx, predictions_dict):
     # Convert to unicode
@@ -300,4 +330,3 @@ class TextToTextInfer(InferenceTask):
     # Write beams
     if self.params["dump_beams"] is not None:
       np.savez(self.params["dump_beams"], **self._beam_accum)
-

@@ -16,15 +16,14 @@
 """Main script to run training and evaluation of models.
 """
 
-import os
 import tempfile
-
 from pydoc import locate
 
 import yaml
 from six import string_types
 
-from seq2seq import models, tasks
+from seq2seq import tasks
+from seq2seq.configurable import _maybe_load_yaml
 from seq2seq.data import input_pipeline
 from seq2seq.training import utils as training_utils
 
@@ -34,10 +33,12 @@ from tensorflow.contrib.learn.python.learn.estimators import run_config
 from tensorflow.python.platform import gfile
 
 
-tf.flags.DEFINE_string("task", "TextToText",
-                       """TODO""")
-tf.flags.DEFINE_string("task_params", None,
-                       """TODO""")
+tf.flags.DEFINE_string("task", "TextToTextInfer",
+                       """The type of inference task to run. Must be defined
+                       in seq2seq.tasks""")
+tf.flags.DEFINE_string("task_params", "{}",
+                       """Parameters to pass to the task class.
+                       A YAML/JSON string.""")
 
 tf.flags.DEFINE_string("config_path", None,
                        """Path to a YAML configuration file defining FLAG
@@ -99,14 +100,6 @@ tf.flags.DEFINE_integer("keep_checkpoint_every_n_hours", 4,
 
 FLAGS = tf.flags.FLAGS
 
-def _maybe_load_yaml(item):
-  if isinstance(item, string_types):
-    return yaml.load(item)
-  elif isinstance(item, dict):
-    return item
-  else:
-    raise ValueError("Got {}, expected YAML string or dict", type(item))
-
 def create_experiment(output_dir):
   """
   Creates a new Experiment instance.
@@ -123,16 +116,14 @@ def create_experiment(output_dir):
       keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
   )
 
-  # Load the correct task type
+  # Load the correct task class
   task_class = locate(FLAGS.task) or getattr(tasks, FLAGS.task)
   task = task_class(
       params=_maybe_load_yaml(FLAGS.task_params))
 
-  # One the main worker, save training options and vocabulary
+  # One the main worker, save training options
   if config.is_chief:
-     # Copy vocabulary to output directory
     gfile.MakeDirs(output_dir)
-    # Save train options
     train_options = training_utils.TrainOptions(
         task=FLAGS.task,
         task_params=task.params)
@@ -142,18 +133,14 @@ def create_experiment(output_dir):
   if FLAGS.buckets:
     bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
 
-  # Define training data input pipeline
-  if isinstance(FLAGS.input_pipeline_train, string_types):
-    FLAGS.input_pipeline_train = _maybe_load_yaml(FLAGS.input_pipeline_train)
+  # Training data input pipeline
   train_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-      def_dict=FLAGS.input_pipeline_train,
+      def_dict=_maybe_load_yaml(FLAGS.input_pipeline_train),
       mode=tf.contrib.learn.ModeKeys.TRAIN)
 
-  # Define development data input pipeline
-  if isinstance(FLAGS.input_pipeline_dev, string_types):
-    FLAGS.input_pipeline_dev = _maybe_load_yaml(FLAGS.input_pipeline_dev)
+  # Development data input pipeline
   dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-      def_dict=FLAGS.input_pipeline_dev,
+      def_dict=_maybe_load_yaml(FLAGS.input_pipeline_dev),
       mode=tf.contrib.learn.ModeKeys.EVAL,
       shuffle=False, num_epochs=1)
 

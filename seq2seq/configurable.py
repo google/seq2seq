@@ -30,15 +30,26 @@ import yaml
 import tensorflow as tf
 
 class abstractstaticmethod(staticmethod): #pylint: disable=C0111,C0103
+  """Decorates a method as abstract and static"""
   __slots__ = ()
   def __init__(self, function):
     super(abstractstaticmethod, self).__init__(function)
     function.__isabstractmethod__ = True
   __isabstractmethod__ = True
 
+def _maybe_load_yaml(item):
+  """Parses `item` only if it is a string. If `item` is a dictionary
+  it is returned as-is.
+  """
+  if isinstance(item, six.string_types):
+    return yaml.load(item)
+  elif isinstance(item, dict):
+    return item
+  else:
+    raise ValueError("Got {}, expected YAML string or dict", type(item))
 
 def _deep_merge_dict(dict_x, dict_y, path=None):
-  """Recursively merges dict_y into dict_x
+  """Recursively merges dict_y into dict_x.
   """
   if path is None: path = []
   for key in dict_y:

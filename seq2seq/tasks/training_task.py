@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Abstract base class for tasks supported by the framework.
+Abstract base class for training tasks supported by the framework.
 """
 
 from __future__ import absolute_import
@@ -33,8 +33,21 @@ from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
 
 @six.add_metaclass(abc.ABCMeta)
 class TrainingTask(Configurable):
+  """
+  Abstract base class for training tasks. Defines the logic used make
+  create training models.
+
+  Params:
+    model_class: The model class to instantiate.
+    model_params: Model hyperparameters.
+    metrics: A list of metrics to monitor during evaluation.
+
+  Args:
+    params: See Params above.
+    train_options: A `TrainOptions` instance.
+  """
   def __init__(self, params):
-    super(add_metaclass, self).__init__(params, None)
+    super(TrainingTask, self).__init__(params, None)
     self._model_cls = locate(self.params["model_class"]) or \
       getattr(models, self.params["model_class"])
 
@@ -43,15 +56,31 @@ class TrainingTask(Configurable):
     return {
         "metrics": [],
         "model_class": "",
-        "model_params": {},
+        "model_params": {}
     }
 
   @abc.abstractmethod
   def create_model(self, mode):
+    """Creates a model instance.
+
+    Args:
+      mode: The mode to create the model in. One of tf.contrib.learn.ModeKeys.
+
+    Returns:
+      A new model instance.
+    """
     raise NotImplementedError()
 
   @abc.abstractmethod
   def create_training_hooks(self, estimator):
+    """Creates SessionRunHooks to be used during training.
+
+    Args:
+      estimator: The tf.learn model estimator.
+
+    Returns:
+      A list of SessionRunHooks.
+    """
     output_dir = estimator.model_dir
     training_hooks = []
     model_analysis_hook = hooks.PrintModelAnalysisHook(
@@ -65,4 +94,9 @@ class TrainingTask(Configurable):
     return training_hooks
 
   def create_metrics(self):
+    """Creates metrics to be used during evaluation.
+
+    Returns:
+      A list of MetricSpecs.
+    """
     return {m : METRIC_SPECS_DICT[m] for m in self.params["metrics"]}

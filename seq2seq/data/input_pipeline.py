@@ -38,9 +38,9 @@ def make_input_pipeline_from_def(def_dict, mode, **kwargs):
   """Creates an InputPipeline object from a dictionary definition.
 
   Args:
-    def_dict: A dictionary defines the input pipeline.
-      It must have a "class" key and "params" they that correspond to the class
-      name and constructor parameter of an InputPipeline, respectively.
+    def_dict: A dictionary defining the input pipeline.
+      It must have "class" and "params" theys that correspond to the class
+      name and constructor parameters of an InputPipeline, respectively.
     mode: A value in tf.contrib.learn.ModeKeys
 
   Returns:
@@ -70,7 +70,7 @@ class InputPipeline(Configurable):
   An InputPipeline defines how data is read, parsed, and separated into
   features and labels.
 
-  Args:
+  Params:
     shuffle: If true, shuffle the data.
     num_epochs: Number of times to iterate through the dataset. If None,
       iterate forever.
@@ -126,9 +126,6 @@ class ParallelTextInputPipeline(InputPipeline):
       to  " " (space). For character-level training this can be set to the
       empty string.
     target_delimiter: Same as `source_delimiter` but for the target text.
-    shuffle: If true, shuffle the data.
-    num_epochs: Number of times to iterate through the dataset. If None,
-      iterate forever.
   """
 
   @staticmethod
@@ -199,9 +196,6 @@ class TFRecordInputPipeline(InputPipeline):
       to  " " (space). For character-level training this can be set to the
       empty string.
     target_delimiter: Same as `source_delimiter` but for the target text.
-    shuffle: If true, shuffle the data.
-    num_epochs: Number of times to iterate through the dataset. If None,
-      iterate forever.
   """
 
   @staticmethod

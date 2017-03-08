@@ -55,15 +55,13 @@ def create_inference_graph(
   """Creates a graph to perform inference.
 
   Args:
-    model_dir: The output directory passed during training. This
-      directory must contain model checkpoints.
-    input_file: A source input file to read from.
+    task: An `InferenceTask` instance.
+    input_pipeline: An instance of `InputPipeline` that defines
+      how to read and parse data.
     batch_size: The batch size used for inference
-    beam_width: The beam width for beam search. If None,
-      no beam search is used.
 
   Returns:
-    The return value of the model functions, typically a tuple of
+    The return value of the model function, typically a tuple of
     (predictions, loss, train_op).
   """
 
@@ -86,4 +84,3 @@ def create_inference_graph(
       features=features,
       labels=labels,
       params=None)
-

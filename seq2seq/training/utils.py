@@ -36,15 +36,11 @@ from seq2seq.contrib import rnn_cell
 
 class TrainOptions(object):
   """A collectionf of options that are passed to the training script
-  and should be saved to perform inference later on.
+  and can be saved to perform inference later.
 
   Args:
-    model_dir: The model directory. Options will be dumped in this
-      directory.
-    hparams: A dictionary of hyperparameter values.
-    model_class: The model class name, a string.
-    source_vocab_path: Path to the source vocabulary
-    target_vocab_path: Path to the target vocabulary
+    task: Name of the training task class.
+    task_params: A dictionary of parametes passed to the training task.
   """
   def __init__(self,
                task,
@@ -54,10 +50,12 @@ class TrainOptions(object):
 
   @property
   def task_params(self):
+    """Returns the training task parameters"""
     return self._task_params
 
   @property
   def task(self):
+    """Returns the training task class"""
     return self._task
 
   @staticmethod

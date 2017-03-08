@@ -26,22 +26,27 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 
 from seq2seq import tasks
+from seq2seq.configurable import _maybe_load_yaml
 from seq2seq.data import input_pipeline
 from seq2seq.inference import create_inference_graph, create_predictions_iter
 from seq2seq.training import utils as training_utils
 
-tf.flags.DEFINE_string("task", "TextToText",
-                       """TODO""")
+tf.flags.DEFINE_string("task", "TextToTextInfer",
+                       """The type of inference task to run. Must be defined
+                       in seq2seq.tasks""")
 tf.flags.DEFINE_string("task_params", "{}",
-                       """TODO""")
+                       """Parameters to pass to the task class.
+                       A YAML/JSON string.""")
 
 tf.flags.DEFINE_string("config_path", None,
                        """Path to a YAML configuration file defining FLAG
                        values and hyperparameters. Refer to the documentation
                        for more details.""")
+
 tf.flags.DEFINE_string("input_pipeline", None,
-                       """Use this to overwrite the input pipeline.
+                       """Defines how input data should be loaded.
                        A YAML string.""")
+
 tf.flags.DEFINE_string("model_dir", None, "directory to load model from")
 tf.flags.DEFINE_string("checkpoint_path", None,
                        """Full path to the checkpoint to be loaded. If None,
@@ -49,16 +54,6 @@ tf.flags.DEFINE_string("checkpoint_path", None,
 tf.flags.DEFINE_integer("batch_size", 32, "the train/dev batch size")
 
 FLAGS = tf.flags.FLAGS
-tf.logging.set_verbosity(tf.logging.INFO)
-
-
-def _maybe_load_yaml(item):
-  if isinstance(item, string_types):
-    return yaml.load(item)
-  elif isinstance(item, dict):
-    return item
-  else:
-    raise ValueError("Got {}, expected YAML string or dict", type(item))
 
 def main(_argv):
   """Program entrypoint.
@@ -81,20 +76,22 @@ def main(_argv):
   # Load saved training options
   train_options = training_utils.TrainOptions.load(FLAGS.model_dir)
 
-  # Load the correct inference task type
+  # Load the inference task class
   task_class = locate(FLAGS.task) or getattr(tasks, FLAGS.task)
   task = task_class(
       params=_maybe_load_yaml(FLAGS.task_params),
       train_options=train_options)
 
+  # Create the graph used for inference
   predictions, _, _ = create_inference_graph(
       task=task,
       input_pipeline=input_pipeline_infer,
       batch_size=FLAGS.batch_size)
 
-  # Filter fetched predictions to save memory
+  # Define which tensors to fetch
   prediction_keys = task.prediction_keys()
   predictions = {k: v for k, v in predictions.items() if k in prediction_keys}
+
   saver = tf.train.Saver()
 
   checkpoint_path = FLAGS.checkpoint_path
@@ -111,7 +108,7 @@ def main(_argv):
     saver.restore(sess, checkpoint_path)
     tf.logging.info("Restored model from %s", checkpoint_path)
 
-    # Output predictions
+    # Process predictions
     predictions_iter = create_predictions_iter(predictions, sess)
     task.begin()
     for idx, predictions_dict in enumerate(predictions_iter):
@@ -119,4 +116,5 @@ def main(_argv):
     task.end()
 
 if __name__ == "__main__":
+  tf.logging.set_verbosity(tf.logging.INFO)
   tf.app.run()

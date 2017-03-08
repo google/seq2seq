@@ -17,4 +17,5 @@ Collection of task types.
 """
 
 from seq2seq.tasks.training_task import TrainingTask
+from seq2seq.tasks.inference_task import InferenceTask
 from seq2seq.tasks.text_to_text import TextToTextTrain, TextToTextInfer

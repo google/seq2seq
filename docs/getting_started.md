@@ -47,7 +47,7 @@ Given the above input files, you can now train a new model:
 
 ```bash
 python -m bin.train \
-  --task TextToText \
+  --task TextToTextTrain \
   --task_params "
       vocab_source: $HOME/nmt_data/toy_reverse/train/vocab.sources.txt
       vocab_target: $HOME/nmt_data/toy_reverse/train/vocab.targets.txt
