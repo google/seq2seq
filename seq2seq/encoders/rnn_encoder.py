@@ -80,7 +80,7 @@ class UnidirectionalRNNEncoder(Encoder):
         dtype=tf.float32,
         **kwargs)
     return EncoderOutput(
-        outputs=outputs, final_state=state, attention_keys=outputs)
+        outputs=outputs, final_state=state, attention_values=outputs)
 
 
 class BidirectionalRNNEncoder(Encoder):
@@ -121,7 +121,7 @@ class BidirectionalRNNEncoder(Encoder):
     return EncoderOutput(
         outputs=outputs_concat,
         final_state=states,
-        attention_keys=outputs_concat)
+        attention_values=outputs_concat)
 
 
 class StackBidirectionalRNNEncoder(Encoder):
@@ -172,4 +172,4 @@ class StackBidirectionalRNNEncoder(Encoder):
     return EncoderOutput(
         outputs=outputs_concat,
         final_state=final_state,
-        attention_keys=outputs_concat)
+        attention_values=outputs_concat)

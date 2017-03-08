@@ -159,7 +159,7 @@ if [ ! -d "${OUTPUT_DIR}/subword-nmt" ]; then
 fi
 
 # Learn Shared BPE
-for merge_ops in 8000 16000 32000 64000; do
+for merge_ops in 32000; do
   echo "Learning BPE with merge_ops=${merge_ops}. This may take a while..."
   cat "${OUTPUT_DIR}/train.tok.clean.de" "${OUTPUT_DIR}/train.tok.clean.en" | \
     ${OUTPUT_DIR}/subword-nmt/learn_bpe.py -s $merge_ops > "${OUTPUT_DIR}/bpe.${merge_ops}"

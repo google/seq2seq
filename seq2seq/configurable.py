@@ -62,8 +62,7 @@ def _parse_params(params, default_params):
   for key, value in params.items():
     # If param is unknown, drop it to stay compatible with past versions
     if key not in default_params:
-      tf.logging.warning("%s is not a valid model parameter, dropping", key)
-      continue
+      raise ValueError("%s is not a valid model parameter, dropping" % key)
     # Param is a dictionary
     if isinstance(value, dict):
       default_dict = default_params[key]

@@ -29,7 +29,7 @@ from seq2seq.configurable import Configurable
 from seq2seq.graph_module import GraphModule
 
 EncoderOutput = namedtuple(
-    "EncoderOutput", "outputs final_state attention_keys")
+    "EncoderOutput", "outputs final_state attention_values")
 
 @six.add_metaclass(abc.ABCMeta)
 class Encoder(GraphModule, Configurable):
