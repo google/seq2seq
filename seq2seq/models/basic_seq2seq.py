@@ -20,15 +20,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import copy
 from pydoc import locate
 import tensorflow as tf
 
-from seq2seq.models.model_base import Seq2SeqBase
+from seq2seq.models.seq2seq_model import Seq2SeqModel
 from seq2seq.models import bridges
 
 
-class BasicSeq2Seq(Seq2SeqBase):
+class BasicSeq2Seq(Seq2SeqModel):
   """Basic Sequence2Sequence model with a unidirectional encoder and decoder.
   The last encoder state is used to initialize the decoder and thus both
   must share the same type of RNN cell.
@@ -51,7 +50,7 @@ class BasicSeq2Seq(Seq2SeqBase):
 
   @staticmethod
   def default_params():
-    params = Seq2SeqBase.default_params().copy()
+    params = Seq2SeqModel.default_params().copy()
     params.update({
         "bridge.class": "seq2seq.models.bridges.InitialStateBridge",
         "bridge.params": {},
