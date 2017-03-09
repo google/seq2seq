@@ -61,10 +61,6 @@ class ModelBase(Configurable):
     self.name = name
     Configurable.__init__(self, params, mode)
 
-  def create_featurizer(self):
-    """"Returns a new featurizer instance to be used by this model"""
-    raise NotImplementedError
-
   def _build_train_op(self, loss):
     """Creates the training operation"""
     learning_rate_decay_fn = training_utils.create_learning_rate_decay_fn(
