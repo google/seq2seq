@@ -21,6 +21,7 @@ from __future__ import print_function
 
 import os
 import tensorflow as tf
+import yaml
 
 from tensorflow.python.training import basic_session_run_hooks, session_run_hook
 from tensorflow.python.training import training_util
@@ -28,6 +29,7 @@ from tensorflow.python.training.summary_io import SummaryWriterCache
 from tensorflow.python.client import timeline
 from tensorflow.python.platform import gfile
 
+from seq2seq.configurable import Configurable
 from seq2seq import graph_utils
 
 class SecondOrStepTimer(basic_session_run_hooks.SecondOrStepTimer):
@@ -267,4 +269,39 @@ class PrintModelAnalysisHook(session_run_hook.SessionRunHook):
 
     # Print the model analysis
     with gfile.GFile(self.filename, "r") as file:
-      tf.logging.info(file.read())
+      tf.logging.info(file.read().decode("utf-8"))
+
+
+
+class VariableRestoreHook(session_run_hook.SessionRunHook, Configurable):
+  def __init__(self, params, mode=tf.contrib.learn.ModeKeys.TRAIN):
+    Configurable.__init__(self, params, mode)
+    self.saver = None
+
+  @staticmethod
+  def default_params():
+    return {
+        "prefix": "",
+        "checkpoint_path": ""
+    }
+
+  def begin(self):
+    variables = tf.contrib.framework.get_variables(scope=self.params["prefix"])
+
+    def varname_in_checkpoint(name):
+      prefix_parts = self.params["prefix"].split("/")
+      checkpoint_prefix = "/".join(prefix_parts[:-1])
+      return name.replace(checkpoint_prefix + "/", "")
+
+    target_names = [varname_in_checkpoint(_.op.name) for _ in variables]
+    restore_map = {k: v for k, v in zip(target_names, variables)}
+
+    tf.logging.info(
+        "Restoring variables: \n%s",
+        yaml.dump({k: v.op.name for k, v in restore_map.items()}))
+
+    self.saver = tf.train.Saver(restore_map)
+
+  def after_create_session(self, session, coord):
+    self.saver.restore(session, self.params["checkpoint_path"])
+    tf.logging.info("Successfully restored all variables")

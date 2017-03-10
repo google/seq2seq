@@ -21,7 +21,8 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
-from tensorflow.contrib.slim.python.slim.nets.inception_v3 import inception_v3_base
+from tensorflow.contrib.slim.python.slim.nets.inception_v3 \
+  import inception_v3_base
 
 from seq2seq.encoders.encoder import Encoder, EncoderOutput
 
@@ -35,7 +36,7 @@ class InceptionV3Encoder(Encoder):
     resize_width: Resize image to this width before feeding it into the CNN
   """
 
-  def __init__(self, params, mode, name="forward_rnn_encoder"):
+  def __init__(self, params, mode, name="image_encoder"):
     super(InceptionV3Encoder, self).__init__(params, mode, name)
 
   @staticmethod
@@ -46,7 +47,8 @@ class InceptionV3Encoder(Encoder):
     }
 
   def encode(self, inputs):
-    inputs = tf.image.resize_images(inputs,
+    inputs = tf.image.resize_images(
+        images=inputs,
         size=[self.params["resize_height"], self.params["resize_width"]],
         method=tf.image.ResizeMethod.BILINEAR)
 

@@ -220,6 +220,19 @@ class Seq2SeqModel(ModelBase):
 
     return features, labels
 
+  def compute_loss(self, decoder_output, _features, labels):
+    # Calculate loss per example-timestep of shape [B, T]
+    losses = seq2seq_losses.cross_entropy_sequence_loss(
+        logits=decoder_output.logits[:, :, :],
+        targets=tf.transpose(labels["target_ids"][:, 1:], [1, 0]),
+        sequence_length=labels["target_len"] - 1)
+
+    # Calculate the average log perplexity
+    loss = tf.reduce_sum(losses) / tf.to_float(
+        tf.reduce_sum(labels["target_len"] - 1))
+
+    return losses, loss
+
   def _build(self, features, labels, params):
     # Pre-process features and labels
     features, labels = self._preprocess(features, labels)
@@ -234,15 +247,7 @@ class Seq2SeqModel(ModelBase):
           labels=labels)
       return predictions, None, None
 
-    # Calculate loss per example-timestep of shape [B, T]
-    losses = seq2seq_losses.cross_entropy_sequence_loss(
-        logits=decoder_output.logits[:, :, :],
-        targets=tf.transpose(labels["target_ids"][:, 1:], [1, 0]),
-        sequence_length=labels["target_len"] - 1)
-
-    # Calculate the average log perplexity
-    loss = tf.reduce_sum(losses) / tf.to_float(
-        tf.reduce_sum(labels["target_len"] - 1))
+    losses, loss = self.compute_loss(decoder_output, features, labels)
 
     train_op = None
     if self.mode == tf.contrib.learn.ModeKeys.TRAIN:

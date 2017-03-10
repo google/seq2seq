@@ -103,4 +103,9 @@ class Image2SeqModel(AttentionSeq2Seq):
     labels["target_len"] = tf.to_int32(labels["target_len"])
     tf.summary.histogram("target_len", tf.to_float(labels["target_len"]))
 
+    # Add to graph collection for later use
+    graph_utils.add_dict_to_collection(features, "features")
+    if labels:
+      graph_utils.add_dict_to_collection(labels, "labels")
+
     return features, labels
