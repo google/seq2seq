@@ -20,18 +20,22 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import copy
 import abc
-from pydoc import locate
 
 import six
 import tensorflow as tf
+from tensorflow.python.training.session_run_hook import SessionRunHook
 
-from seq2seq import models
-from seq2seq.configurable import Configurable, _deep_merge_dict
+from seq2seq import graph_utils
+from seq2seq.configurable import Configurable
+
+def unbatch_dict(dict_):
+  batch_size = list(dict_.values())[0].shape[0]
+  for i in range(batch_size):
+    yield {key: value[i] for key, value in dict_.items()}
 
 @six.add_metaclass(abc.ABCMeta)
-class InferenceTask(Configurable):
+class InferenceTask(SessionRunHook, Configurable):
   """
   Abstract base class for inference tasks. Defines the logic used to make
   predictions for a specific type of task.
@@ -44,75 +48,10 @@ class InferenceTask(Configurable):
 
   Args:
     params: See Params above.
-    train_options: A `TrainOptions` instance.
   """
-  def __init__(self, params, train_options):
-    # Merge model parameters with those used during training
-    if "model_params" not in params:
-      params["model_params"] = {}
-    params["model_params"] = _deep_merge_dict(
-        copy.deepcopy(train_options.task_params["model_params"]),
-        params["model_params"])
+  def __init__(self, params):
+    Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.INFER)
+    self._predictions = None
 
-    # If the model class is specified, use it, otherwise use the
-    # model class from training
-    if "model_class" not in params:
-      params["model_class"] = train_options.task_params["model_class"]
-
-    super(InferenceTask, self).__init__(params, None)
-    self._train_options = train_options
-    self._model_cls = locate(self.params["model_class"]) or \
-      getattr(models, self.params["model_class"])
-
-  @staticmethod
-  def default_params():
-    return {
-        "model_class": None,
-        "model_params": {},
-    }
-
-  def create_model(self):
-    """Creates a model instance in inference mode.
-
-    Returns:
-      A model instance.
-    """
-    return self._model_cls(
-        params=self.params["model_params"],
-        mode=tf.contrib.learn.ModeKeys.INFER)
-
-  @abc.abstractmethod
-  def prediction_keys(self):
-    """Defines which prediction tensors should be fetched from the model.
-
-    Returns:
-      A set of strings, each corresponding to an item in the model
-      predictions.
-    """
-    raise NotImplementedError()
-
-  @abc.abstractmethod
   def begin(self):
-    """Initializes the task. This method will be called after the graph is
-    created and before the first call to `process_batch.`
-    """
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def process_batch(self, idx, predictions_dict):
-    """Processes a single batch of predictions. This is where most of the
-    inference logic resides.
-
-    Args:
-      idx: 0-based index of the batch to be processed
-      predictions_dict: A dictionary of numpy arrays containing the model
-        predictions. Keys correspond to the items returned by `prediction_keys`.
-    """
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def end(self):
-    """Finishes the task. This method will be called after iteration
-    through the data is complete and all batches have been processed.
-    """
-    raise NotImplementedError()
+    self._predictions = graph_utils.get_dict_from_collection("predictions")

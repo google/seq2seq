@@ -75,9 +75,6 @@ tf.flags.DEFINE_integer("train_epochs", None,
                          If None, train forever.""")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
                         "Run evaluation on validation data every N steps.")
-tf.flags.DEFINE_integer("sample_every_n_steps", 500,
-                        """Sample and print sequence predictions every N steps
-                        during training.""")
 
 # RunConfig Flags
 tf.flags.DEFINE_integer("tf_random_seed", None,

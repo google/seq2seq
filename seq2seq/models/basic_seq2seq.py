@@ -88,8 +88,8 @@ class BasicSeq2Seq(Seq2SeqModel):
     decoder_initial_state = bridge()
     return decoder(decoder_initial_state, helper_train)
 
-  def _decode_infer(self, decoder, bridge, _encoder_output, features, _labels):
-    batch_size = self.batch_size
+  def _decode_infer(self, decoder, bridge, _encoder_output, features, labels):
+    batch_size = self.batch_size(features, labels)
     if self.use_beam_search:
       batch_size = self.params["inference.beam_search.beam_width"]
 

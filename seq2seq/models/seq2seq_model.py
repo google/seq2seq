@@ -148,9 +148,9 @@ class Seq2SeqModel(ModelBase):
 
     - Creates vocabulary lookup tables for source and target vocab
     - Converts tokens into vocabulary ids
-    - Appends a speical "SEQUENCE_END" token to the source
-    - Prepends a speical "SEQUENCE_START" token to the target
-    - Appends a speical "SEQUENCE_END" token to the target
+    - Appends a special "SEQUENCE_END" token to the source
+    - Prepends a special "SEQUENCE_START" token to the target
+    - Appends a special "SEQUENCE_END" token to the target
     """
 
     # Create vocabulary lookup for source
@@ -245,19 +245,20 @@ class Seq2SeqModel(ModelBase):
           decoder_output=decoder_output,
           features=features,
           labels=labels)
-      return predictions, None, None
+      loss = None,
+      train_op = None
+    else:
+      losses, loss = self.compute_loss(decoder_output, features, labels)
 
-    losses, loss = self.compute_loss(decoder_output, features, labels)
+      train_op = None
+      if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
+        train_op = self._build_train_op(loss)
 
-    train_op = None
-    if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
-      train_op = self._build_train_op(loss)
-
-    predictions = self._create_predictions(
-        decoder_output=decoder_output,
-        features=features,
-        labels=labels,
-        losses=losses)
+      predictions = self._create_predictions(
+          decoder_output=decoder_output,
+          features=features,
+          labels=labels,
+          losses=losses)
 
     # We add "useful" tensors to the graph collection so that we
     # can easly find them in our hooks/monitors.

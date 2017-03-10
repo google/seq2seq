@@ -146,27 +146,15 @@ class TextToTextTrain(TrainingTask):
                     "rouge_l/f_score"],
         "train_sample_frequency": 1000
     })
+    params["hooks"].append({
+        "class": "TrainSampleHook",
+        "params": hooks.TrainSampleHook.default_params()
+    })
+    params["hooks"].append({
+        "class": "TokensPerSecondCounter",
+        "params": hooks.TokensPerSecondCounter.default_params()
+    })
     return params
-
-  def create_training_hooks(self, estimator):
-    training_hooks = super(
-        TextToTextTrain, self).create_training_hooks(estimator)
-
-    output_dir = estimator.model_dir
-
-    train_sample_hook = hooks.TrainSampleHook(
-        every_n_steps=self.params["train_sample_frequency"],
-        sample_dir=os.path.join(output_dir, "samples"),
-        source_delimiter=self.params["delimiter_source"],
-        target_delimiter=self.params["delimiter_target"])
-    training_hooks.append(train_sample_hook)
-
-    tokens_per_sec_counter = hooks.TokensPerSecondCounter(
-        every_n_steps=100,
-        output_dir=output_dir)
-    training_hooks.append(tokens_per_sec_counter)
-
-    return training_hooks
 
 
 class TextToTextInfer(InferenceTask):

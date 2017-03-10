@@ -49,7 +49,7 @@ def create_predictions_iter(predictions_dict, sess):
         break
 
 def create_inference_graph(
-    task,
+    model,
     input_pipeline,
     batch_size=32):
   """Creates a graph to perform inference.
@@ -64,8 +64,6 @@ def create_inference_graph(
     The return value of the model function, typically a tuple of
     (predictions, loss, train_op).
   """
-
-  model = task.create_model()
 
   # TODO: This doesn't really belong here.
   # How to get rid of this?

@@ -72,13 +72,14 @@ On a CPU, the training may take up to 15 minutes. With the trained model, you ca
 
 ```bash
 python -m bin.infer \
-  --task TextToTextInfer \
+  --tasks "
+    - class: DecodeText" \
   --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
   --input_pipeline "
     class: ParallelTextInputPipeline
     params:
       source_files: ['$HOME/nmt_data/toy_reverse/test/sources.txt']" \
-   > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
+  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
 
 # Evaluate BLEU score using multi-bleu script from MOSES
 ./bin/tools/multi-bleu.perl $HOME/nmt_data/toy_reverse/test/targets.txt < ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt

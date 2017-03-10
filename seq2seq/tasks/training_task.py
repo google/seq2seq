@@ -56,7 +56,17 @@ class TrainingTask(Configurable):
     return {
         "metrics": [],
         "model_class": "",
-        "model_params": {}
+        "model_params": {},
+        "hooks": [
+            {
+                "class": "PrintModelAnalysisHook",
+                "params": hooks.PrintModelAnalysisHook.default_params()
+            },
+            {
+                "class": "MetadataCaptureHook",
+                "params": hooks.MetadataCaptureHook.default_params()
+            }
+        ]
     }
 
   def create_model(self, mode):
@@ -72,7 +82,6 @@ class TrainingTask(Configurable):
         params=self.params["model_params"],
         mode=mode)
 
-  @abc.abstractmethod
   def create_training_hooks(self, estimator):
     """Creates SessionRunHooks to be used during training.
 
@@ -82,16 +91,12 @@ class TrainingTask(Configurable):
     Returns:
       A list of SessionRunHooks.
     """
-    output_dir = estimator.model_dir
     training_hooks = []
-    model_analysis_hook = hooks.PrintModelAnalysisHook(
-        filename=os.path.join(output_dir, "model_analysis.txt"))
-    training_hooks.append(model_analysis_hook)
-
-    metadata_hook = hooks.MetadataCaptureHook(
-        output_dir=os.path.join(output_dir, "metadata"),
-        step=10)
-    training_hooks.append(metadata_hook)
+    for hook_dict in self.params["hooks"]:
+      hook_cls = locate(hook_dict["class"]) or \
+        getattr(hooks, hook_dict["class"])
+      hook = hook_cls(hook_dict["params"], estimator.model_dir)
+      training_hooks.append(hook)
     return training_hooks
 
   def create_metrics(self):
