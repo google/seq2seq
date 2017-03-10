@@ -56,8 +56,6 @@ class AttentionDecoder(RNNDecoder):
     attention_fn: The attention function to use. This function map from
       `(state, inputs)` to `(attention_scores, attention_context)`.
       For an example, see `seq2seq.decoder.attention.AttentionLayer`.
-    max_decode_length: Maximum length for decoding steps
-      for each example of shape `[B]`.
     reverse_scores: Optional, an array of sequence length. If set,
       reverse the attention scores in the output. This is used for when
       a reversed source sequence is fed as an input but you want to
@@ -72,11 +70,10 @@ class AttentionDecoder(RNNDecoder):
                attention_values,
                attention_values_length,
                attention_fn,
-               max_decode_length,
                reverse_scores_lengths=None,
                name="attention_decoder"):
     super(AttentionDecoder, self).__init__(
-        params, mode, max_decode_length, name)
+        params, mode, name)
     self.vocab_size = vocab_size
     self.attention_keys = attention_keys
     self.attention_values = attention_values

@@ -52,14 +52,12 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
     helper: An instance of `tf.contrib.seq2seq.Helper` to assist decoding
     initial_state: A tensor or tuple of tensors used as the initial cell
       state.
-    max_decode_length: Maximum number of decode steps, an int32 scalar.
     name: A name for this module
   """
 
-  def __init__(self, params, mode, max_decode_length, name):
+  def __init__(self, params, mode, name):
     GraphModule.__init__(self, name)
     Configurable.__init__(self, params, mode)
-    self.max_decode_length = max_decode_length
     self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
     self.cell = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     # Not initialized yet
@@ -85,6 +83,7 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
   @staticmethod
   def default_params():
     return {
+        "max_decode_length": 100,
         "rnn_cell": _default_rnn_cell_params()
     }
 
@@ -96,5 +95,5 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
         decoder=self,
         output_time_major=True,
         impute_finished=False,
-        maximum_iterations=self.max_decode_length)
+        maximum_iterations=self.params["max_decode_length"])
     return self.finalize(outputs, final_state)

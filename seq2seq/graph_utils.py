@@ -21,6 +21,13 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+def templatemethod(name_):
+  def template_decorator(func):
+    def func_wrapper(*args, **kwargs):
+      templated_func =  tf.make_template(name_, func)
+      return templated_func(*args, **kwargs)
+    return func_wrapper
+  return template_decorator
 
 def add_dict_to_collection(dict_, collection_name):
   """Adds a dictionary to a graph collection.

@@ -33,6 +33,7 @@ from tensorflow.contrib.slim.python.slim.data import tfexample_decoder
 
 from seq2seq.configurable import Configurable
 from seq2seq.data import split_tokens_decoder, parallel_data_provider
+from seq2seq.data.sequence_example_decoder import TFSEquenceExampleDecoder
 
 def make_input_pipeline_from_def(def_dict, mode, **kwargs):
   """Creates an InputPipeline object from a dictionary definition.
@@ -272,3 +273,82 @@ class TFRecordInputPipeline(InputPipeline):
   @property
   def label_keys(self):
     return set(["target_tokens", "target_len"])
+
+
+class ImageCaptioningInputPipeline(InputPipeline):
+  """An input pipeline that reads a TFRecords containing both source
+  and target sequences.
+
+  Params:
+    files: An array of file names to read from.
+    source_field: The TFRecord feature field containing the source text.
+    target_field: The TFRecord feature field containing the target text.
+    source_delimiter: A character to split the source text on. Defaults
+      to  " " (space). For character-level training this can be set to the
+      empty string.
+    target_delimiter: Same as `source_delimiter` but for the target text.
+  """
+
+  @staticmethod
+  def default_params():
+    params = InputPipeline.default_params()
+    params.update({
+        "files": [],
+        "image_field": "image/data",
+        "image_format": "jpg",
+        "caption_ids_field": "image/caption_ids",
+        "caption_tokens_field": "image/caption",
+    })
+    return params
+
+  def make_data_provider(self, **kwargs):
+
+    context_keys_to_features = {
+        self.params["image_field"]: tf.FixedLenFeature([], dtype=tf.string),
+        "image/format": tf.FixedLenFeature([], dtype=tf.string, default_value=self.params["image_format"]),
+    }
+
+    sequence_keys_to_features = {
+        self.params["caption_ids_field"]: tf.FixedLenSequenceFeature(
+            [], dtype=tf.int64),
+        self.params["caption_tokens_field"]: tf.FixedLenSequenceFeature(
+            [], dtype=tf.string)
+    }
+
+    items_to_handlers = {
+        "image": tfexample_decoder.Image(
+            image_key=self.params["image_field"],
+            format_key="image/format",
+            channels=3),
+        "target_ids": tfexample_decoder.Tensor(
+            self.params["caption_ids_field"]),
+        "target_tokens": tfexample_decoder.Tensor(
+            self.params["caption_tokens_field"]),
+        "target_len": tfexample_decoder.ItemHandlerCallback(
+            keys=[self.params["caption_tokens_field"]],
+            func=lambda dict: tf.size(dict[self.params["caption_tokens_field"]]))
+    }
+
+    decoder = TFSEquenceExampleDecoder(
+        context_keys_to_features, sequence_keys_to_features, items_to_handlers)
+
+    dataset = tf.contrib.slim.dataset.Dataset(
+        data_sources=self.params["files"],
+        reader=tf.TFRecordReader,
+        decoder=decoder,
+        num_samples=None,
+        items_to_descriptions={})
+
+    return tf.contrib.slim.dataset_data_provider.DatasetDataProvider(
+        dataset=dataset,
+        shuffle=self.params["shuffle"],
+        num_epochs=self.params["num_epochs"],
+        **kwargs)
+
+  @property
+  def feature_keys(self):
+    return set(["image"])
+
+  @property
+  def label_keys(self):
+    return set(["target_tokens", "target_ids", "target_len"])

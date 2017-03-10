@@ -79,7 +79,7 @@ class BeamSearchDecoder(RNNDecoder):
 
   def __init__(self, decoder, config):
     super(BeamSearchDecoder, self).__init__(
-        decoder.params, decoder.mode, decoder.max_decode_length, decoder.name)
+        decoder.params, decoder.mode, decoder.name)
     self.decoder = decoder
     self.config = config
 

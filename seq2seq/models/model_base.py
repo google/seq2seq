@@ -97,6 +97,10 @@ class ModelBase(Configurable):
         "optimizer.clip_gradients": 5.0,
     }
 
+  def batch_size(self, features, labels):
+    """Returns the batch size for a batch of examples"""
+    raise NotImplementedError()
+
   def __call__(self, features, labels, params):
     """Creates the model graph. See the model_fn documentation in
     tf.contrib.learn.Estimator class for a more detailed explanation.

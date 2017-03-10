@@ -59,33 +59,36 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     })
     return params
 
-  def _create_decoder(self, encoder_output, _source, source_len):
+  def _create_decoder(self, encoder_output, features, labels):
     attention_class = locate(self.params["attention.class"]) or \
       getattr(decoders.attention, self.params["attention.class"])
     attention_layer = attention_class(
         params=self.params["attention.params"],
         mode=self.mode)
+
     # If the input sequence is reversed we also need to reverse
     # the attention scores.
     reverse_scores_lengths = None
     if self.params["source.reverse"]:
-      reverse_scores_lengths = source_len
+      reverse_scores_lengths = features["source_len"]
       if self.use_beam_search:
         reverse_scores_lengths = tf.tile(
             input=reverse_scores_lengths,
             multiples=[self.params["inference.beam_search.beam_width"]])
 
-    max_decode_length = None
-    if self.mode == tf.contrib.learn.ModeKeys.INFER:
-      max_decode_length = self.params["inference.max_decode_length"]
+    attention_values_length = tf.fill(
+        [self.batch_size(features, labels)],
+        tf.shape(encoder_output.attention_values)[1])
+
+    if "source_len" in features:
+      attention_values_length = features["source_len"]
 
     return self.decoder_class(
         params=self.params["decoder.params"],
         mode=self.mode,
         vocab_size=self.target_vocab_info.total_size,
-        max_decode_length=max_decode_length,
         attention_values=encoder_output.attention_values,
-        attention_values_length=source_len,
+        attention_values_length=attention_values_length,
         attention_keys=encoder_output.outputs,
         attention_fn=attention_layer,
         reverse_scores_lengths=reverse_scores_lengths)

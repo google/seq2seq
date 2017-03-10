@@ -43,11 +43,11 @@ class Encoder(GraphModule, Configurable):
     GraphModule.__init__(self, name)
     Configurable.__init__(self, params, mode)
 
-  def _build(self, inputs, sequence_length, **kwargs):
-    return self.encode(inputs, sequence_length, **kwargs)
+  def _build(self, inputs, *args, **kwargs):
+    return self.encode(inputs, *args, **kwargs)
 
   @abc.abstractmethod
-  def encode(self, inputs, sequence_length):
+  def encode(self, *args, **kwargs):
     """
     Encodes an input sequence.
 

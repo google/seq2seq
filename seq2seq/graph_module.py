@@ -23,7 +23,6 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-
 class GraphModule(object):
   """
   C onvenience class that makes it easy to share variables.

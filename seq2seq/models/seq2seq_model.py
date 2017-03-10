@@ -22,9 +22,9 @@ import tensorflow as tf
 
 from seq2seq import graph_utils
 from seq2seq import losses as seq2seq_losses
-from seq2seq.contrib.seq2seq import helper as tf_decode_helper
 from seq2seq.contrib.seq2seq.decoder import _transpose_batch_time
 from seq2seq.data import vocab
+from seq2seq.graph_utils import templatemethod
 from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
 from seq2seq.inference import beam_search
 from seq2seq.models.model_base import ModelBase, _flatten_dict
@@ -35,8 +35,14 @@ class Seq2SeqModel(ModelBase):
 
   def __init__(self, params, mode, name):
     super(Seq2SeqModel, self).__init__(params, mode, name)
-    self.source_vocab_info = vocab.get_vocab_info(self.params["vocab_source"])
-    self.target_vocab_info = vocab.get_vocab_info(self.params["vocab_target"])
+
+    self.source_vocab_info = None
+    if "vocab_source" in self.params and self.params["vocab_source"]:
+      self.source_vocab_info = vocab.get_vocab_info(self.params["vocab_source"])
+
+    self.target_vocab_info = None
+    if "vocab_target" in self.params and self.params["vocab_target"]:
+      self.target_vocab_info = vocab.get_vocab_info(self.params["vocab_target"])
 
   @staticmethod
   def default_params():
@@ -47,7 +53,6 @@ class Seq2SeqModel(ModelBase):
         "target.max_seq_len": 50,
         "embedding.dim": 100,
         "embedding.share": False,
-        "inference.max_decode_length": 100,
         "inference.beam_search.beam_width": 0,
         "inference.beam_search.length_penalty_weight": 0.0,
         "inference.beam_search.choose_successors_fn": "choose_top_k",
@@ -56,12 +61,30 @@ class Seq2SeqModel(ModelBase):
     })
     return params
 
-  def encode_decode(self,
-                    source,
-                    source_len,
-                    decode_helper):
-    """Should be implemented by child classes"""
-    raise NotImplementedError
+  def batch_size(self, features, labels):
+    return tf.shape(features["source_ids"])[0]
+
+  @property
+  @templatemethod("source_embedding")
+  def source_embedding(self):
+    return tf.get_variable(
+        "W", [self.source_vocab_info.total_size, self.params["embedding.dim"]])
+
+  @property
+  @templatemethod("target_embedding")
+  def target_embedding(self):
+    if self.params["embedding.share"]:
+      return self.source_embedding
+    return tf.get_variable(
+        "W", [self.target_vocab_info.total_size, self.params["embedding.dim"]])
+
+  @templatemethod("encode")
+  def encode(self, features, labels):
+    raise NotImplementedError()
+
+  @templatemethod("decode")
+  def decode(self, encoder_output, features, labels):
+    raise NotImplementedError()
 
   def _create_predictions(self, decoder_output, features, labels, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
@@ -160,6 +183,15 @@ class Seq2SeqModel(ModelBase):
     features["source_ids"] = source_vocab_to_id.lookup(features[
         "source_tokens"])
 
+    # Maybe reverse the source
+    if self.params["source.reverse"] is True:
+      features["source_ids"] = tf.reverse_sequence(
+          input=features["source_ids"],
+          seq_lengths=features["source_len"],
+          seq_dim=1,
+          batch_dim=0,
+          name=None)
+
     features["source_len"] = tf.to_int32(features["source_len"])
     tf.summary.histogram("source_len", tf.to_float(features["source_len"]))
 
@@ -181,86 +213,26 @@ class Seq2SeqModel(ModelBase):
     labels["target_len"] = tf.to_int32(labels["target_len"])
     tf.summary.histogram("target_len", tf.to_float(labels["target_len"]))
 
-    return features, labels
-
-  def _build_embeddings(self):
-    """Create embeddings"""
-    source_embedding = tf.get_variable(
-        "source_embedding",
-        [self.source_vocab_info.total_size, self.params["embedding.dim"]])
-
-    if self.params["embedding.share"]:
-      target_embedding = source_embedding
-    else:
-      target_embedding = tf.get_variable(
-          "target_embedding",
-          [self.target_vocab_info.total_size, self.params["embedding.dim"]])
-
-    return source_embedding, target_embedding
-
-  def _build(self, features, labels, params):
-    # Pre-process features and labels
-    features, labels = self._preprocess(features, labels)
-
     # Add to graph collection for later use
     graph_utils.add_dict_to_collection(features, "features")
     if labels:
       graph_utils.add_dict_to_collection(labels, "labels")
 
-    source_ids = features["source_ids"]
-    if self.params["source.reverse"] is True:
-      source_ids = tf.reverse_sequence(
-          input=features["source_ids"],
-          seq_lengths=features["source_len"],
-          seq_dim=1,
-          batch_dim=0,
-          name=None)
+    return features, labels
 
-    source_embedding, target_embedding = self._build_embeddings()
+  def _build(self, features, labels, params):
+    # Pre-process features and labels
+    features, labels = self._preprocess(features, labels)
 
-    # Embed source
-    source_embedded = tf.nn.embedding_lookup(source_embedding, source_ids)
+    encoder_output = self.encode(features, labels)
+    decoder_output, _, = self.decode(encoder_output, features, labels)
 
-    # Graph used for inference
     if self.mode == tf.contrib.learn.ModeKeys.INFER:
-      target_start_id = self.target_vocab_info.special_vocab.SEQUENCE_START
-
-      batch_size = tf.shape(source_embedded)[0]
-      if self.use_beam_search:
-        batch_size = self.params["inference.beam_search.beam_width"]
-
-      helper_infer = tf_decode_helper.GreedyEmbeddingHelper(
-          embedding=target_embedding,
-          start_tokens=tf.fill([batch_size], target_start_id),
-          end_token=self.target_vocab_info.special_vocab.SEQUENCE_END)
-
-      decoder_output, _, _ = self.encode_decode(
-          source=source_embedded,
-          source_len=features["source_len"],
-          decode_helper=helper_infer)
-
       predictions = self._create_predictions(
           decoder_output=decoder_output,
           features=features,
           labels=labels)
-
       return predictions, None, None
-
-    # Graph used for train/eval
-    # Embed target
-    target_embedded = tf.nn.embedding_lookup(
-        target_embedding, labels["target_ids"])
-
-    # During training/eval, we have labels and use them for teacher forcing
-    # We don't feed the last SEQUENCE_END token
-    helper_train = tf_decode_helper.TrainingHelper(
-        inputs=target_embedded[:, :-1],
-        sequence_length=labels["target_len"] - 1)
-
-    decoder_output, _, _ = self.encode_decode(
-        source=source_embedded,
-        source_len=features["source_len"],
-        decode_helper=helper_train)
 
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(

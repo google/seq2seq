@@ -26,26 +26,15 @@ from seq2seq.decoders.rnn_decoder import RNNDecoder, DecoderOutput
 
 class BasicDecoder(RNNDecoder):
   """Simple RNN decoder that performed a softmax operations on the cell output.
-
-  Args:
-    cell: An instance of ` tf.contrib.rnn.RNNCell`
-    helper: An instance of `tf.contrib.seq2seq.Helper` to assist decoding
-    initial_state: A tensor or tuple of tensors used as the initial cell
-      state.
-    vocab_size: Output vocabulary size, i.e. number of units
-      in the softmax layer
-    max_decode_length: Maximum length for decoding steps for each example
-      of shape `[B]`.
   """
 
   def __init__(self,
                params,
                mode,
                vocab_size,
-               max_decode_length,
                name="basic_decoder"):
     super(BasicDecoder, self).__init__(
-        params, mode, max_decode_length, name)
+        params, mode, name)
     self.vocab_size = vocab_size
 
   def compute_output(self, cell_output):

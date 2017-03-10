@@ -124,12 +124,15 @@ class TokensPerSecondCounter(session_run_hook.SessionRunHook):
     #pylint: disable=W0201
     features = graph_utils.get_dict_from_collection("features")
     labels = graph_utils.get_dict_from_collection("labels")
-    num_source_tokens = tf.reduce_sum(features["source_len"])
-    num_target_tokens = tf.reduce_sum(labels["target_len"])
+
+    self._num_tokens_tensor = tf.constant(0)
+    if "source_len" in features:
+      self._num_tokens_tensor += tf.reduce_sum(features["source_len"])
+    if "target_len" in labels:
+      self._num_tokens_tensor += tf.reduce_sum(labels["target_len"])
 
     self._tokens_last_step = 0
     self._global_step_tensor = training_util.get_global_step()
-    self._num_tokens_tensor = num_source_tokens + num_target_tokens
 
     # Create a variable that stores how many tokens have been processed
     # Should be global for distributed training
