@@ -53,11 +53,14 @@ ${BASE_DIR}/bin/tools/generate_toy_data.py  \
 
 # Create Vocabulary
 ${BASE_DIR}/bin/tools/generate_vocab.py \
-  --input_file ${OUTPUT_DIR_TRAIN}/sources.txt \
-  --output_file ${OUTPUT_DIR_TRAIN}/vocab.sources.txt
+  < ${OUTPUT_DIR_TRAIN}/sources.txt \
+  > ${OUTPUT_DIR_TRAIN}/vocab.sources.txt
+echo "Wrote ${OUTPUT_DIR_TRAIN}/vocab.sources.txt"
+
 ${BASE_DIR}/bin/tools/generate_vocab.py \
-  --input_file ${OUTPUT_DIR_TRAIN}/targets.txt \
-  --output_file ${OUTPUT_DIR_TRAIN}/vocab.targets.txt
+  < ${OUTPUT_DIR_TRAIN}/targets.txt \
+  > ${OUTPUT_DIR_TRAIN}/vocab.targets.txt
+echo "Wrote ${OUTPUT_DIR_TRAIN}/vocab.targets.txt"
 
 # Create character vocabulary
 ${BASE_DIR}/bin/tools/generate_char_vocab.py \
@@ -68,7 +71,7 @@ ${BASE_DIR}/bin/tools/generate_char_vocab.py \
   > ${OUTPUT_DIR_TRAIN}/vocab.targets.char.txt
 
 # Creating zip file
-ARCHIVE_PATH="${OUTPUT_DIR}/toy_copy.tar.gz"
-tar -cvzf ${ARCHIVE_PATH} \
-  -C ${OUTPUT_DIR} train/ dev/ test/
-echo "Wrote ${ARCHIVE_PATH}"
+# ARCHIVE_PATH="${OUTPUT_DIR}/toy_copy.tar.gz"
+# tar -cvzf ${ARCHIVE_PATH} \
+#   -C ${OUTPUT_DIR} train/ dev/ test/
+# echo "Wrote ${ARCHIVE_PATH}"
