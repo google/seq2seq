@@ -60,7 +60,7 @@ Das ist der Fall von Alexander Ni@@ ki@@ tin
 
 To make it easy to get started we have prepared an already pre-processed dataset based on the [English-German WMT'16 Translation Task](http://www.statmt.org/wmt16/translation-task.html). To learn more about how the data was generated, you can take a look at the [wmt16_en_de.sh](https://github.com/google/seq2seq/blob/master/bin/data/wmt16_en_de.sh) data generation script.
 
-- [Download pre-processed WMT'16 EN-DE Data (502MB)](https://drive.google.com/open?id=0B_bZck-ksdkpdmlvajhSbS1JTXc)
+- [Download pre-processed WMT'16 EN-DE Data (502MB)](https://drive.google.com/open?id=0B_bZck-ksdkpREE3LXJlMXVLUWM)
 
 After extraction, you should see the folowing files:
 
