@@ -28,7 +28,6 @@ from tensorflow.python.training.session_run_hook import SessionRunHook
 from tensorflow.python.training.session_run_hook import SessionRunArgs
 
 from seq2seq.tasks.decode_text import _get_prediction_length
-from seq2seq.tasks.training_task import TrainingTask
 from seq2seq.tasks.inference_task import InferenceTask, unbatch_dict
 from seq2seq.training import hooks
 

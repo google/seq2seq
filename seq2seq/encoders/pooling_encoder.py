@@ -114,4 +114,5 @@ class PoolingEncoder(Encoder):
     return EncoderOutput(
         outputs=outputs,
         final_state=final_state,
-        attention_values=inputs)
+        attention_values=inputs,
+        attention_values_length=sequence_length)

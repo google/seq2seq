@@ -111,6 +111,9 @@ class BasicSeq2Seq(Seq2SeqModel):
   @templatemethod("decode")
   def decode(self, encoder_output, features, labels):
     decoder = self._create_decoder(encoder_output, features, labels)
+    if self.use_beam_search:
+      decoder = self._get_beam_search_decoder(decoder)
+
     bridge = self._create_bridge(
         encoder_outputs=encoder_output,
         decoder_state_size=decoder.cell.state_size)

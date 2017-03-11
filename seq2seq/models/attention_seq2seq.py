@@ -76,20 +76,12 @@ class AttentionSeq2Seq(BasicSeq2Seq):
             input=reverse_scores_lengths,
             multiples=[self.params["inference.beam_search.beam_width"]])
 
-    # TODO: Encoder should return attention value length
-    if "source_len" in features:
-      attention_values_length = features["source_len"]
-    else:
-      attention_values_length = tf.fill(
-          [self.batch_size(features, labels)],
-          tf.shape(encoder_output.attention_values)[1])
-
     return self.decoder_class(
         params=self.params["decoder.params"],
         mode=self.mode,
         vocab_size=self.target_vocab_info.total_size,
         attention_values=encoder_output.attention_values,
-        attention_values_length=attention_values_length,
+        attention_values_length=encoder_output.attention_values_length,
         attention_keys=encoder_output.outputs,
         attention_fn=attention_layer,
         reverse_scores_lengths=reverse_scores_lengths)

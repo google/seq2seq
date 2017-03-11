@@ -1,5 +1,5 @@
 model: AttentionSeq2Seq
-hparams:
+model_params:
   attention.class: seq2seq.decoders.attention.AttentionLayerDot
   attention.params:
     num_units: 128

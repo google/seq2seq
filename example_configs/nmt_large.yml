@@ -1,5 +1,5 @@
 model: AttentionSeq2Seq
-hparams:
+model_params:
   attention.class: seq2seq.decoders.attention.AttentionLayerBahdanau
   attention.params:
     num_units: 512

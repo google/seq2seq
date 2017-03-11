@@ -77,9 +77,9 @@ def main(_argv):
   train_options = training_utils.TrainOptions.load(FLAGS.model_dir)
 
   # Create the model
-  model_cls = train_options.task_params["model_class"]
-  model_cls = locate(model_cls) or getattr(models, model_cls)
-  model_params = train_options.task_params["model_params"]
+  model_cls = locate(train_options.model_class) or \
+    getattr(models, train_options.model_class)
+  model_params = train_options.model_params
   model_params = _deep_merge_dict(
       model_params, _maybe_load_yaml(FLAGS.model_params))
   model = model_cls(

@@ -16,8 +16,7 @@
 Collection of task types.
 """
 
-from seq2seq.tasks.training_task import TrainingTask
 from seq2seq.tasks.inference_task import InferenceTask
-from seq2seq.tasks.text_to_text import TextToTextTrain, TextToTextInfer
 from seq2seq.tasks.decode_text import DecodeText
 from seq2seq.tasks.dump_attention import DumpAttention
+from seq2seq.tasks.dump_beams import DumpBeams

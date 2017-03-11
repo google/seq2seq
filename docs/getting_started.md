@@ -47,12 +47,10 @@ Given the above input files, you can now train a new model:
 
 ```bash
 python -m bin.train \
-  --task TextToTextTrain \
-  --task_params "
-      model_class: AttentionSeq2Seq
-      model_params:
-        vocab_source: $HOME/nmt_data/toy_reverse/train/vocab.sources.txt
-        vocab_target: $HOME/nmt_data/toy_reverse/train/vocab.targets.txt" \
+  --config_paths="./example_configs/nmt_small.yml,./example_configs/train_seq2seq.yml" \
+  --model_params "
+      vocab_source: $HOME/nmt_data/toy_reverse/train/vocab.sources.txt
+      vocab_target: $HOME/nmt_data/toy_reverse/train/vocab.targets.txt" \
   --input_pipeline_train "
     class: ParallelTextInputPipeline
     params:
@@ -68,7 +66,7 @@ python -m bin.train \
   --output_dir ${TMPDIR:-/tmp}/nmt_toy_reverse
 ```
 
-On a CPU, the training may take up to 15 minutes. With the trained model, you can run inference and make predictions as follows:
+On a CPU, the training may take around 15 minutes. With the trained model, you can run inference and make predictions as follows:
 
 ```bash
 python -m bin.infer \

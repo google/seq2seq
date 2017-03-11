@@ -43,20 +43,20 @@ class TrainOptions(object):
     task_params: A dictionary of parameters passed to the training task.
   """
   def __init__(self,
-               task,
-               task_params):
-    self._task = task
-    self._task_params = task_params
+               model_class,
+               model_params):
+    self._model_class = model_class
+    self._model_params = model_params
 
   @property
-  def task_params(self):
+  def model_class(self):
     """Returns the training task parameters"""
-    return self._task_params
+    return self._model_class
 
   @property
-  def task(self):
+  def model_params(self):
     """Returns the training task class"""
-    return self._task
+    return self._model_params
 
   @staticmethod
   def path(model_dir):
@@ -76,8 +76,8 @@ class TrainOptions(object):
     """
     gfile.MakeDirs(model_dir)
     options_dict = {
-        "task": self._task,
-        "task_params": self._task_params,
+        "model_class": self.model_class,
+        "model_params": self.model_params,
     }
 
     with gfile.GFile(TrainOptions.path(model_dir), "w") as file:
@@ -95,8 +95,8 @@ class TrainOptions(object):
     options_dict = defaultdict(None, options_dict)
 
     return TrainOptions(
-        task=options_dict["task"],
-        task_params=options_dict["task_params"])
+        model_class=options_dict["model_class"],
+        model_params=options_dict["model_params"])
 
 def cell_from_spec(cell_classname, cell_params):
   """Create a RNN Cell instance from a JSON string.

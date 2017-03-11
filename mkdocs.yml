@@ -4,12 +4,16 @@ extra_css: [extra.css]
 pages:
     - Overview: index.md
     - Getting Started: getting_started.md
+    - Concepts: concepts.md
+    - "Tutorial: Neural Machine Translation": nmt.md
+    - "Tutorial: Summarization": summarization.md
+    - "Tutorial: Image Captioning": image_captioning.md
     - Data: data.md
     - Training: training.md
     - Inference: inference.md
-    - Model Reference: models.md
-    - Encoder Reference: encoders.md
-    - Decoder Reference: decoders.md
+    - "Reference: Models": models.md
+    - "Reference Encoders": encoders.md
+    - "Reference Decoders": decoders.md
     - Tools: tools.md
     - Benchmarks: benchmarks.md
     - Contributing: contributing.md

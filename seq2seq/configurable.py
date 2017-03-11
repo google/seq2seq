@@ -20,9 +20,11 @@ a parameters dictionary.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import abc
 
+import abc
 import copy
+from pydoc import locate
+
 import six
 import yaml
 
@@ -35,6 +37,14 @@ class abstractstaticmethod(staticmethod): #pylint: disable=C0111,C0103
     super(abstractstaticmethod, self).__init__(function)
     function.__isabstractmethod__ = True
   __isabstractmethod__ = True
+
+def _create_from_dict(dict_, default_module, *args, **kwargs):
+  class_ = locate(dict_["class"]) or  getattr(default_module, dict_["class"])
+  params = {}
+  if "params" in dict_:
+    params = dict_["params"]
+  instance = class_(params, *args, **kwargs)
+  return instance
 
 def _maybe_load_yaml(item):
   """Parses `item` only if it is a string. If `item` is a dictionary

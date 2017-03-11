@@ -68,4 +68,5 @@ class InceptionV3Encoder(Encoder):
 
     return EncoderOutput(
         outputs=outputs_flat, final_state=final_state,
-        attention_values=outputs_flat)
+        attention_values=outputs_flat,
+        attention_values_length=tf.shape(outputs_flat)[1])
