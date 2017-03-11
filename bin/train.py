@@ -18,17 +18,15 @@
 
 import os
 import tempfile
-from pydoc import locate
 
 import yaml
-from six import string_types
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
 from tensorflow.contrib.learn.python.learn.estimators import run_config
 from tensorflow.python.platform import gfile
 
-from seq2seq import tasks, models
+from seq2seq import models
 from seq2seq.configurable import _maybe_load_yaml, _create_from_dict
 from seq2seq.configurable import _deep_merge_dict
 from seq2seq.data import input_pipeline
@@ -36,21 +34,32 @@ from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
 from seq2seq.training import hooks
 from seq2seq.training import utils as training_utils
 
-tf.flags.DEFINE_string("config_paths", None,
-                       """Path to a YAML configuration file defining FLAG
-                       values and hyperparameters. Refer to the documentation
-                       for more details.""")
-tf.flags.DEFINE_string("hooks", "[]", """Collectionf of hooks.""")
-tf.flags.DEFINE_string("metrics", "[]", """Collectionf of metrics.""")
-tf.flags.DEFINE_string("model", "", """Model class name""")
-tf.flags.DEFINE_string("model_params", "{}", """Model parameters""")
+tf.flags.DEFINE_string("config_paths", "",
+                       """Path to a YAML configuration files defining FLAG
+                       values. Multiple files can be separated by commas.
+                       Files are merged recursively. Setting a key in these
+                       files is equivalent to setting the FLAG value with
+                       the same name.""")
+tf.flags.DEFINE_string("hooks", "[]",
+                       """YAML configuration string for the
+                       training hooks to use.""")
+tf.flags.DEFINE_string("metrics", "[]",
+                       """YAML configuration string for the
+                       training metrics to use.""")
+tf.flags.DEFINE_string("model", "",
+                       """Name of the model class.
+                       Can be either a fully-qualified name, or the name
+                       of a class defined in `seq2seq.models`.""")
+tf.flags.DEFINE_string("model_params", "{}",
+                       """YAML configuration string for the model
+                       parameters.""")
 
-tf.flags.DEFINE_string("input_pipeline_train", None,
-                       """Use this to overwrite the training input pipeline.
-                       A YAML string.""")
-tf.flags.DEFINE_string("input_pipeline_dev", None,
-                       """Use this to overwrite the development input pipeline.
-                       A YAML string.""")
+tf.flags.DEFINE_string("input_pipeline_train", "{}",
+                       """YAML configuration string for the training
+                       data input pipeline.""")
+tf.flags.DEFINE_string("input_pipeline_dev", "{}",
+                       """YAML configuration string for the development
+                       data input pipeline.""")
 
 tf.flags.DEFINE_string("buckets", None,
                        """Buckets input sequences according to these length.

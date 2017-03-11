@@ -29,9 +29,9 @@ from seq2seq.models.model_base import ModelBase
 from seq2seq.models.attention_seq2seq import AttentionSeq2Seq
 
 
-class Image2SeqModel(AttentionSeq2Seq):
+class Image2Seq(AttentionSeq2Seq):
   def __init__(self, params, mode, name="image_seq2seq"):
-    super(Image2SeqModel, self).__init__(params, mode, name)
+    super(Image2Seq, self).__init__(params, mode, name)
     self.params["source.reverse"] = False
     self.params["embedding.share"] = False
 

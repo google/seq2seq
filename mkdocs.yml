@@ -1,6 +1,7 @@
 site_name:  seq2seq
 theme: readthedocs
 extra_css: [extra.css]
+markdown_extensions: [fenced_code]
 pages:
     - Overview: index.md
     - Getting Started: getting_started.md
@@ -12,8 +13,8 @@ pages:
     - Training: training.md
     - Inference: inference.md
     - "Reference: Models": models.md
-    - "Reference Encoders": encoders.md
-    - "Reference Decoders": decoders.md
+    - "Reference: Encoders": encoders.md
+    - "Reference: Decoders": decoders.md
     - Tools: tools.md
     - Benchmarks: benchmarks.md
     - Contributing: contributing.md

@@ -1,64 +1,48 @@
-### Input Files
+For a concrete of how to run the training script, refer to the [Neural Machine Translation Tutorial](nmt/).
 
-In order to train a model, you need the following files. Refer to [Data](https://github.com/google/seq2seq/wiki/Data) for more details on each of these.
+## Configuring Training
 
-- Training data: Two parallel (aligned line by line) tokenized text files with tokens separated by spaces.
-- Development data: Same format as the training data, but used for validation.
-- Source vocabulary: Defines the source vocabulary. A raw text file that contains one word per line.
-- Target vocabulary: Defines the target vocabulary. A raw text file that contains one word per line.
+Also see [Configuration](concepts/#configuration). The configuration for input data, models, and training parameters is done via [YAML](https://en.wikipedia.org/wiki/YAML). You can pass YAML strings directly to the training script, or create configuration files and pass their paths to the script. These two approaches are technically equivalent. However, large YAML strings can become difficult to manage so we recommend the latter one. For example, the following two are equivalent:
 
-### Running Training
-
-To train a new model, run the training script below (also see [Getting Started](getting_started.md)):
+1\. Pass FLAGS directly:
 
 ```shell
 python -m bin.train \
-  --train_source $HOME/nmt_data/toy_reverse/train/sources.txt \
-  --train_target $HOME/nmt_data/toy_reverse/train/targets.txt \
-  --dev_source $HOME/nmt_data/toy_reverse/dev/sources.txt \
-  --dev_target $HOME/nmt_data/toy_reverse/dev/targets.txt \
-  --vocab_source $HOME/nmt_data/toy_reverse/train/vocab.sources.txt \
-  --vocab_target $HOME/nmt_data/toy_reverse/train/vocab.targets.txt \
   --model AttentionSeq2Seq \
-  --batch_size 32 \
-  --train_steps 1500 \
-  --hparams '
-      embedding.dim: 512
-      optimizer.name: Adam' \
-  --output_dir ${TMPDIR}/nmt_toy_reverse
+  --model_params "
+    embedding.dim: 256
+    encoder.class: seq2seq.encoders.BidirectionalRNNEncoder
+    encoder.params:
+      rnn_cell:
+        cell_class: GRUCell"
 ```
 
-### Passing Hyperparameters and Configuration Files
 
-[Model hyperparameters](models.md) can be passed via the `hparams` flags. This flag is a string in [YAML](http://yaml.org/) or JSON format.
-
-An alternative to passing arguments to the training script is to define a configuration file in YAML format and pass it via the `config_path` flags. For example, the train command above would be expressed as follows in a configuration file:
+2\. Define `config.yml`
 
 ```yaml
-train_source: /home/nmt_data/toy_reverse/train/sources.txt
-train_target: /home/nmt_data/toy_reverse/train/targets.txt
-dev_source: /home/nmt_data/toy_reverse/dev/sources.txt
-dev_target: /home/nmt_data/toy_reverse/dev/targets.txt
-vocab_source: /home/nmt_data/toy_reverse/train/vocab.sources.txt
-vocab_target: /home/nmt_data/toy_reverse/train/vocab.targets.txt
 model: AttentionSeq2Seq
-batch_size: 32
-train_steps: 1500
-hparams:
-  embedding.dim: 512
-  optimizer.name: Adam
-output_dir: /tmp/nmt_toy_reverse
+model_params:
+  embedding.dim: 256
+  encoder.class: seq2seq.encoders.BidirectionalRNNEncoder
+  encoder.params:
+    rnn_cell:
+      cell_class: GRUCell
 ```
 
-Note that environment variables in configuration files are not yet supported. Flags defined as both command line arguments and configuration file values are overwritten by configuration file values. Command line flags not present in the configuration file will be merged. Parameters that are JSON objects on the command like (e.g. `cell_params`) can be defined as key-value pairs directly in the YAML file.
+... and pass FLAGS via config:
+
+```shell
+python -m bin.train --config_paths config.yml
+```
 
 
-### Distributed Training
+Multiple configuration files are merged recursively, in the order they are passed. This means you can have separate configuration files for model hyperparameters, input data, and training options, and mix and match as needed.
 
-Distributed Training is supported out of the box using `tf.learn`. Cluster Configurations can be specified using the `TF_CONFIG` environment variable, which is parsed by the [`RunConfig`](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py). Refer to the [Distributed Tensorflow](https://www.tensorflow.org/how_tos/distributed/) Guide for more information.
+For a concrete examples of configuration files, refer to the [example configurations](https://github.com/google/seq2seq/tree/master/example_configs) and [Neural Machine Translation Tutorial](NMT/).
 
 
-### Monitoring Training
+## Monitoring Training
 
 In addition to looking at the output of the training script, Tensorflow write summaries and training logs into the specified `output_dir`. Use [Tensorboard](https://www.tensorflow.org/how_tos/summaries_and_tensorboard/) to visualize training progress.
 
@@ -66,31 +50,29 @@ In addition to looking at the output of the training script, Tensorflow write su
 tensorboard --logdir=/path/to/model/dir
 ```
 
-### Training script arguments
+## Distributed Training
 
-The [train.py](https://github.com/google/seq2seq/blob/master/bin/train.py) script has many more options. Bold arguments are required.
+Distributed Training is supported out of the box using `tf.learn`. Cluster Configurations can be specified using the `TF_CONFIG` environment variable, which is parsed by the [`RunConfig`](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/learn/python/learn/estimators/run_config.py). Refer to the [Distributed Tensorflow](https://www.tensorflow.org/how_tos/distributed/) Guide for more information.
+
+
+## Training script Reference
+
+The [train.py](https://github.com/google/seq2seq/blob/master/bin/train.py) script has many more options.
 
 | Argument | Default | Description |
 | --- | --- | --- |
-| **train_source** | --- | Path to the training data source sentences. A raw text file with tokens separated by spaces. |
-| **train_target** | --- | Path to the training data target sentences. A raw text file with tokens separated by spaces. |
-| **dev_source** | --- | Path to the development data source sentences. Same format as training data. |
-| **dev_target** | --- | Path to the development data target sentences. Same format as training data.|
-| **vocab_source** | --- | Path to the source vocabulary. A raw text file with one word per line. |
-| **vocab_target** | --- | Path to the target vocabulary. A raw text file with one word per line. |
-| source_delimiter| `" "` | Split source files into tokens on this delimiter. Defaults to `" "` (space). |
-| target_delimiter | `" "` | Split target files into tokens on this delimiter. Defaults to `" "` (space). |
-| config_path | --- | Path to a YAML configuration file defining FLAG values and hyperparameters. See below. |
-| model | `AttentionSeq2Seq` | The model class to use. Refer to the documentation for all available models. |
+| config_paths | `""` | Path to a YAML configuration file defining FLAG values. Multiple files can be separated by commas. Files are merged recursively. Setting a key in these files is equivalent to setting the FLAG value with the same name. |
+| hooks | `"[]"` | YAML configuration string for the training hooks to use. |
+| metrics | `"[]"` | YAML configuration string for the training metrics to use. |
+| model | `""` | Name of the model class. Can be either a fully-qualified name, or the name of a class defined in `seq2seq.models`. |
+| model_params | `"{}"` | YAML configuration string for the model parameters. |
+| input_pipeline_train | `"{}"` | YAML configuration string for the training data input pipeline. |
+| input_pipeline_dev | `"{}"` | YAML configuration string for the development data input pipeline. |
 | buckets | `None` | Buckets input sequences according to these length. A comma-separated list of sequence length buckets, e.g. `"10,20,30"` would result in 4 buckets: `<10, 10-20, 20-30, >30`. `None` disables bucketing. |
 | batch_size | `16` | Batch size used for training and evaluation. |
-| hparams | `None` | A comma-separated list of hyeperparameter values that overwrite the model defaults, e.g. `"optimizer.name=Adam,optimizer.learning_rate=0.1"`. Refer to the Models section and the TensorFlow documentation for a detailed list of available hyperparameters. |
 | output_dir | `None` | The directory to write model checkpoints and summaries to. If None, a local temporary directory is created. |
 | train_steps | `None` | Maximum number of training steps to run. If None, train forever. |
-| train_epochs | `None` | Maximum number of training epochs over the data. If None, train forever. |
 | eval_every_n_steps | `1000` | Run evaluation on validation data every N steps. |
-| sample_every_n_steps | `500` | Sample and print sequence predictions every N steps during training. |
-| metrics | `log_perplexity,bleu` | Comma-separated list of metrics to evaluate. Each metric must be defined in the `METRIC_SPECS_DICT` in `metric_specs.py`. |
 | tf_random_seed | `None` | Random seed for TensorFlow initializers. Setting this value allows consistency between reruns. |
 | save_checkpoints_secs | `600` | Save checkpoints every N seconds. Can not be specified with `save_checkpoints_steps`. |
 | save_checkpoints_steps | `None` | Save checkpoints every N steps. Can not be specified with `save_checkpoints_secs`. |

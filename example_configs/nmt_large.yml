@@ -4,7 +4,7 @@ model_params:
   attention.params:
     num_units: 512
   bridge.class: seq2seq.models.bridges.ZeroBridge
-  embedding.dim: 1024
+  embedding.dim: 512
   encoder.class: seq2seq.encoders.BidirectionalRNNEncoder
   encoder.params:
     rnn_cell:

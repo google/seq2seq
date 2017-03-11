@@ -32,8 +32,10 @@ class InceptionV3Encoder(Encoder):
   part of the cell.
 
   Params:
-    resize_height: Resize image to this height before feeding it into the CNN
-    resize_width: Resize image to this width before feeding it into the CNN
+    resize_height: Resize the image to this height before feeding it
+      into the convolutional network.
+    resize_width: Resize the image to this width before feeding it
+      into the convolutional network.
   """
 
   def __init__(self, params, mode, name="image_encoder"):
