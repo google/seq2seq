@@ -1,4 +1,4 @@
-### Generating Vocabulary
+## Generating Vocabulary
 
 A vocabulary file is a raw text file that contains one word per line, followed by a tab separator and the word count. The total number of lines is equal to the size of the vocabulary and each token is mapped to its line number. We provide a helper script [`bin/tools/generate_vocab.py`](https://github.com/google/seq2seq/blob/master/bin/tools/generate_vocab.py) that takes in a raw text file of space-delimited tokens and generates a vocabulary file:
 
@@ -7,7 +7,7 @@ A vocabulary file is a raw text file that contains one word per line, followed b
 ```
 
 
-### Generating Character Vocabulary
+## Generating Character Vocabulary
 
 Sometimes you want to run training on characters instead of words or subword units. The [`bin/tools/generate_char_vocab.py`](https://github.com/google/seq2seq/blob/master/bin/tools/generate_char_vocab.py) can generate a vocabulary file that contains the unique set of characters found in the text:
 
