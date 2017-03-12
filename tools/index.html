@@ -211,12 +211,12 @@
           <div role="main">
             <div class="section">
               
-                <h3 id="generating-vocabulary">Generating Vocabulary</h3>
+                <h2 id="generating-vocabulary">Generating Vocabulary</h2>
 <p>A vocabulary file is a raw text file that contains one word per line, followed by a tab separator and the word count. The total number of lines is equal to the size of the vocabulary and each token is mapped to its line number. We provide a helper script <a href="https://github.com/google/seq2seq/blob/master/bin/tools/generate_vocab.py"><code>bin/tools/generate_vocab.py</code></a> that takes in a raw text file of space-delimited tokens and generates a vocabulary file:</p>
 <pre><code class="shell">./bin/tools/generate_vocab.py &lt; data.txt &gt; vocab
 </code></pre>
 
-<h3 id="generating-character-vocabulary">Generating Character Vocabulary</h3>
+<h2 id="generating-character-vocabulary">Generating Character Vocabulary</h2>
 <p>Sometimes you want to run training on characters instead of words or subword units. The <a href="https://github.com/google/seq2seq/blob/master/bin/tools/generate_char_vocab.py"><code>bin/tools/generate_char_vocab.py</code></a> can generate a vocabulary file that contains the unique set of characters found in the text:</p>
 <pre><code class="shell">./bin/tools/generate_char_vocab.py &lt; data.txt &gt; vocab
 </code></pre>
