@@ -1,6 +1,10 @@
 ## What to work on
 
-If you are interested in contributing but are unsure what work on, take a look at the open [Github Issues](https://github.com/google/seq2seq/issues). We are always looking for contributors.
+If you are interested in contributing but are unsure what work on, take a look at the open [Github Issues](https://github.com/google/seq2seq/issues). We are always looking for contributors. We are also always looking for the following:
+
+- Fix issues with the documentation (typos, outdated docs, ...)
+- Improve code quality through refactoring, more tests, better docstrings, etc.
+- Running benchmarks on standard datasets
 
 ## Development Setup
 
