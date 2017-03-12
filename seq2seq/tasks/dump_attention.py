@@ -99,6 +99,10 @@ class DumpAttention(InferenceTask):
     })
     return params
 
+  def begin(self):
+    super(DumpAttention, self).begin()
+    gfile.MakeDirs(self.params["output_dir"])
+
   def before_run(self, _run_context):
     fetches = {}
     fetches["predicted_tokens"] = self._predictions["predicted_tokens"]

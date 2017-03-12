@@ -48,7 +48,7 @@ def make_input_pipeline_from_def(def_dict, mode, **kwargs):
     A new InputPipeline object
   """
   if not "class" in def_dict:
-    raise ValueError("Input Pipeline definition must have a class propert.")
+    raise ValueError("Input Pipeline definition must have a class property.")
 
   class_ = def_dict["class"]
   if not hasattr(sys.modules[__name__], class_):

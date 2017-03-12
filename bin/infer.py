@@ -107,7 +107,7 @@ def main(_argv):
     checkpoint_path = tf.train.latest_checkpoint(FLAGS.model_dir)
 
 
-  def session_init_op(scaffold, sess):
+  def session_init_op(_scaffold, sess):
     saver.restore(sess, checkpoint_path)
     tf.logging.info("Restored model from %s", checkpoint_path)
 
