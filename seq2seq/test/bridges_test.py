@@ -53,6 +53,7 @@ class BridgeTest(tf.test.TestCase):
         attention_values=tf.convert_to_tensor(
             value=np.random.randn(self.batch_size, 10, 16),
             dtype=tf.float32),
+        attention_values_length=np.full([self.batch_size], 10),
         final_state=final_encoder_state)
 
   def _create_bridge(self):
