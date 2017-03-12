@@ -1,15 +1,22 @@
 site_name:  seq2seq
 theme: readthedocs
 extra_css: [extra.css]
+markdown_extensions: [fenced_code]
 pages:
     - Overview: index.md
     - Getting Started: getting_started.md
+    - Concepts: concepts.md
+    - "Tutorial: Neural Machine Translation": nmt.md
+    - "Tutorial: Summarization": summarization.md
+    - "Tutorial: Image Captioning": image_captioning.md
     - Data: data.md
     - Training: training.md
     - Inference: inference.md
-    - Model Reference: models.md
-    - Encoder Reference: encoders.md
-    - Decoder Reference: decoders.md
     - Tools: tools.md
     - Benchmarks: benchmarks.md
+    - Getting Help: help.md
     - Contributing: contributing.md
+    - License: license.md
+    - "Reference: Models": models.md
+    - "Reference: Encoders": encoders.md
+    - "Reference: Decoders": decoders.md

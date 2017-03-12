@@ -8,10 +8,13 @@ include =
   seq2seq/decoders/*
   seq2seq/encoders/*
   seq2seq/inference/*
+  seq2seq/metrics/*
   seq2seq/models/*
+  seq2seq/tasks/*
   seq2seq/training/*
 
 omit =
+  seq2seq/contrib/*
   seq2seq/test/*
   seq2seq/scripts/*
 

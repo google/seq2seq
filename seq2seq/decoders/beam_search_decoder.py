@@ -23,7 +23,7 @@ from __future__ import print_function
 from collections import namedtuple
 
 import tensorflow as tf
-from tensorflow.python.util import nest
+from tensorflow.python.util import nest # pylint: disable=E0611
 
 from seq2seq.inference import beam_search
 from seq2seq.decoders.rnn_decoder import RNNDecoder
@@ -79,7 +79,7 @@ class BeamSearchDecoder(RNNDecoder):
 
   def __init__(self, decoder, config):
     super(BeamSearchDecoder, self).__init__(
-        decoder.params, decoder.mode, decoder.max_decode_length, decoder.name)
+        decoder.params, decoder.mode, decoder.name)
     self.decoder = decoder
     self.config = config
 

@@ -1,59 +1,32 @@
-## Performing Inference
+## Inference Tasks
 
-After you have trained a model, you can use the `bin/infer.py` script to make predictions. For example, from the [Getting Started Guide](getting_started.md):
+When calling the inference script `bin/infer.py`, you must provide a list of tasks to run. The most basic task, `DecodeText`, simply prints out the model predictions. By additing more tasks you can perform additional features, such as storing debugging infromation or visualization attention scores. Under the hood, each `InferenceTask` is implemented as a Tensorflow [SessionRunHook](https://www.tensorflow.org/api_docs/python/tf/train/SessionRunHook) that requests outputs from the model and knows how to process them.
 
-```bash
-python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
-```
+## DecodeText
 
-The inference script reads the model hyperparameters from the `train_options.json` file in the model directory, so
-you do not need to pass them explicitly. By default, the latest model checkpoint found in `model_dir` is used, but you can also pass a specific checkpoint (e.g. `${TMPDIR:-/tmp}/nmt_toy_reverse/model.ckpt-1562`) via
-the `checkpoint_path` flag.
+The `DecodeText` task reads the model predicitons and prints the predictions to standard output. It has the following parameters:
 
-## Beam Search
+- `delimiter`: String to join the tokens predicted by the model on. Defaults to space.
+- `unk_replace`: If set to `True`, perform unknown token replacement based on attention scores. Default is `False`. See below for more details.
+- `unk_mapping`: If set to the path of a dictionary file, use the provided mapping to perform unknown token replacement. See below for more details.
 
-**Beam Search is currently experimental.** To perform beam search you can can set the `inference.beam_search.beam_width` model parameter to a number greater than 1 (see below). When using beam search, your batch size will be set to 1 and the `beam_width` will be used as an implicit batch size. Beam search can become very expensive with large beam widths.
+#### UNK token replacement using a Copy Mechanism
 
-
-## Overwriting hyperparameters
-
-To overwrite specific hyperparameters of a model, pass an hparams JSON object as the `hparams` flag to the inference script:
-
-```
-python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  --hparams '
-      inference.beam_search.length_penalty_weight: 0.6
-      inference.beam_search.beam_width: 5' \
-  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
-```
-
-
-## UNK token replacement using a Copy Mechanism
-
-Rare words (such as place and people names) are often absent from the target vocabulary and result in `UNK` tokens in the output predictions. An easy strategy to improve predictions is to replace each `UNK` token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces `[source_length]` alignment scores for each target token.
-
-If you trained a model that generates such attention scores (e.g. `AttentionSeq2Seq`), you can use them to perform UNK token replacement by passing the `unk_replace` flag to the inference script.
+Rare words (such as place and people names) are often absent from the target vocabulary and result in `UNK` tokens in the output predictions. An easy strategy to target sequences is to replace each `UNK` token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces alignment scores for each target token. If you trained a model that generates such attention scores (e.g. `AttentionSeq2Seq`), you can use them to perform UNK token replacement by activating the `unk_replace` parameter.
 
 
 ```bash
+mkdir -p ${DATA_PATH}/pred
 python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  --unk_replace \
-  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
+  --tasks "
+    - class: DecodeText
+      params:
+        unk_replace: True"
 ```
 
+#### UNK token replacement using a mapping
 
-## UNK token replacement using a mapping
-
-A slightly more sophisticated approach to UNK token replacement is to use a mapping instead of copying words from the source. For example, "Munich" is always translated as "München" in German, so that simply copying "Munich" from the source you would never result in the right translation even if the words are perfectly aligned using attention scores.
-
-One strategy is to use [fast_align](https://github.com/clab/fast_align) to generate a mapping based on the conditional probabilities of target given source.
+A more sophisticated approach to UNK token replacement is to use a mapping instead of copying words from the source. For example, the English word "Munich" is usually translated as "München" in German. Simply copying "Munich" from the source you would never result in the right translation even if the words were perfectly aligned using attention scores. One strategy is to use [fast_align](https://github.com/clab/fast_align) to generate a mapping based on the conditional probabilities of target given source.
 
 ```bash
 # Download and build fast_align
@@ -84,15 +57,47 @@ sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
 The output file specified by the `-p` argument will contain conditional probabilities for `p(target | source)` in the form of `<source>\t<target>\t<prob>`. These can be used to do smarter UNK token replacement by passing the `unk_mapping` flag.
 
 ```bash
+mkdir -p ${DATA_PATH}/pred
 python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  --unk_replace \
-  --unk_mapping $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict \
-  > ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
+  --tasks "
+    - class: DecodeText
+      params:
+        unk_replace: True"
+        unk_mapping: $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict"
+  ...
 ```
 
 
+## Visualizing Attention
+
+If you trained a model using the  `AttentionDecoder`, you can dump the raw attention scores and generate alignment visualizations during inference using the `DumpAttention` task.
+
+```shell
+python -m bin.infer \
+  --tasks "
+    - class: DecodeText
+    - class: DumpAttention
+      params:
+        output_dir: $HOME/attention" \
+  ...
+```
+
+By default, this script generates an `attention_score.npy` array file and one attention plot per example. The array file can be [loaded used numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html) and will contain a list of arrays with shape `[target_length, source_length]`. If you only want the raw attention score data without the plots you can enable the `dump_atention_no_plot` parameter.
 
 
 
+## Dumping Beams
+
+If you are using beam search during decoding, you can use the `DumpBeams` task to write beam search debugging information to disk. You can later inspect the data using numpy, or use the [provided script](tools/) to generate visualizations.
+
+```shell
+python -m bin.infer \
+  --tasks "
+    - class: DecodeText
+    - class: DumpBeams
+      params:
+        file: ${TMPDIR:-/tmp}/wmt_16_en_de/newstest2014.pred.beams.npz" \
+  --model_params "
+    inference.beam_search.beam_width: 5" \
+  ...
+```

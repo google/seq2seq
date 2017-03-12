@@ -19,62 +19,48 @@
 import os
 import tempfile
 
-from pydoc import locate
-
 import yaml
-from six import string_types
-
-from seq2seq import models
-from seq2seq.data import input_pipeline, vocab
-from seq2seq.training import utils as training_utils
-from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
 
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
 from tensorflow.contrib.learn.python.learn.estimators import run_config
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
+from seq2seq import models
+from seq2seq.configurable import _maybe_load_yaml, _create_from_dict
+from seq2seq.configurable import _deep_merge_dict
+from seq2seq.data import input_pipeline
+from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
+from seq2seq.training import hooks
+from seq2seq.training import utils as training_utils
 
-# Input Data
-tf.flags.DEFINE_string("train_source", None,
-                       """Path to the training data source sentences. A raw
-                       text files with tokens separated by spaces.""")
-tf.flags.DEFINE_string("train_target", None,
-                       """Path to the training data target sentences. A raw
-                       text files with tokens separated by spaces.""")
-tf.flags.DEFINE_string("dev_source", None,
-                       """Path to the development data source sentences.
-                       Same format as training data.""")
-tf.flags.DEFINE_string("dev_target", None,
-                       """Path to the development data target sentences.
-                       Same format as training data.""")
-tf.flags.DEFINE_string("vocab_source", None,
-                       """Path to the source vocabulary.
-                       A raw text file with one word per line.""")
-tf.flags.DEFINE_string("vocab_target", None,
-                       """Path to the target vocabulary.
-                       A raw text file with one word per line.""")
-tf.flags.DEFINE_string("source_delimiter", " ",
-                       """Split source files into tokens on this delimiter.
-                      Defaults to " " (space).""")
-tf.flags.DEFINE_string("target_delimiter", " ",
-                       """Split target files into tokens on this delimiter.
-                      Defaults to " " (space).""")
-tf.flags.DEFINE_string("config_path", None,
-                       """Path to a YAML configuration file defining FLAG
-                       values and hyperparameters. Refer to the documentation
-                       for more details.""")
-tf.flags.DEFINE_string("train_input_pipeline_def", None,
-                       """Use this to overwrite the training input pipeline.
-                       A YAML string.""")
-tf.flags.DEFINE_string("dev_input_pipeline_def", None,
-                       """Use this to overwrite the development input pipeline.
-                       A YAML string.""")
+tf.flags.DEFINE_string("config_paths", "",
+                       """Path to a YAML configuration files defining FLAG
+                       values. Multiple files can be separated by commas.
+                       Files are merged recursively. Setting a key in these
+                       files is equivalent to setting the FLAG value with
+                       the same name.""")
+tf.flags.DEFINE_string("hooks", "[]",
+                       """YAML configuration string for the
+                       training hooks to use.""")
+tf.flags.DEFINE_string("metrics", "[]",
+                       """YAML configuration string for the
+                       training metrics to use.""")
+tf.flags.DEFINE_string("model", "",
+                       """Name of the model class.
+                       Can be either a fully-qualified name, or the name
+                       of a class defined in `seq2seq.models`.""")
+tf.flags.DEFINE_string("model_params", "{}",
+                       """YAML configuration string for the model
+                       parameters.""")
 
-# Model Configuration
-tf.flags.DEFINE_string("model", "AttentionSeq2Seq",
-                       """The model class to use. Refer to the documentation
-                       for all available models.""")
+tf.flags.DEFINE_string("input_pipeline_train", "{}",
+                       """YAML configuration string for the training
+                       data input pipeline.""")
+tf.flags.DEFINE_string("input_pipeline_dev", "{}",
+                       """YAML configuration string for the development
+                       data input pipeline.""")
+
 tf.flags.DEFINE_string("buckets", None,
                        """Buckets input sequences according to these length.
                        A comma-separated list of sequence length buckets, e.g.
@@ -82,12 +68,6 @@ tf.flags.DEFINE_string("buckets", None,
                        <10, 10-20, 20-30, >30. None disabled bucketing. """)
 tf.flags.DEFINE_integer("batch_size", 16,
                         """Batch size used for training and evaluation.""")
-tf.flags.DEFINE_string("hparams", None,
-                       """A comma-separated list of hyeperparameter values that
-                       overwrite the model defaults, e.g.
-                       "optimizer.name=Adam,optimization.learning_rate=0.1".
-                       Refer to the documentation for a detailed list of
-                       available hyperparameters.""")
 tf.flags.DEFINE_string("output_dir", None,
                        """The directory to write model checkpoints and summaries
                        to. If None, a local temporary directory is created.""")
@@ -99,18 +79,8 @@ tf.flags.DEFINE_string("schedule", None,
 tf.flags.DEFINE_integer("train_steps", None,
                         """Maximum number of training steps to run.
                          If None, train forever.""")
-tf.flags.DEFINE_integer("train_epochs", None,
-                        """Maximum number of training epochs over the data.
-                         If None, train forever.""")
 tf.flags.DEFINE_integer("eval_every_n_steps", 1000,
                         "Run evaluation on validation data every N steps.")
-tf.flags.DEFINE_integer("sample_every_n_steps", 500,
-                        """Sample and print sequence predictions every N steps
-                        during training.""")
-tf.flags.DEFINE_string("metrics", "log_perplexity,bleu",
-                       """Comma-separated list of metrics to evaluate. Each
-                       one must be defined in the `METRIC_SPECS_DICT` in
-                       metric_specs.py""")
 
 # RunConfig Flags
 tf.flags.DEFINE_integer("tf_random_seed", None,
@@ -149,65 +119,28 @@ def create_experiment(output_dir):
       keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
   )
 
-  # Load vocabulary info
-  source_vocab_info = vocab.get_vocab_info(FLAGS.vocab_source)
-  target_vocab_info = vocab.get_vocab_info(FLAGS.vocab_target)
-
-  # Find model class
-  model_class = locate(FLAGS.model) or getattr(models, FLAGS.model)
-
-  # Parse parameter and merge with defaults
-  hparams = model_class.default_params()
-  if isinstance(FLAGS.hparams, string_types):
-    hparams.update(yaml.load(FLAGS.hparams))
-  elif isinstance(FLAGS.hparams, dict):
-    hparams.update(FLAGS.hparams)
-
-  # One the main worker, save training options and vocabulary
+  train_options = training_utils.TrainOptions(
+      model_class=FLAGS.model,
+      model_params=FLAGS.model_params)
+  # On the main worker, save training options
   if config.is_chief:
-     # Copy vocabulary to output directory
     gfile.MakeDirs(output_dir)
-    source_vocab_path = os.path.join(output_dir, "vocab_source")
-    gfile.Copy(FLAGS.vocab_source, source_vocab_path, overwrite=True)
-    target_vocab_path = os.path.join(output_dir, "vocab_target")
-    gfile.Copy(FLAGS.vocab_target, target_vocab_path, overwrite=True)
-    # Save train options
-    train_options = training_utils.TrainOptions(
-        hparams=hparams,
-        model_class=FLAGS.model,
-        source_vocab_path=source_vocab_path,
-        target_vocab_path=target_vocab_path)
     train_options.dump(output_dir)
 
   bucket_boundaries = None
   if FLAGS.buckets:
     bucket_boundaries = list(map(int, FLAGS.buckets.split(",")))
 
-  # Define training data input pipeline
-  if FLAGS.train_input_pipeline_def is not None:
-    train_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-        FLAGS.train_input_pipeline_def)
-  else:
-    train_input_pipeline = input_pipeline.ParallelTextInputPipeline(
-        source_files=FLAGS.train_source,
-        target_files=FLAGS.train_target,
-        source_delimiter=FLAGS.source_delimiter,
-        target_delimiter=FLAGS.target_delimiter,
-        shuffle=True,
-        num_epochs=FLAGS.train_epochs)
+  # Training data input pipeline
+  train_input_pipeline = input_pipeline.make_input_pipeline_from_def(
+      def_dict=FLAGS.input_pipeline_train,
+      mode=tf.contrib.learn.ModeKeys.TRAIN)
 
-  # Define development data input pipeline
-  if FLAGS.dev_input_pipeline_def is not None:
-    dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-        FLAGS.dev_input_pipeline_def, shuffle=False, num_epochs=1)
-  else:
-    dev_input_pipeline = input_pipeline.ParallelTextInputPipeline(
-        source_files=FLAGS.dev_source,
-        target_files=FLAGS.dev_target,
-        source_delimiter=FLAGS.source_delimiter,
-        target_delimiter=FLAGS.target_delimiter,
-        shuffle=False,
-        num_epochs=1)
+  # Development data input pipeline
+  dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
+      def_dict=FLAGS.input_pipeline_dev,
+      mode=tf.contrib.learn.ModeKeys.EVAL,
+      shuffle=False, num_epochs=1)
 
   # Create training input function
   train_input_fn = training_utils.create_input_fn(
@@ -221,29 +154,30 @@ def create_experiment(output_dir):
       batch_size=FLAGS.batch_size,
       allow_smaller_final_batch=True)
 
+
   def model_fn(features, labels, params, mode):
     """Builds the model graph"""
-    model = model_class(
-        source_vocab_info=source_vocab_info,
-        target_vocab_info=target_vocab_info,
-        params=params,
-        mode=mode)
+    model = _create_from_dict({
+        "class": train_options.model_class,
+        "params": train_options.model_params
+    }, models, mode=mode)
     return model(features, labels, params)
 
   estimator = tf.contrib.learn.Estimator(
       model_fn=model_fn,
       model_dir=output_dir,
       config=config,
-      params=hparams)
+      params=FLAGS.model_params)
 
-  train_hooks = training_utils.create_default_training_hooks(
-      estimator=estimator,
-      sample_frequency=FLAGS.sample_every_n_steps,
-      source_delimiter=FLAGS.source_delimiter,
-      target_delimiter=FLAGS.target_delimiter)
+  # Create hooks
+  train_hooks = []
+  for dict_ in FLAGS.hooks:
+    hook = _create_from_dict(dict_, hooks, model_dir=estimator.model_dir)
+    train_hooks.append(hook)
 
-  metrics_list = [_.strip() for _ in FLAGS.metrics.split(",")]
-  eval_metrics = {m : METRIC_SPECS_DICT[m] for m in metrics_list}
+  # Create metrics
+  metric_list = FLAGS.metrics
+  eval_metrics = {m : METRIC_SPECS_DICT[m] for m in metric_list}
 
   experiment = tf.contrib.learn.Experiment(
       estimator=estimator,
@@ -261,12 +195,29 @@ def create_experiment(output_dir):
 def main(_argv):
   """The entrypoint for the script"""
 
+  # Parse YAML FLAGS
+  FLAGS.hooks = _maybe_load_yaml(FLAGS.hooks)
+  FLAGS.metrics = _maybe_load_yaml(FLAGS.metrics)
+  FLAGS.model_params = _maybe_load_yaml(FLAGS.model_params)
+  FLAGS.input_pipeline_train = _maybe_load_yaml(FLAGS.input_pipeline_train)
+  FLAGS.input_pipeline_dev = _maybe_load_yaml(FLAGS.input_pipeline_dev)
+
   # Load flags from config file
-  if FLAGS.config_path:
-    with gfile.GFile(FLAGS.config_path) as config_file:
-      config_flags = yaml.load(config_file)
-      for flag_key, flag_value in config_flags.items():
-        setattr(FLAGS, flag_key, flag_value)
+  final_config = {}
+  if FLAGS.config_paths:
+    for config_path in FLAGS.config_paths.split(","):
+      config_path = os.path.abspath(config_path)
+      tf.logging.info("Loading config from %s", config_path)
+      with gfile.GFile(config_path.strip()) as config_file:
+        config_flags = yaml.load(config_file)
+        final_config.update(config_flags)
+
+  # Merge flags with config values
+  for flag_key, flag_value in final_config.items():
+    if hasattr(FLAGS, flag_key) and isinstance(getattr(FLAGS, flag_key), dict):
+      _deep_merge_dict(getattr(FLAGS, flag_key), flag_value)
+    else:
+      setattr(FLAGS, flag_key, flag_value)
 
   if FLAGS.save_checkpoints_secs is None \
     and FLAGS.save_checkpoints_steps is None:

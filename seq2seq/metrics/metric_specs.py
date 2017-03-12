@@ -69,6 +69,8 @@ class TextMetricSpec(MetricSpec):
       and references will be slcied until this token is found.
   """
   def __init__(self, name, separator=" ", eos_token="SEQUENCE_END"):
+    # We don't call the super constructor on purpose
+    #pylint: disable=W0231
     """Initializer"""
     self.name = name
     self.separator = separator
@@ -174,6 +176,8 @@ class LogPerplexityMetricSpec(MetricSpec):
   """A MetricSpec to calculate straming log perplexity"""
   def __init__(self):
     """Initializer"""
+    # We don't call the super constructor on purpose
+    #pylint: disable=W0231
     pass
 
   def create_metric_ops(self, _inputs, labels, predictions):

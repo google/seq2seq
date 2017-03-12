@@ -1,35 +1,26 @@
-## Visualizing Attention
+### Generating Vocabulary
 
-If you train an `AttentionSeq2Seq` model, you can dump the raw attention scores and generate alignment visualizations during inference:
+A vocabulary file is a raw text file that contains one word per line, followed by a tab separator and the word count. The total number of lines is equal to the size of the vocabulary and each token is mapped to its line number. We provide a helper script [`bin/tools/generate_vocab.py`](https://github.com/google/seq2seq/blob/master/bin/tools/generate_vocab.py) that takes in a raw text file of space-delimited tokens and generates a vocabulary file:
 
-```
-python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  --dump_attention_dir ${TMPDIR:-/tmp}/attention_plots > /dev/null
+```shell
+./bin/tools/generate_vocab.py < data.txt > vocab
 ```
 
-By default, this script generates an `attention_score.npy` array file and one attention plot per example. The array file can be [loaded used numpy](https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html) and will contain a list of arrays with shape `[target_length, source_length]`. If you only want the raw attention score data without the plots you can pass the `--dump_atention_no_plot` flag. For more details and additional options, see the [`infer.py`](https://github.com/google/seq2seq/blob/master/bin/infer.py) script.
+
+### Generating Character Vocabulary
+
+Sometimes you want to run training on characters instead of words or subword units. The [`bin/tools/generate_char_vocab.py`](https://github.com/google/seq2seq/blob/master/bin/tools/generate_char_vocab.py) can generate a vocabulary file that contains the unique set of characters found in the text:
+
+```shell
+./bin/tools/generate_char_vocab.py < data.txt > vocab
+```
+
+To run training on characters you must pass the `--delimiter=""` flag to the training script to avoid splitting words on spaces. See the [Training documentation](training.md) for more details.
 
 
 ## Visualizing Beam Search
 
-To dump beam search debugging information you can pass the `--dump_beams` flag to the `infer.py script`. This will
-write a numpy npz with the raw beam search data.
-
-
-```
-python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  --hparams '
-      inference.beam_search.score_fn: length_normalized_score
-      inference.beam_search.beam_width: 5' \
-  --dump_beams ${TMPDIR:-/tmp}/beams.npz > /dev/null
-```
-
-You can inspect the beam search data by loading the array using numpy, or generate beam search visualizations using the
-`generate_beam_viz.py` script. This required the `networkx` module to be installed.
+If you use the `DumpBeams` inference task (see [Inference](inference/) for more details) you can inspect the beam search data by loading the array using numpy, or generate beam search visualizations using the `generate_beam_viz.py` script. This required the `networkx` module to be installed.
 
 ```
 python -m bin.tools.generate_beam_viz  \
@@ -39,24 +30,3 @@ python -m bin.tools.generate_beam_viz  \
 ```
 
 ![Beam Search Visualization](http://i.imgur.com/kLec8l4l.png)
-
-
-## Model Performance Profiling
-
-During training, the [MetadataCaptureHook](https://github.com/google/seq2seq/blob/master/seq2seq/training/hooks.py) saves a full trace and timeline information for a single training step (step 10 by default) into a `metadata` subdirectory of your model directory. You can view the generated `timeline.json` file in Chrome:
-
-1. Go to `chrome://tracing`
-2. Load the `timeline.json` file that was saved in `/path/to/model/dir/metadata`
-
-For large complicated graphs, the timeline files can become quite large and analyzing them using Chrome may be slow, which is why we also provide a [`profile.py`](https://github.com/google/seq2seq/blob/master/bin/tools/profile.py) script that generates useful profiling information:
-
-```shell
-python -m bin.tools.profile --model_dir=${TMPDIR:-/tmp}/nmt_toy_reverse
-```
-
-This command will generate the following four files:
-
-- `/path/to/model/dir/params.txt` contains an analysis of model parameters, including the number of parameters and their shapes and sizes
-- `/path/to/model/dir/flops.txt` contains information about long-running floating point operations per second (FLOPS)
-- `/path/to/model/dir/micro.txt` contains microsecond timing information for operations that take longer than 1 millisecond, organized by graph structure
-- `/path/to/model/dir/device.txt` contains detailed device placement information for all operations

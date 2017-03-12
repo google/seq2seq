@@ -12,58 +12,79 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Collection of SessionRunHooks
+""" Collection of tf.train.SessionRunHooks
 """
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import abc
 import os
+
+import six
+import yaml
+
 import tensorflow as tf
+from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer # pylint: disable=E0611
+from tensorflow.python.training.summary_io import SummaryWriterCache # pylint: disable=E0611
+from tensorflow.python.client import timeline # pylint: disable=E0611
+from tensorflow import gfile
 
-from tensorflow.python.training import basic_session_run_hooks, session_run_hook
-from tensorflow.python.training import training_util
-from tensorflow.python.training.summary_io import SummaryWriterCache
-from tensorflow.python.client import timeline
-from tensorflow.python.platform import gfile
-
+from seq2seq.configurable import Configurable, abstractstaticmethod
 from seq2seq import graph_utils
 
-class SecondOrStepTimer(basic_session_run_hooks.SecondOrStepTimer):
-  """Helper class to count both seconds and steps.
+@six.add_metaclass(abc.ABCMeta)
+class TrainingHook(tf.train.SessionRunHook, Configurable):
+  """Abstract base class for training hooks.
   """
-  pass
+  def __init__(self, params, model_dir):
+    tf.train.SessionRunHook.__init__(self)
+    Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.TRAIN)
+    self._model_dir = model_dir
+
+  @property
+  def model_dir(self):
+    """Returns the directory model checkpoints are written to.
+    """
+    return os.path.abspath(self._model_dir)
+
+  @abstractstaticmethod
+  def default_params():
+    raise NotImplementedError()
 
 
-class MetadataCaptureHook(session_run_hook.SessionRunHook):
+class MetadataCaptureHook(TrainingHook):
   """A hook to capture metadata for a single step.
   Useful for performance debugging. It performs a full trace and saves
   run_metadata and Chrome timeline information to a file.
 
   Args:
-    output_dir: Directory to write file(s) to
     step: The step number to trace. The hook is only enable for this step.
   """
 
-  #pylint: disable=missing-docstring
-
-  def __init__(self, output_dir, step=10):
-    self._step = step
+  def __init__(self, params, model_dir):
+    super(MetadataCaptureHook, self).__init__(params, model_dir)
     self._active = False
     self._global_step = None
-    self.output_dir = os.path.abspath(output_dir)
+    self._output_dir = os.path.abspath(self.model_dir)
+
+  @staticmethod
+  def default_params():
+    return {
+        "step": 10
+    }
 
   def begin(self):
-    self._global_step = training_util.get_global_step()
+    self._global_step = tf.train.get_global_step()
 
   def before_run(self, _run_context):
     if not self._active:
-      return session_run_hook.SessionRunArgs(self._global_step)
+      return tf.train.SessionRunArgs(self._global_step)
     else:
       tf.logging.info("Performing full trace on next step.")
       run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-      return session_run_hook.SessionRunArgs(
+      return tf.train.SessionRunArgs(
           self._global_step, options=run_options)
 
   def after_run(self, _run_context, run_values):
@@ -71,16 +92,16 @@ class MetadataCaptureHook(session_run_hook.SessionRunHook):
     if self._active:
       tf.logging.info("Captured full trace at step %s", step_done)
       # Create output directory
-      gfile.MakeDirs(self.output_dir)
+      gfile.MakeDirs(self._output_dir)
 
       # Save run metadata
-      trace_path = os.path.join(self.output_dir, "run_meta")
+      trace_path = os.path.join(self._output_dir, "run_meta")
       with gfile.GFile(trace_path, "wb") as trace_file:
         trace_file.write(run_values.run_metadata.SerializeToString())
         tf.logging.info("Saved run_metadata to %s", trace_path)
 
       # Save timeline
-      timeline_path = os.path.join(self.output_dir, "timeline.json")
+      timeline_path = os.path.join(self._output_dir, "timeline.json")
       with gfile.GFile(timeline_path, "w") as timeline_file:
         tl_info = timeline.Timeline(run_values.run_metadata.step_stats)
         tl_chrome = tl_info.generate_chrome_trace_format(show_memory=True)
@@ -90,46 +111,54 @@ class MetadataCaptureHook(session_run_hook.SessionRunHook):
       # Save tfprof op log
       tf.contrib.tfprof.tfprof_logger.write_op_log(
           graph=tf.get_default_graph(),
-          log_dir=self.output_dir,
+          log_dir=self._output_dir,
           run_meta=run_values.run_metadata)
-      tf.logging.info("Saved op log to %s", self.output_dir)
+      tf.logging.info("Saved op log to %s", self._output_dir)
       self._active = False
 
-    self._active = (step_done == self._step)
+    self._active = (step_done == self.params["step"])
 
 
-class TokensPerSecondCounter(session_run_hook.SessionRunHook):
+class TokensPerSecondCounter(TrainingHook):
   """A hooks that counts tokens/sec, where the number of tokens is
     defines as `len(source) + len(target)`.
   """
 
-  def __init__(self,
-               every_n_steps=100,
-               every_n_secs=None,
-               output_dir=None,
-               summary_writer=None):
+  def __init__(self, params, model_dir, summary_writer=None):
+    super(TokensPerSecondCounter, self).__init__(params, model_dir)
+
     self._summary_tag = "tokens/sec"
     self._timer = SecondOrStepTimer(
-        every_steps=every_n_steps,
-        every_secs=every_n_secs)
+        every_steps=self.params["every_n_steps"],
+        every_secs=self.params["every_n_secs"])
 
     self._summary_writer = summary_writer
-    if summary_writer is None and output_dir:
-      self._summary_writer = SummaryWriterCache.get(output_dir)
+    if summary_writer is None and self.model_dir:
+      self._summary_writer = SummaryWriterCache.get(self.model_dir)
 
     self._tokens_last_step = 0
 
+
+  @staticmethod
+  def default_params():
+    return {
+        "every_n_steps": 100,
+        "every_n_secs": None
+    }
 
   def begin(self):
     #pylint: disable=W0201
     features = graph_utils.get_dict_from_collection("features")
     labels = graph_utils.get_dict_from_collection("labels")
-    num_source_tokens = tf.reduce_sum(features["source_len"])
-    num_target_tokens = tf.reduce_sum(labels["target_len"])
+
+    self._num_tokens_tensor = tf.constant(0)
+    if "source_len" in features:
+      self._num_tokens_tensor += tf.reduce_sum(features["source_len"])
+    if "target_len" in labels:
+      self._num_tokens_tensor += tf.reduce_sum(labels["target_len"])
 
     self._tokens_last_step = 0
-    self._global_step_tensor = training_util.get_global_step()
-    self._num_tokens_tensor = num_source_tokens + num_target_tokens
+    self._global_step_tensor = tf.train.get_global_step()
 
     # Create a variable that stores how many tokens have been processed
     # Should be global for distributed training
@@ -143,7 +172,7 @@ class TokensPerSecondCounter(session_run_hook.SessionRunHook):
           self._tokens_processed_var, self._num_tokens_tensor)
 
   def before_run(self, run_context):
-    return session_run_hook.SessionRunArgs(
+    return tf.train.SessionRunArgs(
         [self._global_step_tensor, self._tokens_processed_add])
 
   def after_run(self, _run_context, run_values):
@@ -164,10 +193,10 @@ class TokensPerSecondCounter(session_run_hook.SessionRunHook):
       self._tokens_last_step = num_tokens
 
 
-class TrainSampleHook(session_run_hook.SessionRunHook):
+class TrainSampleHook(TrainingHook):
   """Occasionally samples predictions from the training run and prints them.
 
-  Args:
+  Params:
     every_n_secs: Sample predictions every N seconds.
       If set, `every_n_steps` must be None.
     every_n_steps: Sample predictions every N steps.
@@ -178,22 +207,31 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
 
   #pylint: disable=missing-docstring
 
-  def __init__(self, every_n_secs=None, every_n_steps=None, sample_dir=None,
-               source_delimiter=" ", target_delimiter=" "):
-    super(TrainSampleHook, self).__init__()
-    self._sample_dir = sample_dir
+  def __init__(self, params, model_dir):
+    super(TrainSampleHook, self).__init__(params, model_dir)
+    self._sample_dir = os.path.join(self.model_dir, "samples")
     self._timer = SecondOrStepTimer(
-        every_secs=every_n_secs, every_steps=every_n_steps)
+        every_secs=self.params["every_n_secs"],
+        every_steps=self.params["every_n_steps"])
     self._pred_dict = {}
     self._should_trigger = False
     self._iter_count = 0
     self._global_step = None
-    self._source_delimiter = source_delimiter
-    self._target_delimiter = target_delimiter
+    self._source_delimiter = self.params["source_delimiter"]
+    self._target_delimiter = self.params["target_delimiter"]
+
+  @staticmethod
+  def default_params():
+    return {
+        "every_n_secs": None,
+        "every_n_steps": 1000,
+        "source_delimiter": " ",
+        "target_delimiter": " "
+    }
 
   def begin(self):
     self._iter_count = 0
-    self._global_step = training_util.get_global_step()
+    self._global_step = tf.train.get_global_step()
     self._pred_dict = graph_utils.get_dict_from_collection("predictions")
     # Create the sample directory
     if self._sample_dir is not None:
@@ -207,8 +245,8 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
           "target_words": self._pred_dict["labels.target_tokens"],
           "target_len": self._pred_dict["labels.target_len"]
       }
-      return session_run_hook.SessionRunArgs([fetches, self._global_step])
-    return session_run_hook.SessionRunArgs([{}, self._global_step])
+      return tf.train.SessionRunArgs([fetches, self._global_step])
+    return tf.train.SessionRunArgs([{}, self._global_step])
 
   def after_run(self, _run_context, run_values):
     result_dict, step = run_values.results
@@ -244,24 +282,69 @@ class TrainSampleHook(session_run_hook.SessionRunHook):
     self._timer.update_last_triggered_step(self._iter_count - 1)
 
 
-class PrintModelAnalysisHook(session_run_hook.SessionRunHook):
+class PrintModelAnalysisHook(TrainingHook):
   """Writes the parameters of the model to a file and stdout.
-
-  Args:
-    filename: The file path to write the model analysis to.
   """
 
   #pylint: disable=missing-docstring
-  def __init__(self, filename=None):
-    self.filename = filename
+  def __init__(self, params, model_dir):
+    super(PrintModelAnalysisHook, self).__init__(params, model_dir)
+    self._filename = os.path.join(self.model_dir, "model_analysis.txt")
+
+  @staticmethod
+  def default_params():
+    return {}
 
   def begin(self):
     # Dump to file
     opts = tf.contrib.tfprof.model_analyzer.TRAINABLE_VARS_PARAMS_STAT_OPTIONS
-    opts['dump_to_file'] = os.path.abspath(self.filename)
+    opts['dump_to_file'] = os.path.abspath(self._filename)
     tf.contrib.tfprof.model_analyzer.print_model_analysis(
         tf.get_default_graph(), tfprof_options=opts)
 
     # Print the model analysis
-    with gfile.GFile(self.filename, "r") as file:
-      tf.logging.info(file.read())
+    with gfile.GFile(self._filename, "r") as file:
+      tf.logging.info(file.read().decode("utf-8"))
+
+
+
+class VariableRestoreHook(TrainingHook):
+  """A hooks that restored variables from a given checkpoints.
+
+  Params:
+    prefix: Variables matching this prefix are restored.
+    checkpoint_path: Path to the checkpoint to restore variables from.
+  """
+  def __init__(self, params, model_dir):
+    super(VariableRestoreHook, self).__init__(params, model_dir)
+    self._saver = None
+
+  @staticmethod
+  def default_params():
+    return {
+        "prefix": "",
+        "checkpoint_path": ""
+    }
+
+  def begin(self):
+    variables = tf.contrib.framework.get_variables(scope=self.params["prefix"])
+
+    def varname_in_checkpoint(name):
+      """Removes the prefix from the variable name.
+      """
+      prefix_parts = self.params["prefix"].split("/")
+      checkpoint_prefix = "/".join(prefix_parts[:-1])
+      return name.replace(checkpoint_prefix + "/", "")
+
+    target_names = [varname_in_checkpoint(_.op.name) for _ in variables]
+    restore_map = {k: v for k, v in zip(target_names, variables)}
+
+    tf.logging.info(
+        "Restoring variables: \n%s",
+        yaml.dump({k: v.op.name for k, v in restore_map.items()}))
+
+    self._saver = tf.train.Saver(restore_map)
+
+  def after_create_session(self, session, coord):
+    self._saver.restore(session, self.params["checkpoint_path"])
+    tf.logging.info("Successfully restored all variables")

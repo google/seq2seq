@@ -23,8 +23,7 @@ import abc
 import six
 
 import tensorflow as tf
-from tensorflow.python.framework import function
-from tensorflow.python.ops import math_ops
+from tensorflow.python.framework import function # pylint: disable=E0611
 
 from seq2seq.graph_module import GraphModule
 from seq2seq.configurable import Configurable
@@ -36,7 +35,7 @@ from seq2seq.configurable import Configurable
 def att_sum_bahdanau(v_att, keys, query):
   """Calculates a batch- and timweise dot product with a variable"""
   return tf.reduce_sum(
-      v_att * math_ops.tanh(keys + tf.expand_dims(query, 1)), [2])
+      v_att * tf.tanh(keys + tf.expand_dims(query, 1)), [2])
 
 @function.Defun(tf.float32, tf.float32, func_name="att_sum_dot", noinline=True)
 def att_sum_dot(keys, query):
@@ -49,18 +48,18 @@ class AttentionLayer(GraphModule, Configurable):
   """
   Attention layer according to https://arxiv.org/abs/1409.0473.
 
-  Args:
+  Params:
     num_units: Number of units used in the attention layer
-    name: Name for this graph module
   """
 
   def __init__(self, params, mode, name="attention"):
     GraphModule.__init__(self, name)
     Configurable.__init__(self, params, mode)
 
-  def default_params(self):
+  @staticmethod
+  def default_params():
     return {
-      "num_units": 128
+        "num_units": 128
     }
 
   @abc.abstractmethod
@@ -131,10 +130,15 @@ class AttentionLayer(GraphModule, Configurable):
 
 
 class AttentionLayerDot(AttentionLayer):
+  """An attention layer that calculates attention scores using
+  a dot product.
+  """
   def score_fn(self, keys, query):
     return att_sum_dot(keys, query)
 
 class AttentionLayerBahdanau(AttentionLayer):
+  """An attention layer that calculates attention scores using
+  a parameterized multiplication."""
   def score_fn(self, keys, query):
     v_att = tf.get_variable(
         "v_att", shape=[self.params["num_units"]], dtype=tf.float32)

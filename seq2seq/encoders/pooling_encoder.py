@@ -68,13 +68,16 @@ class PoolingEncoder(Encoder):
   Params:
     pooling_fn: The 1-d pooling function to use, e.g.
       `tensorflow.layers.average_pooling1d`.
-    pool_size: pooling window size, an integer
-    strides: stride used for pooling, an integer
-    position_embeddings.enable: If True, add position embeddings to the inputs.
-    position_embeddings.num_positions: The size of the position embeddings.
+    pool_size: The pooling window, passed as `pool_size` to
+      the pooling function.
+    strides: The stride during pooling, passed as `strides`
+      the pooling function.
+    position_embeddings.enable: If true, add position embeddings to the
+      inputs before pooling.
+    position_embeddings.combiner_fn: Function used to combine the
+      position embeddings with the inputs. For example, `tensorflow.add`.
+    position_embeddings.num_positions: Size of the position embedding matrix.
       This should be set to the maximum sequence length of the inputs.
-    position_embeddings.combiner_fn: Function to use the position embeddings
-      with the inputs. For example, `tensorflow.add`.
   """
 
   def __init__(self, params, mode, name="pooling_encoder"):
@@ -114,4 +117,5 @@ class PoolingEncoder(Encoder):
     return EncoderOutput(
         outputs=outputs,
         final_state=final_state,
-        attention_values=inputs)
+        attention_values=inputs,
+        attention_values_length=sequence_length)

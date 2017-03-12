@@ -25,6 +25,7 @@ from __future__ import unicode_literals
 
 import tensorflow as tf
 import numpy as np
+import yaml
 
 from seq2seq.data import input_pipeline
 from seq2seq.test import utils as test_utils
@@ -34,39 +35,43 @@ class TestInputPipelineDef(tf.test.TestCase):
   """Tests InputPipeline string definitions"""
 
   def test_without_extra_args(self):
-    pipeline_def = """
+    pipeline_def = yaml.load("""
       class: ParallelTextInputPipeline
-      args:
+      params:
         source_files: ["file1"]
         target_files: ["file2"]
         num_epochs: 1
         shuffle: True
-    """
-    pipeline = input_pipeline.make_input_pipeline_from_def(pipeline_def)
+    """)
+    pipeline = input_pipeline.make_input_pipeline_from_def(
+        pipeline_def, tf.contrib.learn.ModeKeys.TRAIN)
     self.assertIsInstance(pipeline, input_pipeline.ParallelTextInputPipeline)
     #pylint: disable=W0212
-    self.assertEqual(pipeline._source_files, ["file1"])
-    self.assertEqual(pipeline._target_files, ["file2"])
-    self.assertEqual(pipeline._num_epochs, 1)
-    self.assertEqual(pipeline._shuffle, True)
+    self.assertEqual(pipeline.params["source_files"], ["file1"])
+    self.assertEqual(pipeline.params["target_files"], ["file2"])
+    self.assertEqual(pipeline.params["num_epochs"], 1)
+    self.assertEqual(pipeline.params["shuffle"], True)
 
   def test_with_extra_args(self):
-    pipeline_def = """
+    pipeline_def = yaml.load("""
       class: ParallelTextInputPipeline
-      args:
+      params:
         source_files: ["file1"]
         target_files: ["file2"]
         num_epochs: 1
         shuffle: True
-    """
+    """)
     pipeline = input_pipeline.make_input_pipeline_from_def(
-        pipeline_def, num_epochs=5, shuffle=False)
+        def_dict=pipeline_def,
+        mode=tf.contrib.learn.ModeKeys.TRAIN,
+        num_epochs=5,
+        shuffle=False)
     self.assertIsInstance(pipeline, input_pipeline.ParallelTextInputPipeline)
     #pylint: disable=W0212
-    self.assertEqual(pipeline._source_files, ["file1"])
-    self.assertEqual(pipeline._target_files, ["file2"])
-    self.assertEqual(pipeline._num_epochs, 5)
-    self.assertEqual(pipeline._shuffle, False)
+    self.assertEqual(pipeline.params["source_files"], ["file1"])
+    self.assertEqual(pipeline.params["target_files"], ["file2"])
+    self.assertEqual(pipeline.params["num_epochs"], 5)
+    self.assertEqual(pipeline.params["shuffle"], False)
 
 class TFRecordsInputPipelineTest(tf.test.TestCase):
   """
@@ -82,11 +87,14 @@ class TFRecordsInputPipelineTest(tf.test.TestCase):
         sources=["Hello World . 笑"], targets=["Bye 泣"])
 
     pipeline = input_pipeline.TFRecordInputPipeline(
-        files=[tfrecords_file.name],
-        source_field="source",
-        target_field="target",
-        num_epochs=5,
-        shuffle=False)
+        params={
+            "files": [tfrecords_file.name],
+            "source_field": "source",
+            "target_field":"target",
+            "num_epochs": 5,
+            "shuffle": False
+        },
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
 
     data_provider = pipeline.make_data_provider()
 
@@ -122,10 +130,13 @@ class ParallelTextInputPipelineTest(tf.test.TestCase):
         sources=["Hello World . 笑"], targets=["Bye 泣"])
 
     pipeline = input_pipeline.ParallelTextInputPipeline(
-        source_files=[file_source.name],
-        target_files=[file_target.name],
-        num_epochs=5,
-        shuffle=False)
+        params={
+            "source_files": [file_source.name],
+            "target_files": [file_target.name],
+            "num_epochs": 5,
+            "shuffle": False
+        },
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
 
     data_provider = pipeline.make_data_provider()
 

@@ -30,32 +30,33 @@ from pydoc import locate
 import json
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
 from seq2seq.contrib import rnn_cell
-from seq2seq.training import hooks
 
 class TrainOptions(object):
   """A collectionf of options that are passed to the training script
-  and should be saved to perform inference later on.
+  and can be saved to perform inference later.
 
   Args:
-    model_dir: The model directory. Options will be dumped in this
-      directory.
-    hparams: A dictionary of hyperparameter values.
-    model_class: The model class name, a string.
-    source_vocab_path: Path to the source vocabulary
-    target_vocab_path: Path to the target vocabulary
+    task: Name of the training task class.
+    task_params: A dictionary of parameters passed to the training task.
   """
   def __init__(self,
-               hparams=None,
-               model_class=None,
-               source_vocab_path=None,
-               target_vocab_path=None):
-    self.hparams = hparams
-    self.model_class = model_class
-    self.source_vocab_path = source_vocab_path
-    self.target_vocab_path = target_vocab_path
+               model_class,
+               model_params):
+    self._model_class = model_class
+    self._model_params = model_params
+
+  @property
+  def model_class(self):
+    """Returns the training task parameters"""
+    return self._model_class
+
+  @property
+  def model_params(self):
+    """Returns the training task class"""
+    return self._model_params
 
   @staticmethod
   def path(model_dir):
@@ -75,10 +76,8 @@ class TrainOptions(object):
     """
     gfile.MakeDirs(model_dir)
     options_dict = {
-        "hparams": self.hparams,
         "model_class": self.model_class,
-        "source_vocab_path": self.source_vocab_path,
-        "target_vocab_path": self.target_vocab_path
+        "model_params": self.model_params,
     }
 
     with gfile.GFile(TrainOptions.path(model_dir), "w") as file:
@@ -96,10 +95,8 @@ class TrainOptions(object):
     options_dict = defaultdict(None, options_dict)
 
     return TrainOptions(
-        hparams=options_dict["hparams"],
         model_class=options_dict["model_class"],
-        source_vocab_path=options_dict["source_vocab_path"],
-        target_vocab_path=options_dict["target_vocab_path"])
+        model_params=options_dict["model_params"])
 
 def cell_from_spec(cell_classname, cell_params):
   """Create a RNN Cell instance from a JSON string.
@@ -288,44 +285,3 @@ def create_input_fn(pipeline,
     return features_batch, labels_batch
 
   return input_fn
-
-
-def create_default_training_hooks(
-    estimator,
-    sample_frequency=500,
-    source_delimiter=" ",
-    target_delimiter=" "):
-  """Creates common SessionRunHooks used for training.
-
-  Args:
-    estimator: The estimator instance
-    sample_frequency: frequency of samples passed to the TrainSampleHook
-
-  Returns:
-    An array of `SessionRunHook` items.
-  """
-  output_dir = estimator.model_dir
-  training_hooks = []
-
-  model_analysis_hook = hooks.PrintModelAnalysisHook(
-      filename=os.path.join(output_dir, "model_analysis.txt"))
-  training_hooks.append(model_analysis_hook)
-
-  train_sample_hook = hooks.TrainSampleHook(
-      every_n_steps=sample_frequency,
-      sample_dir=os.path.join(output_dir, "samples"),
-      source_delimiter=source_delimiter,
-      target_delimiter=target_delimiter)
-  training_hooks.append(train_sample_hook)
-
-  metadata_hook = hooks.MetadataCaptureHook(
-      output_dir=os.path.join(output_dir, "metadata"),
-      step=10)
-  training_hooks.append(metadata_hook)
-
-  tokens_per_sec_counter = hooks.TokensPerSecondCounter(
-      every_n_steps=100,
-      output_dir=output_dir)
-  training_hooks.append(tokens_per_sec_counter)
-
-  return training_hooks

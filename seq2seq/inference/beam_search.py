@@ -23,7 +23,7 @@ from collections import namedtuple
 import numpy as np
 
 import tensorflow as tf
-from tensorflow.python.util import nest
+from tensorflow.python.util import nest # pylint: disable=E0611
 
 class BeamSearchState(
     namedtuple("BeamSearchState", [

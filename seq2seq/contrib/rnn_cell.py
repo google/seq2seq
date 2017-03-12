@@ -24,9 +24,9 @@ import sys
 import inspect
 
 import tensorflow as tf
-from tensorflow.python.ops import array_ops
-from tensorflow.python.util import nest
-from tensorflow.contrib.rnn import MultiRNNCell
+from tensorflow.python.ops import array_ops # pylint: disable=E0611
+from tensorflow.python.util import nest # pylint: disable=E0611
+from tensorflow.contrib.rnn import MultiRNNCell # pylint: disable=E0611
 
 # Import all cell classes from Tensorflow
 TF_CELL_CLASSES = [x for x in tf.contrib.rnn.__dict__.values() if

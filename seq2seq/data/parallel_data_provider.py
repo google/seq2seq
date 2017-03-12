@@ -24,8 +24,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.slim.python.slim.data import data_provider
 from tensorflow.contrib.slim.python.slim.data import parallel_reader
-from tensorflow.python.ops import data_flow_ops
-from tensorflow.python.training import queue_runner
 
 from seq2seq.data import split_tokens_decoder
 
@@ -140,15 +138,15 @@ class ParallelDataProvider(data_provider.DataProvider):
 
     # Optionally shuffle the data
     if shuffle:
-      shuffle_queue = data_flow_ops.RandomShuffleQueue(
+      shuffle_queue = tf.RandomShuffleQueue(
           capacity=common_queue_capacity,
           min_after_dequeue=common_queue_min,
           dtypes=[tf.string, tf.string],
           seed=seed)
       enqueue_ops = []
       enqueue_ops.append(shuffle_queue.enqueue([data_source, data_target]))
-      queue_runner.add_queue_runner(
-          queue_runner.QueueRunner(shuffle_queue, enqueue_ops))
+      tf.train.add_queue_runner(
+          tf.train.QueueRunner(shuffle_queue, enqueue_ops))
       data_source, data_target = shuffle_queue.dequeue()
 
     # Decode source items

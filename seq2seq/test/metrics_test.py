@@ -33,9 +33,10 @@ from seq2seq.metrics.metric_specs import RougeMetricSpec
 
 
 class TestMosesBleu(tf.test.TestCase):
-  """Tests using the Moses multi-bleu script to calcualte BLEU score"""
-
+  """Tests using the Moses multi-bleu script to calcualte BLEU score
+  """
   def _test_multi_bleu(self, hypotheses, references, lowercase, expected_bleu):
+    #pylint: disable=R0201
     """Runs a multi-bleu test."""
     result = bleu.moses_multi_bleu(
         hypotheses=hypotheses,
@@ -146,6 +147,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
 class TestRougeMetric(tf.test.TestCase):
   """Tests the RougeMetric"""
   def test_rouge(self):
+    #pylint: disable=R0201
     hypotheses = np.array([
         "The brown fox jumps over the dog 笑",
         "The brown fox jumps over the dog 2 笑"])

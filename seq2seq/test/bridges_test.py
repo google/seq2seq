@@ -24,7 +24,7 @@ from collections import namedtuple
 import numpy as np
 
 import tensorflow as tf
-from tensorflow.python.util import nest
+from tensorflow.python.util import nest # pylint: disable=E0611
 
 from seq2seq.encoders.encoder import EncoderOutput
 from seq2seq.models.bridges import ZeroBridge, InitialStateBridge
@@ -53,6 +53,7 @@ class BridgeTest(tf.test.TestCase):
         attention_values=tf.convert_to_tensor(
             value=np.random.randn(self.batch_size, 10, 16),
             dtype=tf.float32),
+        attention_values_length=np.full([self.batch_size], 10),
         final_state=final_encoder_state)
 
   def _create_bridge(self):

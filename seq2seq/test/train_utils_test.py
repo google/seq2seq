@@ -22,7 +22,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import shutil
 import tempfile
 import tensorflow as tf
 import numpy as np
@@ -31,7 +30,6 @@ from seq2seq.contrib import rnn_cell
 from seq2seq.data import input_pipeline
 from seq2seq.test import utils as test_utils
 from seq2seq.training import utils as training_utils
-from seq2seq.training import hooks
 
 class TestGetRNNCell(tf.test.TestCase):
   """Tests the get_rnn_cell function.
@@ -94,52 +92,22 @@ class TestTrainOptions(tf.test.TestCase):
   def setUp(self):
     super(TestTrainOptions, self).setUp()
     self.model_dir = tempfile.mkdtemp()
-    self.hparams = {
+    self.model_params = {
         "num_layers": 4
     }
     self.model_class = "AttentionSeq2Seq"
-    self.source_vocab_file = "some_file"
-    self.target_vocab_file = "some_file2"
-
-  def tearDown(self):
-    super(TestTrainOptions, self).tearDown()
-    shutil.rmtree(self.model_dir)
 
   def test_read_write(self):
     saved_opts = training_utils.TrainOptions(
-        hparams=self.hparams,
         model_class=self.model_class,
-        source_vocab_path=self.source_vocab_file,
-        target_vocab_path=self.target_vocab_file)
+        model_params=self.model_params)
     saved_opts.dump(self.model_dir)
 
     loaded_opt = training_utils.TrainOptions.load(
         model_dir=self.model_dir)
 
-    self.assertEqual(saved_opts.hparams, loaded_opt.hparams)
+    self.assertEqual(saved_opts.model_params, loaded_opt.model_params)
     self.assertEqual(saved_opts.model_class, loaded_opt.model_class)
-    self.assertEqual(saved_opts.source_vocab_path, loaded_opt.source_vocab_path)
-    self.assertEqual(saved_opts.target_vocab_path, loaded_opt.target_vocab_path)
-
-
-  def test_read_write_partial(self):
-    saved_opts = training_utils.TrainOptions(
-        hparams=self.hparams,
-        model_class=None,
-        source_vocab_path=self.source_vocab_file,
-        target_vocab_path=None)
-    saved_opts.dump(self.model_dir)
-
-    loaded_opt = training_utils.TrainOptions.load(self.model_dir)
-
-    self.assertEqual(saved_opts.hparams, loaded_opt.hparams)
-    self.assertEqual(saved_opts.model_class, loaded_opt.model_class)
-    self.assertEqual(saved_opts.source_vocab_path, loaded_opt.source_vocab_path)
-    self.assertEqual(saved_opts.target_vocab_path, loaded_opt.target_vocab_path)
-
-
-  def test_partial_read_write(self):
-    pass
 
 
 class TestInputFn(tf.test.TestCase):
@@ -152,7 +120,10 @@ class TestInputFn(tf.test.TestCase):
     )
 
     pipeline = input_pipeline.ParallelTextInputPipeline(
-        [sources_file.name], [targets_file.name])
+        params={
+            "source_files": [sources_file.name],
+            "target_files": [targets_file.name]},
+        mode=tf.contrib.learn.ModeKeys.TRAIN)
     input_fn = training_utils.create_input_fn(
         pipeline=pipeline,
         **kwargs)
@@ -174,22 +145,6 @@ class TestInputFn(tf.test.TestCase):
 
   def test_wit_buckets(self):
     self._test_with_args(batch_size=10, bucket_boundaries=[0, 5, 10])
-
-
-class TestDefaultHooks(tf.test.TestCase):
-  """Tests the creation of default training hooks"""
-  def test_hooks(self):
-    estimator = tf.contrib.learn.LinearClassifier(
-        feature_columns=tf.contrib.layers.sparse_column_with_hash_bucket(
-            "test", 10))
-    default_hooks = training_utils.create_default_training_hooks(
-        estimator=estimator)
-
-    hook_types = list(map(type, default_hooks))
-    self.assertIn(hooks.PrintModelAnalysisHook, hook_types)
-    self.assertIn(hooks.TrainSampleHook, hook_types)
-    self.assertIn(hooks.MetadataCaptureHook, hook_types)
-    self.assertIn(hooks.TokensPerSecondCounter, hook_types)
 
 
 class TestLRDecay(tf.test.TestCase):

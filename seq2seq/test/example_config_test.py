@@ -28,7 +28,7 @@ from pydoc import locate
 import yaml
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
 from seq2seq.test.models_test import EncoderDecoderTests
 from seq2seq import models
@@ -36,33 +36,27 @@ from seq2seq import models
 EXAMPLE_CONFIG_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../example_configs"))
 
-def _load_model_from_config(config_path, hparam_overrides, vocab_info, mode):
+def _load_model_from_config(config_path, hparam_overrides, vocab_file, mode):
   """Loads model from a configuration file"""
   with gfile.GFile(config_path) as config_file:
     config = yaml.load(config_file)
   model_cls = locate(config["model"]) or getattr(models, config["model"])
-  hparams = config["hparams"]
+  model_params = config["model_params"]
   if hparam_overrides:
-    hparams.update(hparam_overrides)
+    model_params.update(hparam_overrides)
   # Change the max decode length to make the test run faster
-  hparams["inference.max_decode_length"] = 5
+  model_params["decoder.params"]["max_decode_length"] = 5
+  model_params["vocab_source"] = vocab_file
+  model_params["vocab_target"] = vocab_file
   return model_cls(
-      source_vocab_info=vocab_info,
-      target_vocab_info=vocab_info,
-      params=hparams,
+      params=model_params,
       mode=mode)
-
-# We only want to test the configuration - these tests are
-# irrelevant for that
-delattr(EncoderDecoderTests, "test_pipeline_train")
-delattr(EncoderDecoderTests, "test_pipeline_inference")
-delattr(EncoderDecoderTests, "test_pipeline_beam_search_infer")
 
 class ExampleConfigTest(object):
   """Interface for configuration-based tests"""
   def __init__(self, *args, **kwargs):
     super(ExampleConfigTest, self).__init__(*args, **kwargs)
-    self.vocab_info = None
+    self.vocab_file = None
 
   def _config_path(self):
     """Returns the path to the configuration to be tested"""
@@ -73,7 +67,7 @@ class ExampleConfigTest(object):
     return _load_model_from_config(
         config_path=self._config_path(),
         hparam_overrides=params,
-        vocab_info=self.vocab_info,
+        vocab_file=self.vocab_file.name,
         mode=mode)
 
 class TestNMTLarge(ExampleConfigTest, EncoderDecoderTests):

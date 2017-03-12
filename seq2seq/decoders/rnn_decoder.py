@@ -20,10 +20,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import abc
 from collections import namedtuple
 
+import six
 import tensorflow as tf
-from tensorflow.python.util import nest
+from tensorflow.python.util import nest # pylint: disable=E0611
 
 from seq2seq.graph_module import GraphModule
 from seq2seq.configurable import Configurable
@@ -43,7 +45,7 @@ class DecoderOutput(namedtuple(
   """
   pass
 
-
+@six.add_metaclass(abc.ABCMeta)
 class RNNDecoder(Decoder, GraphModule, Configurable):
   """Base class for RNN decoders.
 
@@ -52,19 +54,25 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
     helper: An instance of `tf.contrib.seq2seq.Helper` to assist decoding
     initial_state: A tensor or tuple of tensors used as the initial cell
       state.
-    max_decode_length: Maximum number of decode steps, an int32 scalar.
     name: A name for this module
   """
 
-  def __init__(self, params, mode, max_decode_length, name):
+  def __init__(self, params, mode, name):
     GraphModule.__init__(self, name)
     Configurable.__init__(self, params, mode)
-    self.max_decode_length = max_decode_length
     self.params["rnn_cell"] = _toggle_dropout(self.params["rnn_cell"], mode)
     self.cell = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     # Not initialized yet
     self.initial_state = None
     self.helper = None
+
+  @abc.abstractmethod
+  def initialize(self, name=None):
+    raise NotImplementedError
+
+  @abc.abstractmethod
+  def step(self, name=None):
+    raise NotImplementedError
 
   @property
   def batch_size(self):
@@ -80,11 +88,13 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
     """Applies final transformation to the decoder output once decoding is
     finished.
     """
+    #pylint: disable=R0201
     return (outputs, final_state)
 
   @staticmethod
   def default_params():
     return {
+        "max_decode_length": 100,
         "rnn_cell": _default_rnn_cell_params()
     }
 
@@ -92,9 +102,13 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
     if not self.initial_state:
       self._setup(initial_state, helper)
 
+    maximum_iterations = None
+    if self.mode == tf.contrib.learn.ModeKeys.INFER:
+      maximum_iterations = self.params["max_decode_length"]
+
     outputs, final_state = dynamic_decode(
         decoder=self,
         output_time_major=True,
         impute_finished=False,
-        maximum_iterations=self.max_decode_length)
+        maximum_iterations=maximum_iterations)
     return self.finalize(outputs, final_state)

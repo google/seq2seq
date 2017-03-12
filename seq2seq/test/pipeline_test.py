@@ -31,7 +31,7 @@ import yaml
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
 from seq2seq.test import utils as test_utils
 
@@ -77,27 +77,37 @@ class PipelineTest(tf.test.TestCase):
 
     # Set training flags
     tf.app.flags.FLAGS.output_dir = self.output_dir
-    tf.app.flags.FLAGS.metrics = """
-      log_perplexity,bleu,rouge_1/f_score,rouge_l/f_score"""
-    tf.app.flags.FLAGS.train_source = sources_train.name
-    tf.app.flags.FLAGS.train_target = targets_train.name
-    tf.app.flags.FLAGS.vocab_source = vocab_source.name
-    tf.app.flags.FLAGS.vocab_target = vocab_target.name
-    tf.app.flags.FLAGS.hparams = """
+    tf.app.flags.FLAGS.metrics = yaml.dump([
+        "log_perplexity", "bleu", "rouge_1/f_score", "rouge_l/f_score"])
+    tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
+    tf.app.flags.FLAGS.model_params = """
     attention.params:
       num_units: 10
-    """
-    tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
+    vocab_source: {}
+    vocab_target: {}
+    """.format(vocab_source.name, vocab_target.name)
     tf.app.flags.FLAGS.batch_size = 2
 
     # We pass a few flags via a config file
     config_path = os.path.join(self.output_dir, "train_config.yml")
     with gfile.GFile(config_path, "w") as config_file:
       yaml.dump({
-          "dev_source":  sources_dev.name,
-          "dev_target":  targets_dev.name,
+          "input_pipeline_train": {
+              "class": "ParallelTextInputPipeline",
+              "params": {
+                  "source_files": [sources_train.name],
+                  "target_files": [targets_train.name],
+              }
+          },
+          "input_pipeline_dev": {
+              "class": "ParallelTextInputPipeline",
+              "params": {
+                  "source_files": [sources_dev.name],
+                  "target_files": [targets_dev.name],
+              }
+          },
           "train_steps": 50,
-          "hparams": {
+          "model_params": {
               "embedding.dim": 10,
               "decoder.params": {
                   "rnn_cell": {
@@ -113,7 +123,7 @@ class PipelineTest(tf.test.TestCase):
               }
           }}, config_file)
 
-    tf.app.flags.FLAGS.config_path = config_path
+    tf.app.flags.FLAGS.config_paths = config_path
 
     # Run training
     tf.logging.set_verbosity(tf.logging.INFO)
@@ -133,11 +143,25 @@ class PipelineTest(tf.test.TestCase):
     # Set inference flags
     attention_dir = os.path.join(self.output_dir, "att")
     tf.app.flags.FLAGS.model_dir = self.output_dir
-    tf.app.flags.FLAGS.source = sources_dev.name
+    tf.app.flags.FLAGS.input_pipeline = """
+      class: ParallelTextInputPipeline
+      params:
+        source_files:
+          - {}
+        target_files:
+          - {}
+    """.format(sources_dev.name, targets_dev.name)
     tf.app.flags.FLAGS.batch_size = 2
     tf.app.flags.FLAGS.checkpoint_path = os.path.join(
         self.output_dir, "model.ckpt-50")
-    tf.app.flags.FLAGS.dump_attention_dir = attention_dir
+
+    # Use DecodeText Task
+    tf.app.flags.FLAGS.tasks = """
+    - class: DecodeText
+    - class: DumpAttention
+      params:
+        output_dir: {}
+    """.format(attention_dir)
 
     # Make sure inference runs successfully
     infer_script.main([])
@@ -167,21 +191,31 @@ class PipelineTest(tf.test.TestCase):
 
     # Set inference flags
     tf.app.flags.FLAGS.model_dir = self.output_dir
-    tf.app.flags.FLAGS.source = sources_dev.name
+    tf.app.flags.FLAGS.input_pipeline = """
+      class: ParallelTextInputPipeline
+      params:
+        source_files:
+          - {}
+        target_files:
+          - {}
+    """.format(sources_dev.name, targets_dev.name)
     tf.app.flags.FLAGS.batch_size = 2
     tf.app.flags.FLAGS.checkpoint_path = os.path.join(
         self.output_dir, "model.ckpt-50")
-    tf.app.flags.FLAGS.hparams = """{
-      "inference.beam_search.beam_width": 5
-    }"""
-    tf.app.flags.FLAGS.dump_beams = os.path.join(
-        self.output_dir, "beams.npz")
+    tf.app.flags.FLAGS.model_params = """
+      inference.beam_search.beam_width: 5
+    """
+    tf.app.flags.FLAGS.tasks = """
+    - class: DecodeText
+    - class: DumpBeams
+      params:
+        file: {}
+    """.format(os.path.join(self.output_dir, "beams.npz"))
 
     # Run inference w/ beam search
     infer_script.main([])
     self.assertTrue(os.path.exists(os.path.join(
         self.output_dir, "beams.npz")))
-
 
 
 if __name__ == "__main__":

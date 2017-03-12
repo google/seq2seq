@@ -27,7 +27,17 @@ from tensorflow.contrib.rnn.python.ops import rnn
 from seq2seq.encoders.encoder import Encoder, EncoderOutput
 from seq2seq.training import utils as training_utils
 
+def _unpack_cell(cell):
+  """Unpack the cells because the stack_bidirectional_dynamic_rnn
+  expects a list of cells, one per layer."""
+  if isinstance(cell, tf.contrib.rnn.MultiRNNCell):
+    return cell._cells #pylint: disable=W0212
+  else:
+    return [cell]
+
 def _default_rnn_cell_params():
+  """Creates default parameters used by multiple RNN encoders.
+  """
   return {
       "cell_class": "BasicLSTMCell",
       "cell_params": {
@@ -50,6 +60,7 @@ def _toggle_dropout(cell_params, mode):
     cell_params["dropout_input_keep_prob"] = 1.0
     cell_params["dropout_output_keep_prob"] = 1.0
   return cell_params
+
 
 class UnidirectionalRNNEncoder(Encoder):
   """
@@ -80,7 +91,8 @@ class UnidirectionalRNNEncoder(Encoder):
         dtype=tf.float32,
         **kwargs)
     return EncoderOutput(
-        outputs=outputs, final_state=state, attention_values=outputs)
+        outputs=outputs, final_state=state, attention_values=outputs,
+        attention_values_length=sequence_length)
 
 
 class BidirectionalRNNEncoder(Encoder):
@@ -121,7 +133,8 @@ class BidirectionalRNNEncoder(Encoder):
     return EncoderOutput(
         outputs=outputs_concat,
         final_state=states,
-        attention_values=outputs_concat)
+        attention_values=outputs_concat,
+        attention_values_length=sequence_length)
 
 
 class StackBidirectionalRNNEncoder(Encoder):
@@ -145,20 +158,12 @@ class StackBidirectionalRNNEncoder(Encoder):
         "rnn_cell": _default_rnn_cell_params()
     }
 
-  def _unpack_cell(self, cell):
-    """Unpack the cells because the stack_bidirectional_dynamic_rnn
-    expects a list of cells, one per layer."""
-    if isinstance(cell, tf.contrib.rnn.MultiRNNCell):
-      return cell._cells #pylint: disable=W0212
-    else:
-      return [cell]
-
   def encode(self, inputs, sequence_length, **kwargs):
     cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     cell_bw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
 
-    cells_fw = self._unpack_cell(cell_fw)
-    cells_bw = self._unpack_cell(cell_bw)
+    cells_fw = _unpack_cell(cell_fw)
+    cells_bw = _unpack_cell(cell_bw)
 
     result = rnn.stack_bidirectional_dynamic_rnn(
         cells_fw=cells_fw,
@@ -172,4 +177,5 @@ class StackBidirectionalRNNEncoder(Encoder):
     return EncoderOutput(
         outputs=outputs_concat,
         final_state=final_state,
-        attention_values=outputs_concat)
+        attention_values=outputs_concat,
+        attention_values_length=sequence_length)

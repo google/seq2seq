@@ -30,11 +30,11 @@ from google.protobuf import text_format
 import tensorflow as tf
 from tensorflow.contrib.tfprof import model_analyzer
 from tensorflow.contrib.tfprof.python.tools.tfprof import tfprof_logger
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 from tensorflow.tools.tfprof import tfprof_log_pb2
-from tensorflow.python.framework import op_def_registry
-from tensorflow.python.framework.ops import RegisterShape
-from tensorflow.python.framework import common_shapes
+from tensorflow.python.framework import op_def_registry # pylint: disable=E0611
+from tensorflow.python.framework.ops import RegisterShape # pylint: disable=E0611
+from tensorflow.python.framework import common_shapes # pylint: disable=E0611
 
 # Import custom ops
 from seq2seq.decoders.attention import att_sum_bahdanau, att_sum_dot

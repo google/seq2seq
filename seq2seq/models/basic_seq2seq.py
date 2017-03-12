@@ -20,15 +20,16 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import copy
 from pydoc import locate
 import tensorflow as tf
+from seq2seq.contrib.seq2seq import helper as tf_decode_helper
 
-from seq2seq.models.model_base import Seq2SeqBase
+from seq2seq.models.seq2seq_model import Seq2SeqModel
+from seq2seq.graph_utils import templatemethod
 from seq2seq.models import bridges
 
 
-class BasicSeq2Seq(Seq2SeqBase):
+class BasicSeq2Seq(Seq2SeqModel):
   """Basic Sequence2Sequence model with a unidirectional encoder and decoder.
   The last encoder state is used to initialize the decoder and thus both
   must share the same type of RNN cell.
@@ -42,19 +43,16 @@ class BasicSeq2Seq(Seq2SeqBase):
   """
 
   def __init__(self,
-               source_vocab_info,
-               target_vocab_info,
                params,
                mode,
                name="basic_seq2seq"):
-    super(BasicSeq2Seq, self).__init__(source_vocab_info, target_vocab_info,
-                                       params, mode, name)
+    super(BasicSeq2Seq, self).__init__(params, mode, name)
     self.encoder_class = locate(self.params["encoder.class"])
     self.decoder_class = locate(self.params["decoder.class"])
 
   @staticmethod
   def default_params():
-    params = Seq2SeqBase.default_params().copy()
+    params = Seq2SeqModel.default_params().copy()
     params.update({
         "bridge.class": "seq2seq.models.bridges.InitialStateBridge",
         "bridge.params": {},
@@ -75,42 +73,56 @@ class BasicSeq2Seq(Seq2SeqBase):
         params=self.params["bridge.params"],
         mode=self.mode)
 
-  def _create_encoder(self, _source, _source_len):
-    """Creates the encoder function for this model"""
-    return self.encoder_class(self.params["encoder.params"], self.mode)
-
-  def _create_decoder(self, _encoder_output, _source, _source_len):
-    """Creates the decoder function for this model"""
-    max_decode_length = None
-    if  self.mode == tf.contrib.learn.ModeKeys.INFER:
-      max_decode_length = self.params["inference.max_decode_length"]
-
+  def _create_decoder(self, _encoder_output, _features, _labels):
+    """Creates a decoder instance based on the passed parameters."""
     return self.decoder_class(
         params=self.params["decoder.params"],
         mode=self.mode,
-        vocab_size=self.target_vocab_info.total_size,
-        max_decode_length=max_decode_length)
+        vocab_size=self.target_vocab_info.total_size)
 
-  def encode_decode(self,
-                    source,
-                    source_len,
-                    decode_helper):
-    # Create Encoder
-    encoder_fn = self._create_encoder(source, source_len)
-    encoder_output = encoder_fn(source, source_len)
-    decoder_fn = self._create_decoder(encoder_output, source, source_len)
+  def _decode_train(self, decoder, bridge, _encoder_output, _features, labels):
+    """Runs decoding in training mode"""
+    target_embedded = tf.nn.embedding_lookup(
+        self.target_embedding, labels["target_ids"])
+    helper_train = tf_decode_helper.TrainingHelper(
+        inputs=target_embedded[:, :-1],
+        sequence_length=labels["target_len"] - 1)
+    decoder_initial_state = bridge()
+    return decoder(decoder_initial_state, helper_train)
 
+  def _decode_infer(self, decoder, bridge, _encoder_output, features, labels):
+    """Runs decoding in inference mode"""
+    batch_size = self.batch_size(features, labels)
     if self.use_beam_search:
-      decoder_fn = self._get_beam_search_decoder( #pylint: disable=r0204
-          decoder_fn)
+      batch_size = self.params["inference.beam_search.beam_width"]
 
-    # Bridge between encoder and decoder
+    target_start_id = self.target_vocab_info.special_vocab.SEQUENCE_START
+    helper_infer = tf_decode_helper.GreedyEmbeddingHelper(
+        embedding=self.target_embedding,
+        start_tokens=tf.fill([batch_size], target_start_id),
+        end_token=self.target_vocab_info.special_vocab.SEQUENCE_END)
+    decoder_initial_state = bridge()
+    return decoder(decoder_initial_state, helper_infer)
+
+  @templatemethod("encode")
+  def encode(self, features, labels):
+    source_embedded = tf.nn.embedding_lookup(
+        self.source_embedding, features["source_ids"])
+    encoder_fn = self.encoder_class(self.params["encoder.params"], self.mode)
+    return encoder_fn(source_embedded, features["source_len"])
+
+  @templatemethod("decode")
+  def decode(self, encoder_output, features, labels):
+    decoder = self._create_decoder(encoder_output, features, labels)
+    if self.use_beam_search:
+      decoder = self._get_beam_search_decoder(decoder)
+
     bridge = self._create_bridge(
         encoder_outputs=encoder_output,
-        decoder_state_size=decoder_fn.cell.state_size)
-    decoder_initial_state = bridge()
-
-    decoder_output, final_state = decoder_fn(
-        decoder_initial_state, decode_helper)
-
-    return decoder_output, final_state, encoder_output
+        decoder_state_size=decoder.cell.state_size)
+    if self.mode == tf.contrib.learn.ModeKeys.INFER:
+      return self._decode_infer(
+          decoder, bridge, encoder_output, features, labels)
+    else:
+      return self._decode_train(
+          decoder, bridge, encoder_output, features, labels)
