@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A decoder for tf.SequenceExample"""
 
 import tensorflow as tf
 from tensorflow.contrib.slim.python.slim.data import data_decoder
+
 
 class TFSEquenceExampleDecoder(data_decoder.DataDecoder):
   """A decoder for TensorFlow Examples.
@@ -31,8 +31,7 @@ class TFSEquenceExampleDecoder(data_decoder.DataDecoder):
   contains the instructions for post_processing its tensors for stage 2.
   """
 
-  def __init__(self, context_keys_to_features,
-               sequence_keys_to_features,
+  def __init__(self, context_keys_to_features, sequence_keys_to_features,
                items_to_handlers):
     """Constructs the decoder.
     Args:

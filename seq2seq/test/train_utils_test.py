@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Test Cases for Training utils.
 """
@@ -31,22 +30,20 @@ from seq2seq.data import input_pipeline
 from seq2seq.test import utils as test_utils
 from seq2seq.training import utils as training_utils
 
+
 class TestGetRNNCell(tf.test.TestCase):
   """Tests the get_rnn_cell function.
   """
+
   def test_single_layer(self):
     cell = training_utils.get_rnn_cell(
-        cell_class="BasicLSTMCell",
-        cell_params={"num_units": 16},
-        num_layers=1)
+        cell_class="BasicLSTMCell", cell_params={"num_units": 16}, num_layers=1)
     self.assertIsInstance(cell, tf.contrib.rnn.BasicLSTMCell)
     self.assertEqual(cell.output_size, 16)
 
   def test_multi_layer(self):
     cell = training_utils.get_rnn_cell(
-        cell_class="BasicLSTMCell",
-        cell_params={"num_units": 16},
-        num_layers=2)
+        cell_class="BasicLSTMCell", cell_params={"num_units": 16}, num_layers=2)
     self.assertIsInstance(cell, rnn_cell.ExtendedMultiRNNCell)
     self.assertEqual(cell.output_size, 16)
 
@@ -72,12 +69,15 @@ class TestGetRNNCell(tf.test.TestCase):
     with self.assertRaises(ValueError):
       training_utils.get_rnn_cell(
           cell_class="LSTMCell",
-          cell_params={"num_units": 16, "use_peepholesERROR": True},
+          cell_params={"num_units": 16,
+                       "use_peepholesERROR": True},
           num_layers=1)
 
     cell = training_utils.get_rnn_cell(
         cell_class="LSTMCell",
-        cell_params={"num_units": 8, "use_peepholes": True, "forget_bias": 0.5},
+        cell_params={"num_units": 8,
+                     "use_peepholes": True,
+                     "forget_bias": 0.5},
         num_layers=1)
     self.assertIsInstance(cell, tf.contrib.rnn.LSTMCell)
     #pylint: disable=E1101,W0212
@@ -92,19 +92,15 @@ class TestTrainOptions(tf.test.TestCase):
   def setUp(self):
     super(TestTrainOptions, self).setUp()
     self.model_dir = tempfile.mkdtemp()
-    self.model_params = {
-        "num_layers": 4
-    }
+    self.model_params = {"num_layers": 4}
     self.model_class = "AttentionSeq2Seq"
 
   def test_read_write(self):
     saved_opts = training_utils.TrainOptions(
-        model_class=self.model_class,
-        model_params=self.model_params)
+        model_class=self.model_class, model_params=self.model_params)
     saved_opts.dump(self.model_dir)
 
-    loaded_opt = training_utils.TrainOptions.load(
-        model_dir=self.model_dir)
+    loaded_opt = training_utils.TrainOptions.load(model_dir=self.model_dir)
 
     self.assertEqual(saved_opts.model_params, loaded_opt.model_params)
     self.assertEqual(saved_opts.model_class, loaded_opt.model_class)
@@ -112,21 +108,19 @@ class TestTrainOptions(tf.test.TestCase):
 
 class TestInputFn(tf.test.TestCase):
   """Tests create_input_fn"""
+
   def _test_with_args(self, **kwargs):
     """Helper function to test create_input_fn with keyword arguments"""
     sources_file, targets_file = test_utils.create_temp_parallel_data(
-        sources=["Hello World ."],
-        targets=["Goodbye ."]
-    )
+        sources=["Hello World ."], targets=["Goodbye ."])
 
     pipeline = input_pipeline.ParallelTextInputPipeline(
         params={
             "source_files": [sources_file.name],
-            "target_files": [targets_file.name]},
+            "target_files": [targets_file.name]
+        },
         mode=tf.contrib.learn.ModeKeys.TRAIN)
-    input_fn = training_utils.create_input_fn(
-        pipeline=pipeline,
-        **kwargs)
+    input_fn = training_utils.create_input_fn(pipeline=pipeline, **kwargs)
     features, labels = input_fn()
 
     with self.test_session() as sess:
@@ -134,11 +128,8 @@ class TestInputFn(tf.test.TestCase):
         features_, labels_ = sess.run([features, labels])
 
     self.assertEqual(
-        set(features_.keys()),
-        set(["source_tokens", "source_len"]))
-    self.assertEqual(
-        set(labels_.keys()),
-        set(["target_tokens", "target_len"]))
+        set(features_.keys()), set(["source_tokens", "source_len"]))
+    self.assertEqual(set(labels_.keys()), set(["target_tokens", "target_len"]))
 
   def test_without_buckets(self):
     self._test_with_args(batch_size=10)

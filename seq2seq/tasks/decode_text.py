@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Task where both the input and output sequence are plain text.
 """
@@ -31,9 +30,9 @@ def _get_prediction_length(predictions_dict):
   of the first SEQUENCE_END token.
   """
   tokens_iter = enumerate(predictions_dict["predicted_tokens"])
-  return next(
-      ((i + 1) for i, _ in tokens_iter if _ == "SEQUENCE_END"),
-      len(predictions_dict["predicted_tokens"]))
+  return next(((i + 1) for i, _ in tokens_iter if _ == "SEQUENCE_END"),
+              len(predictions_dict["predicted_tokens"]))
+
 
 def _get_unk_mapping(filename):
   """Reads a file that specifies a mapping from source to target tokens.
@@ -51,7 +50,10 @@ def _get_unk_mapping(filename):
     mapping = {k.strip(): v.strip() for k, v in mapping.items()}
   return mapping
 
-def _unk_replace(source_tokens, predicted_tokens, attention_scores,
+
+def _unk_replace(source_tokens,
+                 predicted_tokens,
+                 attention_scores,
                  mapping=None):
   """Replaces UNK tokens with tokens from the source or a
   provided mapping based on the attention scores.
@@ -160,8 +162,8 @@ class DecodeText(InferenceTask):
             predicted_tokens=predicted_tokens,
             attention_scores=attention_scores)
 
-      sent = self.params["delimiter"].join(
-          predicted_tokens).split("SEQUENCE_END")[0]
+      sent = self.params["delimiter"].join(predicted_tokens).split(
+          "SEQUENCE_END")[0]
       # Replace special BPE tokens
       sent = sent.replace("@@ ", "")
       sent = sent.strip()

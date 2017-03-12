@@ -12,11 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Unit tests for input-related operations.
 """
-
 
 from __future__ import absolute_import
 from __future__ import division
@@ -130,9 +128,7 @@ class ParallelDataProviderTest(tf.test.TestCase):
       expected_target = self.source_to_target[source_joined]
       np.testing.assert_array_equal(
           item_dict["target_tokens"],
-          ["SEQUENCE_START"] +
-          expected_target.split(" ") +
-          ["SEQUENCE_END"])
+          ["SEQUENCE_START"] + expected_target.split(" ") + ["SEQUENCE_END"])
 
   def test_reading_without_targets(self):
     num_epochs = 50
@@ -146,9 +142,7 @@ class ParallelDataProviderTest(tf.test.TestCase):
     item_values = data_provider.get(item_keys)
     items_dict = dict(zip(item_keys, item_values))
 
-    self.assertEqual(
-        set(item_keys),
-        set(["source_tokens", "source_len"]))
+    self.assertEqual(set(item_keys), set(["source_tokens", "source_len"]))
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
@@ -161,6 +155,7 @@ class ParallelDataProviderTest(tf.test.TestCase):
       item_dict["source_tokens"] = np.char.decode(
           item_dict["source_tokens"].astype("S"), "utf-8")
       self.assertEqual(item_dict["source_tokens"][-1], "SEQUENCE_END")
+
 
 if __name__ == "__main__":
   tf.test.main()

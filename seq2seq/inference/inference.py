@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ Generates model predictions.
 """
 
@@ -22,6 +21,7 @@ from __future__ import print_function
 import tensorflow as tf
 
 from seq2seq.training import utils as training_utils
+
 
 def create_predictions_iter(predictions_dict, sess):
   """Runs prediciton fetches in a sessions and flattens batches as needed to
@@ -48,10 +48,8 @@ def create_predictions_iter(predictions_dict, sess):
       except tf.errors.OutOfRangeError:
         break
 
-def create_inference_graph(
-    model,
-    input_pipeline,
-    batch_size=32):
+
+def create_inference_graph(model, input_pipeline, batch_size=32):
   """Creates a graph to perform inference.
 
   Args:
@@ -78,7 +76,4 @@ def create_inference_graph(
 
   # Build the graph
   features, labels = input_fn()
-  return model(
-      features=features,
-      labels=labels,
-      params=None)
+  return model(features=features, labels=labels, params=None)

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Definition of a basic seq2seq model
 """
@@ -44,13 +43,15 @@ class Image2Seq(AttentionSeq2Seq):
     params = ModelBase.default_params()
     params.update({
         "attention.class": "AttentionLayerBahdanau",
-        "attention.params": {"num_units": 128},
+        "attention.params": {
+            "num_units": 128
+        },
         "bridge.class": "seq2seq.models.bridges.ZeroBridge",
         "bridge.params": {},
         "encoder.class": "seq2seq.encoders.InceptionV3Encoder",
-        "encoder.params": {}, # Arbitrary parameters for the encoder
+        "encoder.params": {},  # Arbitrary parameters for the encoder
         "decoder.class": "seq2seq.decoders.AttentionDecoder",
-        "decoder.params": {}, # Arbitrary parameters for the decoder
+        "decoder.params": {},  # Arbitrary parameters for the decoder
         "target.max_seq_len": 50,
         "embedding.dim": 100,
         "inference.beam_search.beam_width": 0,
@@ -96,10 +97,10 @@ class Image2Seq(AttentionSeq2Seq):
 
     # Slices targets to max length
     if self.params["target.max_seq_len"] is not None:
-      labels["target_tokens"] = labels[
-          "target_tokens"][:, :self.params["target.max_seq_len"]]
-      labels["target_len"] = tf.minimum(
-          labels["target_len"], self.params["target.max_seq_len"])
+      labels["target_tokens"] = labels["target_tokens"][:, :self.params[
+          "target.max_seq_len"]]
+      labels["target_len"] = tf.minimum(labels["target_len"],
+                                        self.params["target.max_seq_len"])
 
     # Look up the target ids in the vocabulary
     labels["target_ids"] = target_vocab_to_id.lookup(labels["target_tokens"])

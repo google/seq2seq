@@ -13,7 +13,6 @@
 # limitations under the License.
 
 # -*- coding: utf-8 -*-
-
 """Miscellaneous training utility functions.
 """
 
@@ -34,6 +33,7 @@ from tensorflow import gfile
 
 from seq2seq.contrib import rnn_cell
 
+
 class TrainOptions(object):
   """A collectionf of options that are passed to the training script
   and can be saved to perform inference later.
@@ -42,9 +42,8 @@ class TrainOptions(object):
     task: Name of the training task class.
     task_params: A dictionary of parameters passed to the training task.
   """
-  def __init__(self,
-               model_class,
-               model_params):
+
+  def __init__(self, model_class, model_params):
     self._model_class = model_class
     self._model_params = model_params
 
@@ -97,6 +96,7 @@ class TrainOptions(object):
     return TrainOptions(
         model_class=options_dict["model_class"],
         model_params=options_dict["model_params"])
+
 
 def cell_from_spec(cell_classname, cell_params):
   """Create a RNN Cell instance from a JSON string.

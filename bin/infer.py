@@ -28,7 +28,7 @@ from tensorflow import gfile
 from seq2seq import tasks, models
 from seq2seq.configurable import _maybe_load_yaml, _deep_merge_dict
 from seq2seq.data import input_pipeline
-from seq2seq.inference import create_inference_graph, create_predictions_iter
+from seq2seq.inference import create_inference_graph
 from seq2seq.training import utils as training_utils
 
 tf.flags.DEFINE_string("tasks", "{}", "List of inference tasks to run.")
@@ -105,7 +105,6 @@ def main(_argv):
   checkpoint_path = FLAGS.checkpoint_path
   if not checkpoint_path:
     checkpoint_path = tf.train.latest_checkpoint(FLAGS.model_dir)
-
 
   def session_init_op(_scaffold, sess):
     saver.restore(sess, checkpoint_path)

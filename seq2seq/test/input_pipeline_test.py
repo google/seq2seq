@@ -12,11 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Unit tests for input-related operations.
 """
-
 
 from __future__ import absolute_import
 from __future__ import division
@@ -73,6 +71,7 @@ class TestInputPipelineDef(tf.test.TestCase):
     self.assertEqual(pipeline.params["num_epochs"], 5)
     self.assertEqual(pipeline.params["shuffle"], False)
 
+
 class TFRecordsInputPipelineTest(tf.test.TestCase):
   """
   Tests Data Provider operations.
@@ -90,7 +89,7 @@ class TFRecordsInputPipelineTest(tf.test.TestCase):
         params={
             "files": [tfrecords_file.name],
             "source_field": "source",
-            "target_field":"target",
+            "target_field": "target",
             "num_epochs": 5,
             "shuffle": False
         },

@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Unit tests for input-related operations.
 """
@@ -84,12 +83,11 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
           np.char.decode(words.astype("S"), "utf-8"),
           ["Hello", ".", "笑", "UNK"])
 
-
   def test_with_counts(self):
     vocab_list = ["Hello", ".", "笑"]
     vocab_counts = [100, 200, 300]
-    vocab_file = test_utils.create_temporary_vocab_file(
-        vocab_list, vocab_counts)
+    vocab_file = test_utils.create_temporary_vocab_file(vocab_list,
+                                                        vocab_counts)
 
     vocab_to_id_table, id_to_vocab_table, word_to_count_table, vocab_size = \
       vocab.create_vocabulary_lookup_table(vocab_file.name)
@@ -118,6 +116,7 @@ class CreateVocabularyLookupTableTest(tf.test.TestCase):
           tf.convert_to_tensor(["Hello", ".", "笑", "??", "xxx"]))
       counts = sess.run(counts)
       np.testing.assert_array_equal(counts, [100, 200, 300, -1, -1])
+
 
 if __name__ == "__main__":
   tf.test.main()

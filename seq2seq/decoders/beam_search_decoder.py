@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A decoder that uses beam search. Can only be used for inference, not
 training.
 """
@@ -23,15 +22,15 @@ from __future__ import print_function
 from collections import namedtuple
 
 import tensorflow as tf
-from tensorflow.python.util import nest # pylint: disable=E0611
+from tensorflow.python.util import nest  # pylint: disable=E0611
 
 from seq2seq.inference import beam_search
 from seq2seq.decoders.rnn_decoder import RNNDecoder
 
+
 class FinalBeamDecoderOutput(
-    namedtuple("FinalBeamDecoderOutput", [
-        "predicted_ids", "beam_search_output"
-    ])):
+    namedtuple("FinalBeamDecoderOutput",
+               ["predicted_ids", "beam_search_output"])):
   """Final outputs returned by the beam search after all decoding is finished.
 
   Args:
@@ -41,6 +40,7 @@ class FinalBeamDecoderOutput(
       the state of the beam search.
   """
   pass
+
 
 class BeamDecoderOutput(
     namedtuple("BeamDecoderOutput", [
@@ -78,8 +78,8 @@ class BeamSearchDecoder(RNNDecoder):
   """
 
   def __init__(self, decoder, config):
-    super(BeamSearchDecoder, self).__init__(
-        decoder.params, decoder.mode, decoder.name)
+    super(BeamSearchDecoder, self).__init__(decoder.params, decoder.mode,
+                                            decoder.name)
     self.decoder = decoder
     self.config = config
 
@@ -120,16 +120,13 @@ class BeamSearchDecoder(RNNDecoder):
 
   def finalize(self, outputs, final_state):
     # Gather according to beam search result
-    predicted_ids = beam_search.gather_tree(
-        outputs.predicted_ids,
-        outputs.beam_parent_ids)
+    predicted_ids = beam_search.gather_tree(outputs.predicted_ids,
+                                            outputs.beam_parent_ids)
 
     # We're using a batch size of 1, so we add an extra dimension to
     # convert tensors to [1, beam_width, ...] shape. This way Tensorflow
     # doesn't confuse batch_size with beam_width
-    outputs = nest.map_structure(
-        lambda x: tf.expand_dims(x, 1),
-        outputs)
+    outputs = nest.map_structure(lambda x: tf.expand_dims(x, 1), outputs)
 
     final_outputs = FinalBeamDecoderOutput(
         predicted_ids=tf.expand_dims(predicted_ids, 1),
@@ -140,19 +137,17 @@ class BeamSearchDecoder(RNNDecoder):
   def _build(self, initial_state, helper):
     # Tile initial state
     initial_state = nest.map_structure(
-        lambda x: tf.tile(x, [self.batch_size, 1]),
-        initial_state)
-    self.decoder._setup(initial_state, helper) #pylint: disable=W0212
-    return super(BeamSearchDecoder, self)._build(
-        self.decoder.initial_state, self.decoder.helper)
-
+        lambda x: tf.tile(x, [self.batch_size, 1]), initial_state)
+    self.decoder._setup(initial_state, helper)  #pylint: disable=W0212
+    return super(BeamSearchDecoder, self)._build(self.decoder.initial_state,
+                                                 self.decoder.helper)
 
   def step(self, time_, inputs, state, name=None):
     decoder_state, beam_state = state
 
     # Call the original decoder
-    (decoder_output, decoder_state, _, _) = self.decoder.step(
-        time_, inputs, decoder_state)
+    (decoder_output, decoder_state, _, _) = self.decoder.step(time_, inputs,
+                                                              decoder_state)
 
     # Perform a step of beam search
     bs_output, beam_state = beam_search.beam_search_step(
@@ -163,11 +158,9 @@ class BeamSearchDecoder(RNNDecoder):
 
     # Shuffle everything according to beam search result
     decoder_state = nest.map_structure(
-        lambda x: tf.gather(x, bs_output.beam_parent_ids),
-        decoder_state)
+        lambda x: tf.gather(x, bs_output.beam_parent_ids), decoder_state)
     decoder_output = nest.map_structure(
-        lambda x: tf.gather(x, bs_output.beam_parent_ids),
-        decoder_output)
+        lambda x: tf.gather(x, bs_output.beam_parent_ids), decoder_output)
 
     next_state = (decoder_state, beam_state)
 

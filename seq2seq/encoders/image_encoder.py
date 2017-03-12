@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Image encoder classes
 """
@@ -25,6 +24,7 @@ from tensorflow.contrib.slim.python.slim.nets.inception_v3 \
   import inception_v3_base
 
 from seq2seq.encoders.encoder import Encoder, EncoderOutput
+
 
 class InceptionV3Encoder(Encoder):
   """
@@ -55,7 +55,7 @@ class InceptionV3Encoder(Encoder):
         method=tf.image.ResizeMethod.BILINEAR)
 
     outputs, _ = inception_v3_base(tf.to_float(inputs))
-    output_shape = outputs.get_shape() #pylint: disable=E1101
+    output_shape = outputs.get_shape()  #pylint: disable=E1101
     shape_list = output_shape.as_list()
 
     # Take attentin over output elemnts in width and height dimension:
@@ -69,6 +69,7 @@ class InceptionV3Encoder(Encoder):
     final_state = tf.contrib.slim.flatten(outputs, scope="flatten")
 
     return EncoderOutput(
-        outputs=outputs_flat, final_state=final_state,
+        outputs=outputs_flat,
+        final_state=final_state,
         attention_values=outputs_flat,
         attention_values_length=tf.shape(outputs_flat)[1])

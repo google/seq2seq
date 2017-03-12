@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 """Tests for Metrics.
 """
 
@@ -35,24 +33,24 @@ from seq2seq.metrics.metric_specs import RougeMetricSpec
 class TestMosesBleu(tf.test.TestCase):
   """Tests using the Moses multi-bleu script to calcualte BLEU score
   """
+
   def _test_multi_bleu(self, hypotheses, references, lowercase, expected_bleu):
     #pylint: disable=R0201
     """Runs a multi-bleu test."""
     result = bleu.moses_multi_bleu(
-        hypotheses=hypotheses,
-        references=references,
-        lowercase=lowercase)
+        hypotheses=hypotheses, references=references, lowercase=lowercase)
     np.testing.assert_almost_equal(result, expected_bleu, decimal=2)
-
 
   def test_multi_bleu(self):
     self._test_multi_bleu(
         hypotheses=np.array([
             "The brown fox jumps over the dog 笑",
-            "The brown fox jumps over the dog 2 笑"]),
+            "The brown fox jumps over the dog 2 笑"
+        ]),
         references=np.array([
             "The quick brown fox jumps over the lazy dog 笑",
-            "The quick brown fox jumps over the lazy dog 笑"]),
+            "The quick brown fox jumps over the lazy dog 笑"
+        ]),
         lowercase=False,
         expected_bleu=46.51)
 
@@ -60,10 +58,12 @@ class TestMosesBleu(tf.test.TestCase):
     self._test_multi_bleu(
         hypotheses=np.array([
             "The brown fox jumps over The Dog 笑",
-            "The brown fox jumps over The Dog 2 笑"]),
+            "The brown fox jumps over The Dog 2 笑"
+        ]),
         references=np.array([
             "The quick brown fox jumps over the lazy dog 笑",
-            "The quick brown fox jumps over the lazy dog 笑"]),
+            "The quick brown fox jumps over the lazy dog 笑"
+        ]),
         lowercase=True,
         expected_bleu=46.51)
 
@@ -74,12 +74,8 @@ class TestTextMetricSpec(tf.test.TestCase):
 
   def _test_metric_spec(self, metric_spec, hyps, refs, expected_scores):
     """Tests a MetricSpec"""
-    predictions = {
-        "predicted_tokens": tf.placeholder(dtype=tf.string)
-    }
-    labels = {
-        "target_tokens": tf.placeholder(dtype=tf.string)
-    }
+    predictions = {"predicted_tokens": tf.placeholder(dtype=tf.string)}
+    labels = {"target_tokens": tf.placeholder(dtype=tf.string)}
 
     value, update_op = metric_spec.create_metric_ops(None, labels, predictions)
 
@@ -111,19 +107,19 @@ class TestBleuMetricSpec(TestTextMetricSpec):
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
         refs=["A B C D E F", "A B A D E F"],
-        expected_scores=[100.0, 69.19]
-    )
+        expected_scores=[100.0, 69.19])
+
 
 class TestRougeMetricSpec(TestTextMetricSpec):
   """Tests the `RougeMetricSpec`"""
+
   def test_rouge_1_f_score(self):
     metric_spec = RougeMetricSpec("rouge_1/f_score")
     return self._test_metric_spec(
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
         refs=["A B C D E F", "A B A D E F"],
-        expected_scores=[1.0, 0.954]
-    )
+        expected_scores=[1.0, 0.954])
 
   def test_rouge_2_f_score(self):
     metric_spec = RougeMetricSpec("rouge_2/f_score")
@@ -131,8 +127,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
         refs=["A B C D E F", "A B A D E F"],
-        expected_scores=[1.0, 0.8]
-    )
+        expected_scores=[1.0, 0.8])
 
   def test_rouge_l_f_score(self):
     metric_spec = RougeMetricSpec("rouge_l/f_score")
@@ -140,20 +135,22 @@ class TestRougeMetricSpec(TestTextMetricSpec):
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
         refs=["A B C D E F", "A B A D E F"],
-        expected_scores=[1.0, 0.916]
-    )
+        expected_scores=[1.0, 0.916])
 
 
 class TestRougeMetric(tf.test.TestCase):
   """Tests the RougeMetric"""
+
   def test_rouge(self):
     #pylint: disable=R0201
     hypotheses = np.array([
         "The brown fox jumps over the dog 笑",
-        "The brown fox jumps over the dog 2 笑"])
+        "The brown fox jumps over the dog 2 笑"
+    ])
     references = np.array([
         "The quick brown fox jumps over the lazy dog 笑",
-        "The quick brown fox jumps over the lazy dog 笑"])
+        "The quick brown fox jumps over the lazy dog 笑"
+    ])
     output = rouge.rouge(hypotheses, references)
     # pyrouge result: 0.84926
     np.testing.assert_almost_equal(output["rouge_1/f_score"], 0.865, decimal=2)
