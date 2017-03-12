@@ -24,34 +24,33 @@ from __future__ import unicode_literals
 
 from collections import namedtuple
 
-from seq2seq import losses as seq2seq_losses
+import yaml
+import numpy as np
+import tensorflow as tf
+
 from seq2seq.data import vocab, input_pipeline
 from seq2seq.training import utils as training_utils
 from seq2seq.test import utils as test_utils
 from seq2seq.models import BasicSeq2Seq, AttentionSeq2Seq
-from seq2seq.contrib.seq2seq import helper as decode_helper
 
-import tensorflow as tf
-import numpy as np
 
-TEST_PARAMS = {
-    "encoder.params": {
-        "rnn_cell": {
-            "dropout_input_keep_prob": 0.8,
-            "num_layers": 2,
-            "residual_connections": True,
-            "cell_class": "LSTMCell",
-            "cell_params":  {"num_units": 12},
-        }
-    },
-    "decoder.params": {
-        "rnn_cell": {
-            "num_layers": 2,
-            "cell_class": "LSTMCell",
-            "cell_params":  {"num_units": 12}
-        }
-    }
-}
+TEST_PARAMS = yaml.load("""
+embedding.dim: 5
+encoder.params:
+  rnn_cell:
+    dropout_input_keep_prob: 0.8
+    num_layers: 2
+    residual_connections: True,
+    cell_class: LSTMCell
+    cell_params:
+      num_units: 4
+decoder.params:
+  rnn_cell:
+    num_layers: 2
+    cell_class: LSTMCell
+    cell_params:
+      num_units: 4
+""")
 
 class EncoderDecoderTests(tf.test.TestCase):
   """Base class for EncoderDecoder tests. Tests for specific classes should
