@@ -59,6 +59,9 @@
                 <li class="toctree-l3"><a href="#design-goals">Design Goals</a></li>
                 
             
+                <li class="toctree-l3"><a href="#faq">FAQ</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#related-frameworks">Related Frameworks</a></li>
                 
             
@@ -212,29 +215,33 @@
             <div class="section">
               
                 <h2 id="introduction">Introduction</h2>
-<p>tf-seq2seq is an open source framework for sequence learning in Tensorflow.
-The main use case is Neural Machine Translation (NMT), but tf-seq2seq can be
-used for a variety of other applications such as Conversational Modeling,
-Text Summarization or Image Captioning.</p>
+<p>tf-seq2seq is a general-purpose encoder-decoder framework for Tensorflow that can be used for Machine Translation, Text Summarization, Conversational Modeling, Image Captioning, and more.</p>
+<p><img alt="Machine Translation Model" src="https://3.bp.blogspot.com/-3Pbj_dvt0Vo/V-qe-Nl6P5I/AAAAAAAABQc/z0_6WtVWtvARtMk0i9_AtLeyyGyV6AI4wCLcB/s1600/nmt-model-fast.gif" /></p>
 <h2 id="design-goals">Design Goals</h2>
 <p>We built tf-seq2seq with the following goals in mind:</p>
-<ol>
+<ul>
 <li>
-<p><strong>Usability</strong>. You can train a model with a single command. The input data are stored in raw text rather than obscure file formats.</p>
+<p><strong>General Purpose</strong>: We initially built this framework for Machine Translation, but have since used it for a variety of other tasks, including Summarization, Conversational Modeling, and Image Captioning. As long as your problem can be phrased as encoding input data in one format and decoding it into another format, you should be able to use or extend this framework.</p>
 </li>
 <li>
-<p><strong>Extensibility</strong>. Code is structured so that it is easy to build upon. For example, adding a new attention mechanism or encoder architecture requires only minimal code changes.</p>
+<p><strong>Usability</strong>: You can train a model with a single command. Several types of input data are supported, including standard raw text.</p>
 </li>
 <li>
-<p><strong>Full Documentation</strong>. All code is documented using standard Python docstrings, and we have written guides to help you get started with tf-seq2seq.</p>
+<p><strong>Reproducibility</strong>: Training pipelines and models are configured using YAML files. This allows other to run your exact same model configurations.</p>
 </li>
 <li>
-<p><strong>Good Performance</strong>. For the sake of code simplicity, we do not try to squeeze out every last bit of performance, but the implementation is fast enough to cover almost all production and research use cases. tf-seq2seq also supports distributed training to trade off computational power and training time.</p>
+<p><strong>Extensibility</strong>: Code is structured in a modular way and that easy to build upon. For example, adding a new type of attention mechanism or encoder architecture requires only minimal code changes.</p>
 </li>
 <li>
-<p><strong>Standard Benchmarks</strong>. We provide <a href="benchmarks/">configuration files and benchmark results</a> for standard datasets and models. We hope these can serve as a baseline for future research.</p>
+<p><strong>Documentation</strong>: All code is documented using standard Python docstrings, and we have written guides to help you get started with common tasks.</p>
 </li>
-</ol>
+<li>
+<p><strong>Good Performance</strong>: For the sake of code simplicity, we did not try to squeeze out every last bit of performance, but the implementation is fast enough to cover almost all production and research use cases. tf-seq2seq also supports distributed training to trade off computational power and training time.</p>
+</li>
+</ul>
+<h2 id="faq">FAQ</h2>
+<p><strong>1. How does code compare to the <a href="https://research.googleblog.com/2016/09/a-neural-network-for-machine.html">Google Neural Machine Translation</a> system? Is this the official open-source implementation?</strong></p>
+<p>No, this is not an official open-source implementation of the GNMT system. This framework was built from the bottom up to cover a wider range of tasks, Neural Machine Translation being one of them. We have not replicated the exact GNMT architecture in this framework, but we welcome <a href="./contributing/">contributions</a> in that direction.</p>
 <h2 id="related-frameworks">Related Frameworks</h2>
 <p>The following frameworks offer functionality similar to that of tf-seq2seq. We hope to collaborate with the authors of these frameworks so that we can learn from each other.</p>
 <ul>
@@ -288,5 +295,5 @@ Text Summarization or Image Captioning.</p>
 
 <!--
 MkDocs version : 0.16.1
-Build Date UTC : 2017-03-12 19:56:24
+Build Date UTC : 2017-03-12 20:18:31
 -->
