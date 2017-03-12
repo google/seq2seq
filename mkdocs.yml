@@ -13,7 +13,7 @@ pages:
     - Training: training.md
     - Inference: inference.md
     - Tools: tools.md
-    - Benchmarks: benchmarks.md
+    - Results: results.md
     - Getting Help: help.md
     - Contributing: contributing.md
     - License: license.md
