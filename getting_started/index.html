@@ -63,6 +63,11 @@
                 <li class="toctree-l3"><a href="#download-setup">Download &amp; Setup</a></li>
                 
             
+                <li class="toctree-l3"><a href="#common-installation-issues">Common Installation Issues</a></li>
+                
+                    <li><a class="toctree-l4" href="#incorrect-matploblib-backend">Incorrect matploblib backend</a></li>
+                
+            
                 <li class="toctree-l3"><a href="#next-steps">Next Steps</a></li>
                 
             
@@ -213,14 +218,23 @@
 Python 2.7 or Python 3.5. Follow the <a href="https://www.tensorflow.org/versions/r1.0/get_started/os_setup">TensorFlow Getting Started</a> guide for detailed setup instructions. With TensorFlow installed, you can clone this repository:</p>
 <pre><code class="bash">git clone https://github.com/google/seq2seq.git
 cd seq2seq
+
+# Install package and dependencies
+pip intall -e .
 </code></pre>
 
 <p>To make sure everything works as expect you can run a simple pipeline unit test:</p>
 <pre><code class="bash">python -m unittest seq2seq.test.pipeline_test
 </code></pre>
 
-<p>If you see a "success" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,
+<p>If you see a "OK" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,
 please <a href="https://github.com/google/seq2seq/issues">file a Github issue</a>.</p>
+<h2 id="common-installation-issues">Common Installation Issues</h2>
+<h3 id="incorrect-matploblib-backend">Incorrect matploblib backend</h3>
+<p>In order to generate plots using matplotlib you need to have set the correct <a href="http://matplotlib.org/faq/usage_faq.html#what-is-a-backend">backend</a>. Also see this <a href="http://stackoverflow.com/questions/4930524/how-can-i-set-the-backend-in-matplotlib-in-python">StackOverflow thread</a>. To use the <code>Agg</code> backend, simply:</p>
+<pre><code>echo &quot;backend : Agg&quot; &gt;&gt; $HOME/.config/matplotlib/matplotlibrc
+</code></pre>
+
 <h2 id="next-steps">Next Steps</h2>
 <ul>
 <li>Learn about <a href="../concepts/">concepts and terminology</a></li>

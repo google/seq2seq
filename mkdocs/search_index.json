@@ -22,13 +22,23 @@
         },
         {
             "location": "/getting_started/",
-            "text": "Download & Setup\n\n\nTo use tf-seq2seq you need a working installation of TensorFlow 1.0 with\nPython 2.7 or Python 3.5. Follow the \nTensorFlow Getting Started\n guide for detailed setup instructions. With TensorFlow installed, you can clone this repository:\n\n\ngit clone https://github.com/google/seq2seq.git\ncd seq2seq\n\n\n\n\nTo make sure everything works as expect you can run a simple pipeline unit test:\n\n\npython -m unittest seq2seq.test.pipeline_test\n\n\n\n\nIf you see a \"success\" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,\nplease \nfile a Github issue\n.\n\n\nNext Steps\n\n\n\n\nLearn about \nconcepts and terminology\n\n\nRead through the \nNeural Machine Translation Tutorial\n\n\nUse \npre-processed datasets\n or train a model on your own data\n\n\nContribute!",
+            "text": "Download & Setup\n\n\nTo use tf-seq2seq you need a working installation of TensorFlow 1.0 with\nPython 2.7 or Python 3.5. Follow the \nTensorFlow Getting Started\n guide for detailed setup instructions. With TensorFlow installed, you can clone this repository:\n\n\ngit clone https://github.com/google/seq2seq.git\ncd seq2seq\n\n# Install package and dependencies\npip intall -e .\n\n\n\n\nTo make sure everything works as expect you can run a simple pipeline unit test:\n\n\npython -m unittest seq2seq.test.pipeline_test\n\n\n\n\nIf you see a \"OK\" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,\nplease \nfile a Github issue\n.\n\n\nCommon Installation Issues\n\n\nIncorrect matploblib backend\n\n\nIn order to generate plots using matplotlib you need to have set the correct \nbackend\n. Also see this \nStackOverflow thread\n. To use the \nAgg\n backend, simply:\n\n\necho \"backend : Agg\" >> $HOME/.config/matplotlib/matplotlibrc\n\n\n\n\nNext Steps\n\n\n\n\nLearn about \nconcepts and terminology\n\n\nRead through the \nNeural Machine Translation Tutorial\n\n\nUse \npre-processed datasets\n or train a model on your own data\n\n\nContribute!",
             "title": "Getting Started"
         },
         {
             "location": "/getting_started/#download-setup",
-            "text": "To use tf-seq2seq you need a working installation of TensorFlow 1.0 with\nPython 2.7 or Python 3.5. Follow the  TensorFlow Getting Started  guide for detailed setup instructions. With TensorFlow installed, you can clone this repository:  git clone https://github.com/google/seq2seq.git\ncd seq2seq  To make sure everything works as expect you can run a simple pipeline unit test:  python -m unittest seq2seq.test.pipeline_test  If you see a \"success\" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,\nplease  file a Github issue .",
+            "text": "To use tf-seq2seq you need a working installation of TensorFlow 1.0 with\nPython 2.7 or Python 3.5. Follow the  TensorFlow Getting Started  guide for detailed setup instructions. With TensorFlow installed, you can clone this repository:  git clone https://github.com/google/seq2seq.git\ncd seq2seq\n\n# Install package and dependencies\npip intall -e .  To make sure everything works as expect you can run a simple pipeline unit test:  python -m unittest seq2seq.test.pipeline_test  If you see a \"OK\" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,\nplease  file a Github issue .",
             "title": "Download &amp; Setup"
+        },
+        {
+            "location": "/getting_started/#common-installation-issues",
+            "text": "",
+            "title": "Common Installation Issues"
+        },
+        {
+            "location": "/getting_started/#incorrect-matploblib-backend",
+            "text": "In order to generate plots using matplotlib you need to have set the correct  backend . Also see this  StackOverflow thread . To use the  Agg  backend, simply:  echo \"backend : Agg\" >> $HOME/.config/matplotlib/matplotlibrc",
+            "title": "Incorrect matploblib backend"
         },
         {
             "location": "/getting_started/#next-steps",
