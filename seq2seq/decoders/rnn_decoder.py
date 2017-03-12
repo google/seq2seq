@@ -91,9 +91,13 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
     if not self.initial_state:
       self._setup(initial_state, helper)
 
+    maximum_iterations = None
+    if self.mode == tf.contrib.learn.ModeKeys.INFER:
+      maximum_iterations = self.params["max_decode_length"]
+
     outputs, final_state = dynamic_decode(
         decoder=self,
         output_time_major=True,
         impute_finished=False,
-        maximum_iterations=self.params["max_decode_length"])
+        maximum_iterations=maximum_iterations)
     return self.finalize(outputs, final_state)
