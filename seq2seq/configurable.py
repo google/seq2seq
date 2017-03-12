@@ -88,11 +88,13 @@ def _parse_params(params, default_params):
   Default parameters are used for missing values.
   """
   # Cast parameters to correct types
+  if params is None:
+    params = {}
   result = copy.deepcopy(default_params)
   for key, value in params.items():
     # If param is unknown, drop it to stay compatible with past versions
     if key not in default_params:
-      raise ValueError("%s is not a valid model parameter, dropping" % key)
+      raise ValueError("%s is not a valid model parameter" % key)
     # Param is a dictionary
     if isinstance(value, dict):
       default_dict = default_params[key]
@@ -104,6 +106,8 @@ def _parse_params(params, default_params):
         # If the default is an empty dict we do not typecheck it
         # and assume it's done downstream
         pass
+    if value is None:
+      continue
     if default_params[key] is None:
       result[key] = value
     else:

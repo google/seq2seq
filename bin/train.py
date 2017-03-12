@@ -215,7 +215,8 @@ def main(_argv):
   # Merge flags with config values
   for flag_key, flag_value in final_config.items():
     if hasattr(FLAGS, flag_key) and isinstance(getattr(FLAGS, flag_key), dict):
-      _deep_merge_dict(getattr(FLAGS, flag_key), flag_value)
+      merged_value = _deep_merge_dict(flag_value, getattr(FLAGS, flag_key))
+      setattr(FLAGS, flag_key, merged_value)
     else:
       setattr(FLAGS, flag_key, flag_value)
 
