@@ -1,23 +1,32 @@
 ## Introduction
 
-tf-seq2seq is an open source framework for sequence learning in Tensorflow.
-The main use case is Neural Machine Translation (NMT), but tf-seq2seq can be
-used for a variety of other applications such as Conversational Modeling,
-Text Summarization or Image Captioning.
+tf-seq2seq is a general-purpose encoder-decoder framework for Tensorflow that can be used for Machine Translation, Text Summarization, Conversational Modeling, Image Captioning, and more.
+
+![Machine Translation Model](https://3.bp.blogspot.com/-3Pbj_dvt0Vo/V-qe-Nl6P5I/AAAAAAAABQc/z0_6WtVWtvARtMk0i9_AtLeyyGyV6AI4wCLcB/s1600/nmt-model-fast.gif)
 
 ## Design Goals
 
 We built tf-seq2seq with the following goals in mind:
 
-1. **Usability**. You can train a model with a single command. The input data are stored in raw text rather than obscure file formats.
+- **General Purpose**: We initially built this framework for Machine Translation, but have since used it for a variety of other tasks, including Summarization, Conversational Modeling, and Image Captioning. As long as your problem can be phrased as encoding input data in one format and decoding it into another format, you should be able to use or extend this framework.
 
-2. **Extensibility**. Code is structured so that it is easy to build upon. For example, adding a new attention mechanism or encoder architecture requires only minimal code changes.
+- **Usability**: You can train a model with a single command. Several types of input data are supported, including standard raw text.
 
-3. **Full Documentation**. All code is documented using standard Python docstrings, and we have written guides to help you get started with tf-seq2seq.
+- **Reproducibility**: Training pipelines and models are configured using YAML files. This allows other to run your exact same model configurations.
 
-4. **Good Performance**. For the sake of code simplicity, we do not try to squeeze out every last bit of performance, but the implementation is fast enough to cover almost all production and research use cases. tf-seq2seq also supports distributed training to trade off computational power and training time.
+- **Extensibility**: Code is structured in a modular way and that easy to build upon. For example, adding a new type of attention mechanism or encoder architecture requires only minimal code changes.
 
-5. **Standard Benchmarks**. We provide [configuration files and benchmark results](benchmarks.md) for standard datasets and models. We hope these can serve as a baseline for future research.
+- **Documentation**: All code is documented using standard Python docstrings, and we have written guides to help you get started with common tasks.
+
+- **Good Performance**: For the sake of code simplicity, we did not try to squeeze out every last bit of performance, but the implementation is fast enough to cover almost all production and research use cases. tf-seq2seq also supports distributed training to trade off computational power and training time.
+
+
+## FAQ
+
+**1. How does code compare to the [Google Neural Machine Translation](https://research.googleblog.com/2016/09/a-neural-network-for-machine.html) system? Is this the official open-source implementation?**
+
+No, this is not an official open-source implementation of the GNMT system. This framework was built from the bottom up to cover a wider range of tasks, Neural Machine Translation being one of them. We have not replicated the exact GNMT architecture in this framework, but we welcome [contributions](contributing/) in that direction.
+
 
 ## Related Frameworks
 

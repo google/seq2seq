@@ -1,6 +1,10 @@
 [![CircleCI](https://circleci.com/gh/google/seq2seq.svg?style=svg)](https://circleci.com/gh/google/seq2seq)
 
-An open source framework for sequence learning in Tensorflow. The main use case is Neural Machine Translation (NMT), but the code supports a variety of other problems domains such as Conversational Modeling, Text Summarization, or Image Captioning.
+**[Read the documentation here](https://google.github.io/seq2seq)**
+
+A general-purpose encoder-decoder framework for Tensorflow that can be used for Machine Translation, Text Summarization, Conversational Modeling, Image Captioning, and more.
+
+![Translation Model](https://3.bp.blogspot.com/-3Pbj_dvt0Vo/V-qe-Nl6P5I/AAAAAAAABQc/z0_6WtVWtvARtMk0i9_AtLeyyGyV6AI4wCLcB/s1600/nmt-model-fast.gif)
 
 **[Read the documentation here](https://google.github.io/seq2seq)**
 
