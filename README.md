@@ -4,7 +4,7 @@ An open source framework for sequence learning in Tensorflow. The main use case 
 
 **[Read the documentation here](https://google.github.io/seq2seq)**
 
-If you use this code for academic purposes, plase cite it as:
+If you use this code for academic purposes, please cite it as:
 
 ```
 @article{COMING SOON}
