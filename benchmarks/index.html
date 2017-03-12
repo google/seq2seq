@@ -63,6 +63,34 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../concepts/">Concepts</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../nmt/">Tutorial: Neural Machine Translation</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../summarization/">Tutorial: Summarization</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../image_captioning/">Tutorial: Image Captioning</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../data/">Data</a>
         
     </li>
@@ -84,27 +112,6 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../models/">Model Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../encoders/">Encoder Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../decoders/">Decoder Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
         <a class="" href="../tools/">Tools</a>
         
     </li>
@@ -116,13 +123,16 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#machine-translation-wmt16-english-german">Machine Translation: WMT'16 English-German</a></li>
+                <li class="toctree-l3"><a href="#machine-translation-wmt15-english-german">Machine Translation: WMT'15 English-German</a></li>
                 
             
-                <li class="toctree-l3"><a href="#machine-translation-wmt16-german-english">Machine Translation: WMT'16 German-English</a></li>
+                <li class="toctree-l3"><a href="#machine-translation-wmt17">Machine Translation: WMT'17</a></li>
                 
             
                 <li class="toctree-l3"><a href="#text-summarization-gigaword">Text Summarization: Gigaword</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#image-captioning-mscoco">Image Captioning: MSCOCO</a></li>
                 
             
                 <li class="toctree-l3"><a href="#conversational-modeling">Conversational Modeling</a></li>
@@ -135,7 +145,42 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../help/">Getting Help</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../contributing/">Contributing</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../license/">License</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../models/">Reference: Models</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../encoders/">Reference: Encoders</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../decoders/">Reference: Decoders</a>
         
     </li>
 <li>
@@ -172,7 +217,7 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="machine-translation-wmt16-english-german">Machine Translation: WMT'16 English-German</h2>
+                <h2 id="machine-translation-wmt15-english-german">Machine Translation: WMT'15 English-German</h2>
 <p>Single models only, no ensembles. Results are listed in chronological order.</p>
 <table>
 <thead>
@@ -186,9 +231,9 @@
 <tbody>
 <tr>
 <td>tf-seq2seq</td>
-<td><a href="https://gist.github.com/dennybritz/525ed7c84a40c90b1b77921b39eb90b7">Configuration</a></td>
+<td><a href="https://github.com/google/seq2seq/blob/master/example_configs/nmt_large.yml">Configuration</a></td>
 <td>~4 days on 8 NVidia K80 GPUs</td>
-<td>newstest2014: <strong>22.03</strong> </br> newstest2015: <strong>24.75</strong></td>
+<td>newstest2014: <strong>22.19</strong> </br> newstest2015: <strong>25.23</strong></td>
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1611.02344">Gehring, et al. (2016-11)</a> <br/> Deep Convolutional 15/5</td>
@@ -198,7 +243,7 @@
 </tr>
 <tr>
 <td><a href="https://arxiv.org/abs/1609.08144">Wu et al. (2016-09)</a> <br/> GNMT</td>
-<td>8 encoder/decoder layers, 1024 LSTM units, 32k shared wordpieces (similar to BPE); residual between layers connections; lots of other tricks; newstest2012 and newstest2013 as validation sets. Paper mentions 5M training examples, how is this possible if WMT only has ~4.5M?</td>
+<td>8 encoder/decoder layers, 1024 LSTM units, 32k shared wordpieces (similar to BPE); residual between layers connections; lots of other tricks; newstest2012 and newstest2013 as validation sets.</td>
 <td>---</td>
 <td>newstest2014:&nbsp;<strong>24.61</strong> <br/>newstest2015: -</td>
 </tr>
@@ -234,9 +279,11 @@
 </tr>
 </tbody>
 </table>
-<h2 id="machine-translation-wmt16-german-english">Machine Translation: WMT'16 German-English</h2>
+<h2 id="machine-translation-wmt17">Machine Translation: WMT'17</h2>
 <p>Coming soon.</p>
 <h2 id="text-summarization-gigaword">Text Summarization: Gigaword</h2>
+<p>Coming soon.</p>
+<h2 id="image-captioning-mscoco">Image Captioning: MSCOCO</h2>
 <p>Coming soon.</p>
 <h2 id="conversational-modeling">Conversational Modeling</h2>
 <p>Coming soon.</p>
@@ -247,7 +294,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../contributing/" class="btn btn-neutral float-right" title="Contributing">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../help/" class="btn btn-neutral float-right" title="Getting Help">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../tools/" class="btn btn-neutral" title="Tools"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -279,7 +326,7 @@
         <span><a href="../tools/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../contributing/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../help/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

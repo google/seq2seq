@@ -4,7 +4,7 @@
     
     <url>
      <loc>/</loc>
-     <lastmod>2017-03-03</lastmod>
+     <lastmod>2017-03-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -12,7 +12,39 @@
     
     <url>
      <loc>/getting_started/</loc>
-     <lastmod>2017-03-03</lastmod>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/concepts/</loc>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/nmt/</loc>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/summarization/</loc>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/image_captioning/</loc>
+     <lastmod>2017-03-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -20,7 +52,7 @@
     
     <url>
      <loc>/data/</loc>
-     <lastmod>2017-03-03</lastmod>
+     <lastmod>2017-03-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -28,7 +60,7 @@
     
     <url>
      <loc>/training/</loc>
-     <lastmod>2017-03-03</lastmod>
+     <lastmod>2017-03-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -36,31 +68,7 @@
     
     <url>
      <loc>/inference/</loc>
-     <lastmod>2017-03-03</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    
-
-    
-    <url>
-     <loc>/models/</loc>
-     <lastmod>2017-03-03</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    
-
-    
-    <url>
-     <loc>/encoders/</loc>
-     <lastmod>2017-03-03</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    
-
-    
-    <url>
-     <loc>/decoders/</loc>
-     <lastmod>2017-03-03</lastmod>
+     <lastmod>2017-03-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -68,7 +76,7 @@
     
     <url>
      <loc>/tools/</loc>
-     <lastmod>2017-03-03</lastmod>
+     <lastmod>2017-03-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -76,7 +84,15 @@
     
     <url>
      <loc>/benchmarks/</loc>
-     <lastmod>2017-03-03</lastmod>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/help/</loc>
+     <lastmod>2017-03-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -84,7 +100,39 @@
     
     <url>
      <loc>/contributing/</loc>
-     <lastmod>2017-03-03</lastmod>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/license/</loc>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/models/</loc>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/encoders/</loc>
+     <lastmod>2017-03-11</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/decoders/</loc>
+     <lastmod>2017-03-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     

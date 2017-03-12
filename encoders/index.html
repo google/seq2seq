@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Encoder Reference - seq2seq</title>
+  <title>Reference: Encoders - seq2seq</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -18,7 +18,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Encoder Reference";
+    var mkdocs_page_name = "Reference: Encoders";
     var mkdocs_page_input_path = "encoders.md";
     var mkdocs_page_url = "/encoders/";
   </script>
@@ -63,6 +63,34 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../concepts/">Concepts</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../nmt/">Tutorial: Neural Machine Translation</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../summarization/">Tutorial: Summarization</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../image_captioning/">Tutorial: Image Captioning</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../data/">Data</a>
         
     </li>
@@ -84,40 +112,6 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../models/">Model Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Encoder Reference</a>
-        
-            <ul>
-            
-                <li class="toctree-l3"><a href="#encoder-reference">Encoder Reference</a></li>
-                
-                    <li><a class="toctree-l4" href="#unidirectionalrnnencoder">UnidirectionalRNNEncoder</a></li>
-                
-                    <li><a class="toctree-l4" href="#bidirectionalrnnencoder">BidirectionalRNNEncoder</a></li>
-                
-                    <li><a class="toctree-l4" href="#stackbidirectionalrnnencoder">StackBidirectionalRNNEncoder</a></li>
-                
-            
-            </ul>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../decoders/">Decoder Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
         <a class="" href="../tools/">Tools</a>
         
     </li>
@@ -132,7 +126,59 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../help/">Getting Help</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../contributing/">Contributing</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../license/">License</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../models/">Reference: Models</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Reference: Encoders</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#encoder-reference">Encoder Reference</a></li>
+                
+                    <li><a class="toctree-l4" href="#unidirectionalrnnencoder">UnidirectionalRNNEncoder</a></li>
+                
+                    <li><a class="toctree-l4" href="#bidirectionalrnnencoder">BidirectionalRNNEncoder</a></li>
+                
+                    <li><a class="toctree-l4" href="#stackbidirectionalrnnencoder">StackBidirectionalRNNEncoder</a></li>
+                
+                    <li><a class="toctree-l4" href="#poolingencoder">PoolingEncoder</a></li>
+                
+                    <li><a class="toctree-l4" href="#inceptionv3encoder">InceptionV3Encoder</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../decoders/">Reference: Decoders</a>
         
     </li>
 <li>
@@ -159,7 +205,7 @@
     
       
     
-    <li>Encoder Reference</li>
+    <li>Reference: Encoders</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -171,7 +217,8 @@
               
                 <h2 id="encoder-reference">Encoder Reference</h2>
 <p>All encoders inherit from the abstract <code>Encoder</code> defined in <code>seq2seq.encoders.encoder</code> and receive <code>params</code>, <code>mode</code> arguments at instantiation time. Available hyperparameters vary by encoder class.</p>
-<h3 id="unidirectionalrnnencoder"><code>UnidirectionalRNNEncoder</code></h3>
+<h3 id="unidirectionalrnnencoder"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/encoders/rnn_encoder.py"><code>UnidirectionalRNNEncoder</code></a></h3>
+<hr />
 <table>
 <thead>
 <tr>
@@ -209,14 +256,85 @@
 <tr>
 <td><code>rnn_cell.residual_connections</code></td>
 <td><code>False</code></td>
-<td>If true, add residual connections between all RNN layers in the encoder.</td>
+<td>If true, add residual connections between RNN layers in the encoder.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="bidirectionalrnnencoder"><code>BidirectionalRNNEncoder</code></h3>
+<h3 id="bidirectionalrnnencoder"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/encoders/rnn_encoder.py"><code>BidirectionalRNNEncoder</code></a></h3>
+<hr />
 <p>Same as the <code>UnidirectionalRNNEncoder</code>. The same cell is used for forward and backward RNNs.</p>
-<h3 id="stackbidirectionalrnnencoder"><code>StackBidirectionalRNNEncoder</code></h3>
+<h3 id="stackbidirectionalrnnencoder"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/encoders/rnn_encoder.py"><code>StackBidirectionalRNNEncoder</code></a></h3>
+<hr />
 <p>Same as the <code>UnidirectionalRNNEncoder</code>. The same cell is used for forward and backward RNNs.</p>
+<h3 id="poolingencoder"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/encoders/pooling_encoder.py"><code>PoolingEncoder</code></a></h3>
+<hr />
+<p>An encoder that pools over embeddings, as described in <a href="https://arxiv.org/abs/1611.02344">https://arxiv.org/abs/1611.02344</a>. The encoder supports optional positions embeddings and a configurable pooling window.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pooling_fn</code></td>
+<td><code>tensorflow.layers.average_pooling1d</code></td>
+<td>The 1-d pooling function to use, e.g. <code>tensorflow.layers.average_pooling1d</code>.</td>
+</tr>
+<tr>
+<td><code>pool_size</code></td>
+<td><code>5</code></td>
+<td>The pooling window, passed as <code>pool_size</code> to the pooling function.</td>
+</tr>
+<tr>
+<td><code>strides</code></td>
+<td><code>1</code></td>
+<td>The stride during pooling, passed as <code>strides</code> the pooling function.</td>
+</tr>
+<tr>
+<td><code>position_embeddings.enable</code></td>
+<td><code>True</code></td>
+<td>If true, add position embeddings to the inputs before pooling.</td>
+</tr>
+<tr>
+<td><code>position_embeddings.combiner_fn</code></td>
+<td><code>tensorflow.add</code></td>
+<td>Function used to combine the position embeddings with the inputs. For example, <code>tensorflow.add</code>.</td>
+</tr>
+<tr>
+<td><code>position_embeddings.num_positions</code></td>
+<td><code>100</code></td>
+<td>Size of the position embedding matrix. This should be set to the maximum sequence length of the inputs.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="inceptionv3encoder"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/encoders/image_encoder.py"><code>InceptionV3Encoder</code></a></h3>
+<hr />
+<p><strong>This encoder is experimental</strong>. This encoder puts the image through an InceptionV3 network and uses the last
+hidden layer before the logits as the feature representation.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>resize_height</code></td>
+<td><code>299</code></td>
+<td>Resize the image to this height before feeding it into the convolutional network.</td>
+</tr>
+<tr>
+<td><code>resize_width</code></td>
+<td><code>299</code></td>
+<td>Resize the image to this width before feeding it into the convolutional network.</td>
+</tr>
+</tbody>
+</table>
               
             </div>
           </div>
@@ -224,10 +342,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../decoders/" class="btn btn-neutral float-right" title="Decoder Reference">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../decoders/" class="btn btn-neutral float-right" title="Reference: Decoders">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../models/" class="btn btn-neutral" title="Model Reference"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../models/" class="btn btn-neutral" title="Reference: Models"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   

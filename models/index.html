@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Model Reference - seq2seq</title>
+  <title>Reference: Models - seq2seq</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -18,7 +18,7 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Model Reference";
+    var mkdocs_page_name = "Reference: Models";
     var mkdocs_page_input_path = "models.md";
     var mkdocs_page_url = "/models/";
   </script>
@@ -63,6 +63,34 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../concepts/">Concepts</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../nmt/">Tutorial: Neural Machine Translation</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../summarization/">Tutorial: Summarization</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../image_captioning/">Tutorial: Image Captioning</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../data/">Data</a>
         
     </li>
@@ -83,40 +111,6 @@
 <li>
           
             <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Model Reference</a>
-        
-            <ul>
-            
-                <li class="toctree-l3"><a href="#common-hyperparameters">Common Hyperparameters</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#basicseq2seq">BasicSeq2Seq</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#attentionseq2seq">AttentionSeq2seq</a></li>
-                
-            
-            </ul>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../encoders/">Encoder Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../decoders/">Decoder Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
     <li class="toctree-l1 ">
         <a class="" href="../tools/">Tools</a>
         
@@ -132,7 +126,61 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../help/">Getting Help</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../contributing/">Contributing</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../license/">License</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Reference: Models</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#modelbase">ModelBase</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#seq2seqmodel">Seq2SeqModel</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#basicseq2seq">BasicSeq2Seq</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#attentionseq2seq">AttentionSeq2Seq</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#image2seq">Image2Seq</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../encoders/">Reference: Encoders</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../decoders/">Reference: Decoders</a>
         
     </li>
 <li>
@@ -159,7 +207,7 @@
     
       
     
-    <li>Model Reference</li>
+    <li>Reference: Models</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -169,9 +217,10 @@
           <div role="main">
             <div class="section">
               
-                <p>When calling the training script, you can specify a model class using the <code>--model</code> flags and model-specific hyperparameters using the <code>--hparams</code> flag. This page lists all supported models and hyperparameters.</p>
-<h2 id="common-hyperparameters">Common Hyperparameters</h2>
-<p>The following hyperparameters are shared by all models, unless explicitly stated otherwise in the model section.</p>
+                <p>When calling the training script, you can specify a model class using the <code>--model</code> flag and model-specific hyperparameters using the <code>--model_params</code> flag. This page lists all supported models and hyperparameters.</p>
+<h2 id="modelbase"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/models/model_base.py"><code>ModelBase</code></a></h2>
+<hr />
+<p>This is an abstract class that cannot be used as a model during training. Other model classes inherit from this. The following parameters are shared by all models, unless explicitly stated otherwise in the model section.</p>
 <table>
 <thead>
 <tr>
@@ -181,46 +230,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code>source.max_seq_len</code></td>
-<td><code>50</code></td>
-<td>Maximum length of source sequences. An example is sliced to this length before being fed to the encoder.</td>
-</tr>
-<tr>
-<td><code>source.reverse</code></td>
-<td><code>True</code></td>
-<td>If set to true, reverse the source sequence before feeding it into the encoder.</td>
-</tr>
-<tr>
-<td><code>target.max_seq_len</code></td>
-<td><code>50</code></td>
-<td>Maximum length of target sequences. An example is sliced to this length before being fed to the decoder.</td>
-</tr>
-<tr>
-<td><code>embedding.dim</code></td>
-<td><code>100</code></td>
-<td>Dimensionality of the embedding layer.</td>
-</tr>
-<tr>
-<td><code>embedding.share</code></td>
-<td><code>False</code></td>
-<td>If set to true, share embedding parameters for source and target sequences.</td>
-</tr>
-<tr>
-<td><code>inference.max_decode_length</code></td>
-<td><code>100</code></td>
-<td>During inference mode, decode up to this length or until a <code>SEQUENCE_END</code> token is encountered, whichever happens first.</td>
-</tr>
-<tr>
-<td><code>inference.beam_search.beam_width</code></td>
-<td><code>0</code></td>
-<td>Beam Search beam width used during inference. A value of <code>0</code> or <code>1</code> disables beam search.</td>
-</tr>
-<tr>
-<td><code>inference.beam_search.length_penalty_weight</code></td>
-<td><code>0.0</code></td>
-<td>Length penalty factor applied to beam search hypotheses, as described in <a href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.</td>
-</tr>
 <tr>
 <td><code>optimizer.name</code></td>
 <td><code>Adam</code></td>
@@ -273,8 +282,9 @@
 </tr>
 </tbody>
 </table>
-<h2 id="basicseq2seq">BasicSeq2Seq</h2>
-<p>The <code>BasicSeq2Seq</code> model uses an encoder and decoder with no attention mechanism. The last encoder state is passed through a fully connected layer and used to initialize the decoder (this behavior can be changed using the <code>bridge_spec</code> hyperparameter). This is the "vanilla" implementation of the seq2seq architecture. The model supports the following additional hyperparameters.</p>
+<h2 id="seq2seqmodel"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/models/seq2seq_model.py"><code>Seq2SeqModel</code></a></h2>
+<hr />
+<p>This is an abstract class that cannot be used as a model during training. Other model classes inherit from this. The following hyperparameters are shared by all models that inherit from <code>Seq2SeqModel</code>, unless explicitly stated otherwise.</p>
 <table>
 <thead>
 <tr>
@@ -285,9 +295,78 @@
 </thead>
 <tbody>
 <tr>
-<td><code>bridge_spec</code></td>
-<td><code>{ "class": "InitialStateBridge"}</code></td>
-<td>A dictionary that defines how state is passed between encoder and decoder. The <code>class</code> property corresponds to a name of bridge class defined in <code>seq2seq.models.bridges</code>. All additional properties in the dictinary are passed to the bridge class constructor, e.g. <code>{"class": "InitialStateBridge", "activation_fn": "tanh"}</code>.</td>
+<td><code>source.max_seq_len</code></td>
+<td><code>50</code></td>
+<td>Maximum length of source sequences. An example is sliced to this length before being fed to the encoder.</td>
+</tr>
+<tr>
+<td><code>source.reverse</code></td>
+<td><code>True</code></td>
+<td>If set to true, reverse the source sequence before feeding it into the encoder.</td>
+</tr>
+<tr>
+<td><code>target.max_seq_len</code></td>
+<td><code>50</code></td>
+<td>Maximum length of target sequences. An example is sliced to this length before being fed to the decoder.</td>
+</tr>
+<tr>
+<td><code>embedding.dim</code></td>
+<td><code>100</code></td>
+<td>Dimensionality of the embedding layer.</td>
+</tr>
+<tr>
+<td><code>embedding.share</code></td>
+<td><code>False</code></td>
+<td>If set to true, share embedding parameters for source and target sequences.</td>
+</tr>
+<tr>
+<td><code>inference.beam_search.beam_width</code></td>
+<td><code>0</code></td>
+<td>Beam Search beam width used during inference. A value of less or equal than <code>1</code> disables beam search.</td>
+</tr>
+<tr>
+<td><code>inference.max_decode_length</code></td>
+<td><code>100</code></td>
+<td>During inference mode, decode up to this length or until a <code>SEQUENCE_END</code> token is encountered, whichever happens first.</td>
+</tr>
+<tr>
+<td><code>inference.beam_search.length_penalty_weight</code></td>
+<td><code>0.0</code></td>
+<td>Length penalty factor applied to beam search hypotheses, as described in <a href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.</td>
+</tr>
+<tr>
+<td><code>vocab_source</code></td>
+<td><code>""</code></td>
+<td>Path to the source vocabulary to use. This is used to map input tokens to integer IDs.</td>
+</tr>
+<tr>
+<td><code>vocab_target</code></td>
+<td><code>""</code></td>
+<td>Path to the target vocabulary to use. This is used to map input tokens to integer IDs.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="basicseq2seq"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/models/basic_seq2seq.py"><code>BasicSeq2Seq</code></a></h2>
+<hr />
+<p>Includes all parameters from <code>Seq2SeqModel</code>. The <code>BasicSeq2Seq</code> model uses an encoder and decoder with no attention mechanism. The last encoder state is passed through a fully connected layer and used to initialize the decoder (this behavior can be changed using the <code>bridge.*</code> hyperparameter). This is the "vanilla" implementation of the standard seq2seq architecture.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bridge.class</code></td>
+<td><code>seq2seq.models.bridges.InitialStateBridge</code></td>
+<td>Type of bridge to use. The bridge defines how state is passed between the encoder and decoder. Refer to the <a href="https://github.com/google/seq2seq/blob/master/seq2seq/models/bridges.py"><code>seq2seq.models.bridges</code></a> module for more details.</td>
+</tr>
+<tr>
+<td><code>bridge.params</code></td>
+<td><code>{}</code></td>
+<td>Parameters passed to the bridge during construction.</td>
 </tr>
 <tr>
 <td><code>encoder.class</code></td>
@@ -311,8 +390,9 @@
 </tr>
 </tbody>
 </table>
-<h2 id="attentionseq2seq">AttentionSeq2seq</h2>
-<p><code>AttentionSeq2seq</code> is a sequence to sequence model that uses a unidirectional or bidirectional encoder and a decoder with an attention mechanism. By default, the last encoder state is not fed to the decoder. This implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>. This model supports the same parameters as the <code>BasicSeq2Seq</code> model, plus the following:</p>
+<h2 id="attentionseq2seq"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/models/attention_seq2seq.py"><code>AttentionSeq2Seq</code></a></h2>
+<hr />
+<p>Includes all parameters from <code>Seq2SeqModel</code> and <code>BasicSeq2Seq</code>. This model is similar to <code>BasicSeq2Seq</code>, except that it uses an attention mechanism during decoding. By default, the last encoder state is not fed to the decoder.  The implementation is comparable to the model in <a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate</a>.</p>
 <table>
 <thead>
 <tr>
@@ -333,6 +413,11 @@
 <td>A dictionary of  parameters passed to the attention class constructor.</td>
 </tr>
 <tr>
+<td><code>bridge.class</code></td>
+<td><code>seq2seq.models.bridges.ZeroBridge</code></td>
+<td>Type of bridge to use. The bridge defines how state is passed between the encoder and decoder. Refer to the <a href="https://github.com/google/seq2seq/blob/master/seq2seq/models/bridges.py"><code>seq2seq.models.bridges</code></a> module for more details.</td>
+</tr>
+<tr>
 <td><code>encoder.class</code></td>
 <td><code>seq2seq.encoders.BidirectionalRNNEncoder</code></td>
 <td>Type of encoder to use. See the <a href="../encoders/">Encoder Reference</a> for more details and available encoders.</td>
@@ -344,6 +429,13 @@
 </tr>
 </tbody>
 </table>
+<h2 id="image2seq"><a href="https://github.com/google/seq2seq/blob/master/seq2seq/models/image2seq.py"><code>Image2Seq</code></a></h2>
+<hr />
+<p><strong>This model is currently experimental.</strong> This model uses the same parameters as <code>AttentionSeq2Seq</code> with the following differences:</p>
+<ul>
+<li>The default encoder is <code>seq2seq.encoders.InceptionV3Encoder</code></li>
+<li>There are not <code>source.max_seq_len</code> and <code>source.reverse</code>, and <code>vocab_source</code> parameters.</li>
+</ul>
               
             </div>
           </div>
@@ -351,10 +443,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../encoders/" class="btn btn-neutral float-right" title="Encoder Reference">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../encoders/" class="btn btn-neutral float-right" title="Reference: Encoders">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../inference/" class="btn btn-neutral" title="Inference"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../license/" class="btn btn-neutral" title="License"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -380,7 +472,7 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../inference/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../license/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
         <span style="margin-left: 15px"><a href="../encoders/" style="color: #fcfcfc">Next &raquo;</a></span>

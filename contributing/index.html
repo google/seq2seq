@@ -63,6 +63,34 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../concepts/">Concepts</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../nmt/">Tutorial: Neural Machine Translation</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../summarization/">Tutorial: Summarization</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../image_captioning/">Tutorial: Image Captioning</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../data/">Data</a>
         
     </li>
@@ -84,27 +112,6 @@
           
             <li>
     <li class="toctree-l1 ">
-        <a class="" href="../models/">Model Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../encoders/">Encoder Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../decoders/">Decoder Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
         <a class="" href="../tools/">Tools</a>
         
     </li>
@@ -118,21 +125,28 @@
 <li>
           
             <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../help/">Getting Help</a>
+        
+    </li>
+<li>
+          
+            <li>
     <li class="toctree-l1 current">
         <a class="current" href="./">Contributing</a>
         
             <ul>
             
-                <li class="toctree-l3"><a href="#development-setup">Development Setup</a></li>
+                <li class="toctree-l3"><a href="#what-to-work-on">What to work on</a></li>
                 
             
-                <li class="toctree-l3"><a href="#github-workflow">Github Workflow</a></li>
+                <li class="toctree-l3"><a href="#development-setup">Development Setup</a></li>
                 
             
                 <li class="toctree-l3"><a href="#python-style">Python Style</a></li>
                 
             
-                <li class="toctree-l3"><a href="#tensorflow-style">Tensorflow Style</a></li>
+                <li class="toctree-l3"><a href="#recommended-tensorflow-style">Recommended Tensorflow Style</a></li>
                 
                     <li><a class="toctree-l4" href="#graphmodule">GraphModule</a></li>
                 
@@ -140,6 +154,34 @@
                 
             
             </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../license/">License</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../models/">Reference: Models</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../encoders/">Reference: Encoders</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../decoders/">Reference: Decoders</a>
         
     </li>
 <li>
@@ -176,8 +218,10 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="development-setup">Development Setup</h2>
-<p>1. Install Python3. If you're on a Mac the easiest way to do this is probably using <a href="http://brew.sh/">Homebrew</a>. Then,</p>
+                <h2 id="what-to-work-on">What to work on</h2>
+<p>If you are interested in contributing but are unsure what work on, take a look at the open <a href="https://github.com/google/seq2seq/issues">Github Issues</a>. We are always looking for contributors.</p>
+<h2 id="development-setup">Development Setup</h2>
+<p>We recommend using Python 3. If you're on a Mac the easiest way to do this is probably using <a href="http://brew.sh/">Homebrew</a>. Then,</p>
 <pre><code class="bash"># Clone this repository.
 git clone https://github.com/google/seq2seq.git
 cd seq2seq
@@ -190,51 +234,32 @@ source ~/tf-venv/bin/activate
 pip install -e .
 pip install nose pylint tox yapf mkdocs
 
-# Make sure tests are passing.
+# Make sure the tests are passing.
 nosetests
 
 # Code :)
+
+# Make sure the tests are passing
+nosetests
+
+# Before submitting a pull request,
+# run the full test suite for Python 3 and Python 2.7
+tox
 </code></pre>
 
-<h2 id="github-workflow">Github Workflow</h2>
-<p>Pushing directly to the master branch is disabled and you must create feature branches and submit them via pull request. To make things easier you can also use the <a href="https://desktop.github.com/">Github Desktop app</a>. A typical workflow looks as follows:</p>
-<pre><code># Make sure you are in the seq2seq root directory.
-# Start from the master branch.
-git checkout master
-
-# Pull latest changes from Github.
-git pull
-
-# Create a new feature branch.
-git checkout -b feature/my-new-feature
-
-# Make changes and commits
-echo &quot;blabla&quot; &gt;&gt; test
-git commit -am &quot;Test commit&quot;
-
-# Push the branch upstream.
-git push -u origin/my-new-feature
-
-# Submit a pull request on Github.
-</code></pre>
-
-<p>After you submit a Pull Request, one person must review the change and
-CircleCI integration tests must be passing before you can merge into the
-master branch.</p>
 <h2 id="python-style">Python Style</h2>
-<p>We use <a href="https://www.pylint.org/">pylint</a> and <a href="https://github.com/google/yapf">yapf</a> for automated code formatting. Before submitting a pull request, make sure you run them:</p>
-<pre><code class="bash"># Run this and fix all errors.
-pylint ./seq2seq
-
-# Optional, run this to auto-format all code.
-yapf -ir ./seq2seq
+<p>We use <a href="https://www.pylint.org/">pylint</a> to enforce coding style. Before submitting a pull request, make
+sure you run:</p>
+<pre><code class="bash">pylint seq2seq
 </code></pre>
 
-<p>Note that CircleCI integration test will fail if pylint reports any critical
-errors, preventing you from merging your changes.</p>
-<h2 id="tensorflow-style">Tensorflow Style</h2>
+<p>CircleCI integration tests will fail if pylint reports any critica errors, preventing use from merging your changes. If you are unsure about code formatting, you can use <a href="https://github.com/google/yapf">yapf</a> for automated code formatting:</p>
+<pre><code class="bash">yapf -ir ./seq2seq/some/file/you/changed
+</code></pre>
+
+<h2 id="recommended-tensorflow-style">Recommended Tensorflow Style</h2>
 <h3 id="graphmodule">GraphModule</h3>
-<p>All classes that modify the Graph should inherit from <code>seq2seq.graph_module.GraphModule</code>, which is a wrapper around TensorFlow's <a href="https://www.tensorflow.org/versions/r0.12/api_docs/python/state_ops.html#make_template"><code>tf.make_template</code></a> function that enables easy variable sharing. Basically, it allows you to do something like this:</p>
+<p>All classes that modify the Graph should inherit from <code>seq2seq.graph_module.GraphModule</code>, which is a wrapper around TensorFlow's <a href="https://www.tensorflow.org/versions/r0.12/api_docs/python/state_ops.html#make_template"><code>tf.make_template</code></a> function that enables easy variable sharing, allowing you to do something like this:</p>
 <pre><code class="python">encode_fn = SomeEncoderModule(...)
 
 # New variables are created in this call.
@@ -261,8 +286,10 @@ output3 = encode_fn2(input3)
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
+        <a href="../license/" class="btn btn-neutral float-right" title="License">Next <span class="icon icon-circle-arrow-right"></span></a>
       
-        <a href="../benchmarks/" class="btn btn-neutral" title="Benchmarks"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+        <a href="../help/" class="btn btn-neutral" title="Getting Help"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -288,8 +315,10 @@ output3 = encode_fn2(input3)
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../benchmarks/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../help/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
+      
+        <span style="margin-left: 15px"><a href="../license/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

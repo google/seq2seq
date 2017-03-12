@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Tutorial: Neural Machine Translation - seq2seq</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+  <link href="../extra.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Tutorial: Neural Machine Translation";
+    var mkdocs_page_input_path = "nmt.md";
+    var mkdocs_page_url = "/nmt/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> seq2seq</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">Overview</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../getting_started/">Getting Started</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../concepts/">Concepts</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Tutorial: Neural Machine Translation</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#neural-machine-translation-background">Neural Machine Translation Background</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#preparing-the-data">Preparing the data</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#downloading-the-data">Downloading the data</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#alternative-generate-toy-data">Alternative: Generate Toy Data</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#defining-the-model">Defining the model</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#training">Training</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#making-predictions">Making predictions</a></li>
+                
+                    <li><a class="toctree-l4" href="#decoding-with-beam-search">Decoding with Beam Search</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#evaluating-using-bleu">Evaluating using BLEU</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../summarization/">Tutorial: Summarization</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../image_captioning/">Tutorial: Image Captioning</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../data/">Data</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../training/">Training</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../inference/">Inference</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../tools/">Tools</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../benchmarks/">Benchmarks</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../help/">Getting Help</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../contributing/">Contributing</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../license/">License</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../models/">Reference: Models</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../encoders/">Reference: Encoders</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../decoders/">Reference: Decoders</a>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">seq2seq</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Tutorial: Neural Machine Translation</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="neural-machine-translation-background">Neural Machine Translation Background</h2>
+<p>This tutorial is not meant to be a general introduction to Neural Machine Translation. We won't go into detail of how NMT systems work. For more details on the theory of Sequence-to-Sequence and Machine Translation models, we recommend the following resources:</p>
+<ul>
+<li><a href="https://arxiv.org/abs/1703.01619">Neural Machine Translation and Sequence-to-sequence Models: A Tutorial (Neubig et al.)</a></li>
+<li><a href="https://arxiv.org/abs/1409.0473">Neural Machine Translation by Jointly Learning to Align and Translate (Bahdanau et al.)</a></li>
+<li><a href="https://www.tensorflow.org/tutorials/seq2seq">Tensorflow Sequence-To-Sequence Tutorial</a></li>
+</ul>
+<h2 id="preparing-the-data">Preparing the data</h2>
+<p>A standard format used in both statistical and neural translation models in the <strong>parallel text format</strong>. It consists of a pair of files corresponding to source sentences and target translations, aligned line-by-bline. For example,</p>
+<p>Sources (English):</p>
+<pre><code>Madam President, I should like to draw your attention to a case in which this Parliament has consistently shown an interest.
+It is the case of Alexander Nikitin.
+</code></pre>
+
+<p>Targets (German):</p>
+<pre><code>Frau Präsidentin! Ich möchte Sie auf einen Fall aufmerksam machen, mit dem sich dieses Parlament immer wieder befaßt hat.
+Das ist der Fall von Alexander Nikitin.
+</code></pre>
+
+<p>Each line corresponds to a sequence of <strong>tokens</strong>, separated by spaces. In the simplest case, the tokens are the words in the sentence. Typically, we use a tokenizer to generate to take into account word stems and punctuation. For example, common choices for tokenizers are the Moses <a href="https://github.com/moses-smt/mosesdecoder/blob/master/scripts/tokenizer/tokenizer.perl">tokenizer.perl</a> script or libraries such a <a href="https://spacy.io/docs/usage/processing-text">spaCy</a>, <a href="http://www.nltk.org/api/nltk.tokenize.html">nltk</a> or <a href="http://nlp.stanford.edu/software/tokenizer.shtml">Stanford Tokenizer</a>.</p>
+<p>However, learning a model based on words has a couple of drawbacks. Because NMT models output a probability distribution over words, they can became very slow with large number of possible words. If you include misspellings and derived words in your vocabulary, the number of possible words is essentially ininfite and we need to impose an artificial limit of how many N most common words we want to handle. This is also called the vocabulary size and typically set to something in the range of 10,000 to 100,000. Another drawback of training on word tokens is that the model does not learn about common "stems" of words. For example, it would consider "loved" and "loving" as completely separate classes.</p>
+<p>One way to handle the vocabulary issue is learn <strong>subword units</strong> for a given text. For example, the word "loved" may be split up into "lov" and "ed", while "loving" would be split up into "lov" and "ing". This allows to model to generalize to new words, while also resulting in a smaller vocabulary. There are several techniques for learning such subword units, including <a href="https://arxiv.org/abs/1508.07909">Byte Pair Encoding (BPE)</a>, which is what we used in this tutorial. To generate a BPE for a given text, you can follow the instructions in the official <a href="https://github.com/rsennrich/subword-nmt">subword-nmt</a> repository:</p>
+<pre><code class="bash"># Clone from Github
+git clone https://github.com/rsennrich/subword-nmt
+cd subword-nmt
+
+# Learn a vocabulary using 10,000 merge operations
+./learn_bpe.py -s 10000 &lt; train.tok &gt; codes.bpe
+
+# Apply the vocabulary to the training file
+./apply_bpe.py -c codes.bpe &lt; train.tok &gt; train.tok.bpe
+</code></pre>
+
+<p>After tokenizing and apply BPE to a dataset, the original sentences may look like the following. Note that the name "Nikitin" is a rare word that has been split up into subword units delimited by <code>@@</code>.</p>
+<pre><code>Madam President , I should like to draw your attention to a case in which this Parliament has consistently shown an interest .
+It is the case of Alexander Ni@@ ki@@ tin .
+</code></pre>
+
+<pre><code>Frau Präsidentin ! Ich möchte Sie auf einen Fall aufmerksam machen , mit dem sich dieses Parlament immer wieder befaßt hat .
+Das ist der Fall von Alexander Ni@@ ki@@ tin
+</code></pre>
+
+<h2 id="downloading-the-data">Downloading the data</h2>
+<p>To make it easy to get started we have prepared an already pre-processed dataset based on the <a href="http://www.statmt.org/wmt16/translation-task.html">English-German WMT'16 Translation Task</a>. To learn more about how the data was generated, you can take a look at the <a href="https://github.com/google/seq2seq/blob/master/bin/data/wmt16_en_de.sh">wmt16_en_de.sh</a> data generation script.</p>
+<ul>
+<li><a href="https://drive.google.com/open?id=0B_bZck-ksdkpREE3LXJlMXVLUWM">Download pre-processed WMT'16 EN-DE Data (502MB)</a></li>
+</ul>
+<p>After extraction, you should see the folowing files:</p>
+<table>
+<thead>
+<tr>
+<th>Filename</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>train.tok.clean.bpe.32000.en</code></td>
+<td>The English training data, one sentence per line, processed using BPE.</td>
+</tr>
+<tr>
+<td><code>train.tok.clean.bpe.32000.de</code></td>
+<td>The German training data, one sentence per line, processed using BPE.</td>
+</tr>
+<tr>
+<td><code>vocab.bpe.32000</code></td>
+<td>The full vocabulary used in the training data, one token per line.</td>
+</tr>
+<tr>
+<td><code>newstestXXXX.*</code></td>
+<td>Development and test data sets, in the same format as the training data. We provide both pre-processed and original data files used for evaluation.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="alternative-generate-toy-data">Alternative: Generate Toy Data</h2>
+<p>Training on real-world translation data can take a very long time. If you do not have access to a machine with a GPU but would like to play around with smaller data, you can generate a toy dataset. The following command will generate a dataset where the target sequences are reversed source sequences. That is, the model needs to learn the reverse the inputs.  While this task is not very useful in practice, we can train such a model quickly and use it as as sanity-check to make sure that the end-to-end pipeline is working as intended.</p>
+<pre><code>DATA_TYPE=reverse ./bin/data/toy.sh
+</code></pre>
+
+<p>Instead of the translation data, you can use the data files generated by this script as the input to the model.</p>
+<h2 id="defining-the-model">Defining the model</h2>
+<p>With the data in place, it is now time to define what type of model we would like to train. The standard choice is a Sequence-To-Sequence model with attention. This type of model has a large number of available hyperparameters, or knobs you can tune, all of which will affect training time and final performance.</p>
+<p>We prove <a href="https://github.com/google/seq2seq/tree/master/example_configs">example configurations</a> for small, medium, and large model. For example, the configuration for the medium-sized model look as follows:</p>
+<pre><code class="yaml">model: AttentionSeq2Seq
+model_params:
+  attention.class: seq2seq.decoders.attention.AttentionLayerBahdanau
+  attention.params:
+    num_units: 256
+  bridge.class: seq2seq.models.bridges.ZeroBridge
+  embedding.dim: 256
+  encoder.class: seq2seq.encoders.BidirectionalRNNEncoder
+  encoder.params:
+    rnn_cell:
+      cell_class: GRUCell
+      cell_params:
+        num_units: 256
+      dropout_input_keep_prob: 0.8
+      dropout_output_keep_prob: 1.0
+      num_layers: 1
+  decoder.class: seq2seq.decoders.AttentionDecoder
+  decoder.params:
+    rnn_cell:
+      cell_class: GRUCell
+      cell_params:
+        num_units: 256
+      dropout_input_keep_prob: 0.8
+      dropout_output_keep_prob: 1.0
+      num_layers: 2
+  optimizer.name: Adam
+  optimizer.learning_rate: 0.0001
+  source.max_seq_len: 50
+  source.reverse: false
+  target.max_seq_len: 50
+</code></pre>
+
+<p>You can write your own configuration files in YAML/JSON format, overwrite configuration values with another file, or pass them directly to the training script. We found it to be useful to save configuration files to help with reproducibility.</p>
+<h2 id="training">Training</h2>
+<p>Now that we have both a model configuration and training data we can start the actual training process. On a single modern GPU (e.g. a TitanX), training to convergence can easily take a few days, even with the small model configuration. We found that the large model configuration typically trains in 2-3 days on 8 GPUs using distributed training in Tensorflow.</p>
+<pre><code class="bash"># Set this to where you extracted the data
+export DATA_PATH=$HOME/Downloads/wmt16_en_de
+
+python -m bin.train \
+  --config_paths=&quot;./example_configs/nmt_small.yml,./example_configs/train_seq2seq.yml&quot; \
+  --model_params &quot;
+      vocab_source: ${DATA_PATH}/vocab.bpe.32000
+      vocab_target: ${DATA_PATH}/vocab.bpe.32000&quot; \
+  --input_pipeline_train &quot;
+    class: ParallelTextInputPipeline
+    params:
+      source_files: ['${DATA_PATH}/train.tok.clean.bpe.32000.en']
+      target_files: ['${DATA_PATH}/train.tok.clean.bpe.32000.de']&quot; \
+  --input_pipeline_dev &quot;
+    class: ParallelTextInputPipeline
+    params:
+       source_files: ['${DATA_PATH}/newstest2013.tok.bpe.32000.en']
+       target_files: ['${DATA_PATH}/newstest2013.tok.bpe.32000.de']&quot; \
+  --batch_size 32 \
+  --train_steps 1000000 \
+  --output_dir ${TMPDIR:-/tmp}/wmt_16_en_de
+</code></pre>
+
+<p>Let's look at the training command in more detail and explore what each of the options mean.</p>
+<ul>
+<li>The <strong>config_paths</strong> argument allows you to pass multiple configuration files used for training. Configuration files are merged in the order they are specified, which allows you to overwrite specific values in new configuration. Here, we pass two configuration files. The file <code>nmt_small.yml</code> contains the model type and hyperparameters (as explained in the previous section) and the <code>train_seq2seq.yml</code> contains common options about the training process, such as which metrics to track, and how often to sample responses.</li>
+<li>The <strong>model_params</strong> argument allows us to overwrite model parameters. It is YAML/JSON string. Most of them are defined in the <code>nmt_small.yml</code> file, but since the vocabulary file path depends on our data, we need to overwrite it from the command line.</li>
+<li>The <strong>input_pipeline_train</strong> and <strong>input_pipeline_dev</strong> arguments define how to read training and development data. In our case, we use a parallel text format.</li>
+<li>The <strong>output_dir</strong> is the desination directory for model checkpoints and summaries.</li>
+</ul>
+<p>Throughout the traning process you will see samples generated by the model, as well as the loss decreasing. To monitor the training process, you can start Tensorboard pointing to the output directory:</p>
+<pre><code class="bash">tensorboard --logdir ${TMPDIR:-/tmp}/wmt_16_en_de
+</code></pre>
+
+<p><img alt="Log Perplexity" src="../images/nmt_tutorial_ppl.png" />
+<img alt="BLEU Score" src="../images/nmt_tutorial_bleu.png" /></p>
+<h2 id="making-predictions">Making predictions</h2>
+<p>Once your model is trained, you can start predictions, i.e. translating new data from German to English. For example:</p>
+<pre><code>mkdir -p ${DATA_PATH}/pred
+python -m bin.infer \
+  --tasks &quot;
+    - class: DecodeText&quot; \
+  --model_dir ${TMPDIR:-/tmp}/wmt_16_en_de \
+  --input_pipeline &quot;
+    class: ParallelTextInputPipeline
+    params:
+      source_files: ['${DATA_PATH}/newstest2014.tok.bpe.32000.en']&quot; \
+  &gt;  ${DATA_PATH}/pred/newstest2014.pred.de
+</code></pre>
+
+<p>Let's take a closer look at this command again:</p>
+<ul>
+<li>The <strong>tasks</strong> argument specifies which inference tasks to run. It is a YAML/JSON string, containing a list of class names and optional parameters. In our command, we only execute the <code>DecodeText</code> task, which takes the model predictions and prints them to stdout. Other possible tasks include <code>DumpAttention</code> or <code>DumpBeams</code>, which can be used to write
+  debugging information about what your model is doing.</li>
+<li>The <strong>model_dir</strong> argument points to the path containing the model checkpoints. It is the same as the <code>output_dir</code> passed during training.</li>
+<li><strong>input_pipeline</strong> defined how we read data and is of the same format as the input pipeline definition used during training.</li>
+</ul>
+<h3 id="decoding-with-beam-search">Decoding with Beam Search</h3>
+<p>Beam Search is a commonly used decoding technique that improves translation performance. Instead of decoding the most probable word in a greedy fashion, beam search keeps several hypotheses, or "beams", in memory and chooses the best one based on the final joint probability. To enable beam search decoding, you can overwrite the appropriate model parameter when running inference. Note that decoding with beam search will take significantly longer.</p>
+<pre><code class="bash">python -m bin.infer \
+  --tasks &quot;
+    - class: DecodeText
+    - class: DumpBeams
+      params:
+        file: ${TMPDIR:-/tmp}/wmt_16_en_de/newstest2014.pred.beams.npz&quot; \
+  --model_dir ${TMPDIR:-/tmp}/wmt_16_en_de \
+  --model_params &quot;
+    inference.beam_search.beam_width: 5&quot; \
+  --input_pipeline &quot;
+    class: ParallelTextInputPipeline
+    params:
+      source_files: ['${DATA_PATH}/newstest2014.tok.bpe.32000.en']&quot; \
+  &gt;  ${DATA_PATH}/pred/newstest2014.pred.de
+</code></pre>
+
+<p>The above command also demonstrates how to pass several tasks to the inference script. In our case, we also dump beam search debugging information to a file on desk, so that we can inspect them later.</p>
+<h2 id="evaluating-using-bleu">Evaluating using BLEU</h2>
+<p>Now that you have generated predictions and written them to <code>${DATA_PATH}/pred</code>, you can evaluate your translations against reference translations using BLEU scores:</p>
+<pre><code>./bin/tools/multi-bleu.perl ${DATA_PATH}/pred/newstest2014.tok.en &lt; ${DATA_PATH}/pred/newstest2014.pred.de
+</code></pre>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../summarization/" class="btn btn-neutral float-right" title="Tutorial: Summarization">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../concepts/" class="btn btn-neutral" title="Concepts"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../concepts/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../summarization/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../js/theme.js"></script>
+
+</body>
+</html>

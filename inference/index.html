@@ -63,6 +63,34 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../concepts/">Concepts</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../nmt/">Tutorial: Neural Machine Translation</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../summarization/">Tutorial: Summarization</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../image_captioning/">Tutorial: Image Captioning</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../data/">Data</a>
         
     </li>
@@ -81,43 +109,23 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#performing-inference">Performing Inference</a></li>
+                <li class="toctree-l3"><a href="#inference-tasks">Inference Tasks</a></li>
                 
             
-                <li class="toctree-l3"><a href="#beam-search">Beam Search</a></li>
+                <li class="toctree-l3"><a href="#decodetext">DecodeText</a></li>
+                
+                    <li><a class="toctree-l4" href="#unk-token-replacement-using-a-copy-mechanism">UNK token replacement using a Copy Mechanism</a></li>
+                
+                    <li><a class="toctree-l4" href="#unk-token-replacement-using-a-mapping">UNK token replacement using a mapping</a></li>
                 
             
-                <li class="toctree-l3"><a href="#overwriting-hyperparameters">Overwriting hyperparameters</a></li>
+                <li class="toctree-l3"><a href="#visualizing-attention">Visualizing Attention</a></li>
                 
             
-                <li class="toctree-l3"><a href="#unk-token-replacement-using-a-copy-mechanism">UNK token replacement using a Copy Mechanism</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#unk-token-replacement-using-a-mapping">UNK token replacement using a mapping</a></li>
+                <li class="toctree-l3"><a href="#dumping-beams">Dumping Beams</a></li>
                 
             
             </ul>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../models/">Model Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../encoders/">Encoder Reference</a>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../decoders/">Decoder Reference</a>
         
     </li>
 <li>
@@ -138,7 +146,42 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../help/">Getting Help</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../contributing/">Contributing</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../license/">License</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../models/">Reference: Models</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../encoders/">Reference: Encoders</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../decoders/">Reference: Decoders</a>
         
     </li>
 <li>
@@ -175,43 +218,27 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="performing-inference">Performing Inference</h2>
-<p>After you have trained a model, you can use the <code>bin/infer.py</code> script to make predictions. For example, from the <a href="../getting_started/">Getting Started Guide</a>:</p>
-<pre><code class="bash">python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  &gt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
+                <h2 id="inference-tasks">Inference Tasks</h2>
+<p>When calling the inference script <code>bin/infer.py</code>, you must provide a list of tasks to run. The most basic task, <code>DecodeText</code>, simply prints out the model predictions. By additing more tasks you can perform additional features, such as storing debugging infromation or visualization attention scores. Under the hood, each <code>InferenceTask</code> is implemented as a Tensorflow <a href="https://www.tensorflow.org/api_docs/python/tf/train/SessionRunHook">SessionRunHook</a> that requests outputs from the model and knows how to process them.</p>
+<h2 id="decodetext">DecodeText</h2>
+<p>The <code>DecodeText</code> task reads the model predicitons and prints the predictions to standard output. It has the following parameters:</p>
+<ul>
+<li><code>delimiter</code>: String to join the tokens predicted by the model on. Defaults to space.</li>
+<li><code>unk_replace</code>: If set to <code>True</code>, perform unknown token replacement based on attention scores. Default is <code>False</code>. See below for more details.</li>
+<li><code>unk_mapping</code>: If set to the path of a dictionary file, use the provided mapping to perform unknown token replacement. See below for more details.</li>
+</ul>
+<h4 id="unk-token-replacement-using-a-copy-mechanism">UNK token replacement using a Copy Mechanism</h4>
+<p>Rare words (such as place and people names) are often absent from the target vocabulary and result in <code>UNK</code> tokens in the output predictions. An easy strategy to target sequences is to replace each <code>UNK</code> token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces alignment scores for each target token. If you trained a model that generates such attention scores (e.g. <code>AttentionSeq2Seq</code>), you can use them to perform UNK token replacement by activating the <code>unk_replace</code> parameter.</p>
+<pre><code class="bash">mkdir -p ${DATA_PATH}/pred
+python -m bin.infer \
+  --tasks &quot;
+    - class: DecodeText
+      params:
+        unk_replace: True&quot;
 </code></pre>
 
-<p>The inference script reads the model hyperparameters from the <code>train_options.json</code> file in the model directory, so
-you do not need to pass them explicitly. By default, the latest model checkpoint found in <code>model_dir</code> is used, but you can also pass a specific checkpoint (e.g. <code>${TMPDIR:-/tmp}/nmt_toy_reverse/model.ckpt-1562</code>) via
-the <code>checkpoint_path</code> flag.</p>
-<h2 id="beam-search">Beam Search</h2>
-<p><strong>Beam Search is currently experimental.</strong> To perform beam search you can can set the <code>inference.beam_search.beam_width</code> model parameter to a number greater than 1 (see below). When using beam search, your batch size will be set to 1 and the <code>beam_width</code> will be used as an implicit batch size. Beam search can become very expensive with large beam widths.</p>
-<h2 id="overwriting-hyperparameters">Overwriting hyperparameters</h2>
-<p>To overwrite specific hyperparameters of a model, pass an hparams JSON object as the <code>hparams</code> flag to the inference script:</p>
-<pre><code>python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  --hparams '
-      inference.beam_search.length_penalty_weight: 0.6
-      inference.beam_search.beam_width: 5' \
-  &gt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
-</code></pre>
-
-<h2 id="unk-token-replacement-using-a-copy-mechanism">UNK token replacement using a Copy Mechanism</h2>
-<p>Rare words (such as place and people names) are often absent from the target vocabulary and result in <code>UNK</code> tokens in the output predictions. An easy strategy to improve predictions is to replace each <code>UNK</code> token with the word in the source sequence it is best aligned with. Alignments are typically calculated using an attention mechanism which produces <code>[source_length]</code> alignment scores for each target token.</p>
-<p>If you trained a model that generates such attention scores (e.g. <code>AttentionSeq2Seq</code>), you can use them to perform UNK token replacement by passing the <code>unk_replace</code> flag to the inference script.</p>
-<pre><code class="bash">python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  --unk_replace \
-  &gt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
-</code></pre>
-
-<h2 id="unk-token-replacement-using-a-mapping">UNK token replacement using a mapping</h2>
-<p>A slightly more sophisticated approach to UNK token replacement is to use a mapping instead of copying words from the source. For example, "Munich" is always translated as "München" in German, so that simply copying "Munich" from the source you would never result in the right translation even if the words are perfectly aligned using attention scores.</p>
-<p>One strategy is to use <a href="https://github.com/clab/fast_align">fast_align</a> to generate a mapping based on the conditional probabilities of target given source.</p>
+<h4 id="unk-token-replacement-using-a-mapping">UNK token replacement using a mapping</h4>
+<p>A more sophisticated approach to UNK token replacement is to use a mapping instead of copying words from the source. For example, the English word "Munich" is usually translated as "München" in German. Simply copying "Munich" from the source you would never result in the right translation even if the words were perfectly aligned using attention scores. One strategy is to use <a href="https://github.com/clab/fast_align">fast_align</a> to generate a mapping based on the conditional probabilities of target given source.</p>
 <pre><code class="bash"># Download and build fast_align
 git clone https://github.com/clab/fast_align.git
 mkdir fast_align/build &amp;&amp; cd fast_align/build
@@ -238,12 +265,39 @@ sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
 </code></pre>
 
 <p>The output file specified by the <code>-p</code> argument will contain conditional probabilities for <code>p(target | source)</code> in the form of <code>&lt;source&gt;\t&lt;target&gt;\t&lt;prob&gt;</code>. These can be used to do smarter UNK token replacement by passing the <code>unk_mapping</code> flag.</p>
-<pre><code class="bash">python -m bin.infer \
-  --source $HOME/nmt_data/toy_reverse/test/sources.txt \
-  --model_dir ${TMPDIR:-/tmp}/nmt_toy_reverse \
-  --unk_replace \
-  --unk_mapping $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict \
-  &gt; ${TMPDIR:-/tmp}/nmt_toy_reverse/predictions.txt
+<pre><code class="bash">mkdir -p ${DATA_PATH}/pred
+python -m bin.infer \
+  --tasks &quot;
+    - class: DecodeText
+      params:
+        unk_replace: True&quot;
+        unk_mapping: $HOME/nmt_data/toy_reverse/train/source_targets.cond.dict&quot;
+  ...
+</code></pre>
+
+<h2 id="visualizing-attention">Visualizing Attention</h2>
+<p>If you trained a model using the  <code>AttentionDecoder</code>, you can dump the raw attention scores and generate alignment visualizations during inference using the <code>DumpAttention</code> task.</p>
+<pre><code class="shell">python -m bin.infer \
+  --tasks &quot;
+    - class: DecodeText
+    - class: DumpAttention
+      params:
+        output_dir: $HOME/attention&quot; \
+  ...
+</code></pre>
+
+<p>By default, this script generates an <code>attention_score.npy</code> array file and one attention plot per example. The array file can be <a href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.load.html">loaded used numpy</a> and will contain a list of arrays with shape <code>[target_length, source_length]</code>. If you only want the raw attention score data without the plots you can enable the <code>dump_atention_no_plot</code> parameter.</p>
+<h2 id="dumping-beams">Dumping Beams</h2>
+<p>If you are using beam search during decoding, you can use the <code>DumpBeams</code> task to write beam search debugging information to disk. You can later inspect the data using numpy, or use the <a href="../tools/">provided script</a> to generate visualizations.</p>
+<pre><code class="shell">python -m bin.infer \
+  --tasks &quot;
+    - class: DecodeText
+    - class: DumpBeams
+      params:
+        file: ${TMPDIR:-/tmp}/wmt_16_en_de/newstest2014.pred.beams.npz&quot; \
+  --model_params &quot;
+    inference.beam_search.beam_width: 5&quot; \
+  ...
 </code></pre>
               
             </div>
@@ -252,7 +306,7 @@ sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../models/" class="btn btn-neutral float-right" title="Model Reference">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../tools/" class="btn btn-neutral float-right" title="Tools">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../training/" class="btn btn-neutral" title="Training"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -284,7 +338,7 @@ sort -k1,1 -k3,3gr $HOME/nmt_data/toy_reverse/train/source_targets.cond \
         <span><a href="../training/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../models/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../tools/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

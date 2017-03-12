@@ -8,7 +8,7 @@
   
   
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Data - seq2seq</title>
+  <title>Concepts - seq2seq</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -18,9 +18,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "Data";
-    var mkdocs_page_input_path = "data.md";
-    var mkdocs_page_url = "/data/";
+    var mkdocs_page_name = "Concepts";
+    var mkdocs_page_input_path = "concepts.md";
+    var mkdocs_page_url = "/concepts/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
@@ -62,8 +62,27 @@
 <li>
           
             <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../concepts/">Concepts</a>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Concepts</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#configuration">Configuration</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#input-pipeline">Input Pipeline</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#encoder">Encoder</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#decoder">Decoder</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#model">Model</a></li>
+                
+            
+            </ul>
         
     </li>
 <li>
@@ -90,18 +109,8 @@
 <li>
           
             <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Data</a>
-        
-            <ul>
-            
-                <li class="toctree-l3"><a href="#available-datasets">Available Datasets</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#creating-your-own-data">Creating your own data</a></li>
-                
-            
-            </ul>
+    <li class="toctree-l1 ">
+        <a class="" href="../data/">Data</a>
         
     </li>
 <li>
@@ -198,7 +207,7 @@
     
       
     
-    <li>Data</li>
+    <li>Concepts</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -208,57 +217,29 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="available-datasets">Available Datasets</h2>
-<p>We provide data generation scripts to generate standard datasets.</p>
-<table>
-<thead>
-<tr>
-<th>Dataset</th>
-<th>Description</th>
-<th>Training/Dev/Test Size</th>
-<th>Vocabulary</th>
-<th>Download</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>WMT'16 EN-DE</td>
-<td>Data for the <a href="http://www.statmt.org/wmt16/translation-task.html">WMT'16 Translation Task</a> English to German. Training data is combined from Europarl v7, Common Crawl, and News Commentary v11. Development data sets include <code>newstest[2010-2015]</code>. <code>newstest2016</code> should serve as test data. All SGM files were converted to plain text.</td>
-<td>4.56M/3K/2.6K</td>
-<td>32k BPE</td>
-<td><a href="https://github.com/google/seq2seq/blob/master/bin/data/wmt16_en_de.sh">Generate</a> <br/> <a href="https://drive.google.com/open?id=0B_bZck-ksdkpREE3LXJlMXVLUWM">Download</a></td>
-</tr>
-<tr>
-<td>WMT'17 All Pairs</td>
-<td>Data for the <a href="http://www.statmt.org/wmt17/translation-task.html">WMT'17 Translation Task</a>.</td>
-<td>Coming soon.</td>
-<td>Coming soon.</td>
-<td><a href="">Coming soon</a></td>
-</tr>
-<tr>
-<td>Toy Copy</td>
-<td>A toy dataset where the target sequence is equal to the source sequence. The model must learn to copy the source sequence.</td>
-<td>10k/1k/1k</td>
-<td>20</td>
-<td><a href="https://github.com/google/seq2seq/blob/master/bin/data/toy.sh">Generate</a></td>
-</tr>
-<tr>
-<td>Toy Reverse</td>
-<td>A toy dataset where the target sequence is equal to the reversed source sequence. The model must learn to reverse the source sequence.</td>
-<td>10k/1k/1k</td>
-<td>20</td>
-<td><a href="https://github.com/google/seq2seq/blob/master/bin/data/toy.sh">Generate</a></td>
-</tr>
-</tbody>
-</table>
-<h2 id="creating-your-own-data">Creating your own data</h2>
-<p>To create your own data, we recommend taking a look at the data generation scripts above. A typical data preprocessing pipeline looks as follows:</p>
-<ol>
-<li>Generate data in parallel text format</li>
-<li>Tokenize your data</li>
-<li>Create fixed vocabularies for your source and target data</li>
-<li>Learn and apply subword units to handle rare and unknown words</li>
-</ol>
+                <h2 id="configuration">Configuration</h2>
+<p>Many objects, including Encoders, Decoders, Models, Input Pipelines, and Inference Tasks, are configured using key-value parameters. These parameters are typically passed as <a href="https://en.wikipedia.org/wiki/YAML">YAML</a> through configuration files or directly on the command line. For example, you can pass a <code>model_params</code> string to the training script configure model. Configurations are often be nested, as in the following example:</p>
+<pre><code class="yml">model_params:
+  attention.class: seq2seq.decoders.attention.AttentionLayerBahdanau
+  attention.params:
+    num_units: 512
+  embedding.dim: 1024
+  encoder.class: seq2seq.encoders.BidirectionalRNNEncoder
+  encoder.params:
+    rnn_cell:
+      cell_class: LSTMCell
+      cell_params:
+        num_units: 512
+</code></pre>
+
+<h2 id="input-pipeline">Input Pipeline</h2>
+<p>An <a href="https://github.com/google/seq2seq/blob/master/seq2seq/data/input_pipeline.py"><code>InputPipeline</code></a> defines how data is read, parsed, and separated into features and labels. For example, the <code>ParallelTextInputPipeline</code> reads data from two text files, separates tokens by a delimiter, and produces tensors corresponding to the <code>source_tokens</code>, <code>source_length</code>, <code>target_tokens</code>, and <code>target_length</code> for each example. If you want to read new data formats you need to implement your own input pipeline.</p>
+<h2 id="encoder">Encoder</h2>
+<p>An encoder reads in "source data", e.g. a sequence of words or an image, and produces a feature representation in continuous space. For example, a Recurrent Neural Network encoder may take as input a sequence of words and produce a fixed-length vector that roughly corresponds to the meaning of the text. An encoder based on a Convolutional Neural Network may take as input an image and generate a new volume that contains higher-level features of the image. The idea is that the representation produced by the encoder can be used by the Decoder to generate new data, e.g. a sentence in another language, or the description of the image. For a list of available encoders, see the <a href="../encoders/">Encoder Reference</a>.</p>
+<h2 id="decoder">Decoder</h2>
+<p>A decoder is a generative model that is conditioned on the representation created by the encoder. For example, a Recurrent Neural Network decoder may learn generate the translation for an encoded sentence in another language. For a list of available decoder, see the <a href="../decoders/">Decoder Reference</a>.</p>
+<h2 id="model">Model</h2>
+<p>A model defines how to put together an encoder and decoder, and how to calculate and minize the loss functions. It also handles the necessary preprocessing of data read from an input pipeline. Under the hood, each model is implemented as a <a href="https://www.tensorflow.org/api_docs/python/tf/contrib/learn/Estimator">model_fn passed to a tf.contrib.learn Estimator</a>. For a list of available models, see the <a href="../models/">Models Reference</a>.</p>
               
             </div>
           </div>
@@ -266,10 +247,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../training/" class="btn btn-neutral float-right" title="Training">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../nmt/" class="btn btn-neutral float-right" title="Tutorial: Neural Machine Translation">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../image_captioning/" class="btn btn-neutral" title="Tutorial: Image Captioning"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../getting_started/" class="btn btn-neutral" title="Getting Started"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -295,10 +276,10 @@
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../image_captioning/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../getting_started/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../training/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../nmt/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
