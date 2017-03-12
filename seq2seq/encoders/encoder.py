@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Abstract base class for encoders.
 """
@@ -32,6 +31,7 @@ EncoderOutput = namedtuple(
     "EncoderOutput",
     "outputs final_state attention_values attention_values_length")
 
+
 @six.add_metaclass(abc.ABCMeta)
 class Encoder(GraphModule, Configurable):
   """Abstract encoder class. All encoders should inherit from this.
@@ -40,6 +40,7 @@ class Encoder(GraphModule, Configurable):
     params: A dictionary of hyperparameters for the encoder.
     name: A variable scope for the encoder graph.
   """
+
   def __init__(self, params, mode, name):
     GraphModule.__init__(self, name)
     Configurable.__init__(self, params, mode)

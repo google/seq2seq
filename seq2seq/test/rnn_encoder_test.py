@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Test Cases for RNN encoders.
 """
@@ -55,9 +54,8 @@ class UnidirectionalRNNEncoderTest(tf.test.TestCase):
       sess.run(tf.global_variables_initializer())
       encoder_output_ = sess.run(encoder_output)
 
-    np.testing.assert_array_equal(
-        encoder_output_.outputs.shape,
-        [self.batch_size, self.sequence_length, 32])
+    np.testing.assert_array_equal(encoder_output_.outputs.shape,
+                                  [self.batch_size, self.sequence_length, 32])
     self.assertIsInstance(encoder_output_.final_state,
                           tf.contrib.rnn.LSTMStateTuple)
     np.testing.assert_array_equal(encoder_output_.final_state.h.shape,
@@ -150,40 +148,42 @@ class StackBidirectionalRNNEncoderTest(tf.test.TestCase):
 
   def test_encode_with_single_cell(self):
     encoder_output_ = self._test_encode_with_params({
-        "rnn_cell": {"num_layers": 1, "cell_params": {"num_units": 32}}
+        "rnn_cell": {
+            "num_layers": 1,
+            "cell_params": {
+                "num_units": 32
+            }
+        }
     })
 
-    self.assertIsInstance(
-        encoder_output_.final_state[0][0],
-        tf.contrib.rnn.LSTMStateTuple)
-    self.assertIsInstance(
-        encoder_output_.final_state[1][0],
-        tf.contrib.rnn.LSTMStateTuple)
-    np.testing.assert_array_equal(
-        encoder_output_.final_state[0][0].h.shape,
-        [self.batch_size, 32])
-    np.testing.assert_array_equal(
-        encoder_output_.final_state[0][0].c.shape,
-        [self.batch_size, 32])
-    np.testing.assert_array_equal(
-        encoder_output_.final_state[1][0].h.shape,
-        [self.batch_size, 32])
-    np.testing.assert_array_equal(
-        encoder_output_.final_state[1][0].c.shape,
-        [self.batch_size, 32])
+    self.assertIsInstance(encoder_output_.final_state[0][0],
+                          tf.contrib.rnn.LSTMStateTuple)
+    self.assertIsInstance(encoder_output_.final_state[1][0],
+                          tf.contrib.rnn.LSTMStateTuple)
+    np.testing.assert_array_equal(encoder_output_.final_state[0][0].h.shape,
+                                  [self.batch_size, 32])
+    np.testing.assert_array_equal(encoder_output_.final_state[0][0].c.shape,
+                                  [self.batch_size, 32])
+    np.testing.assert_array_equal(encoder_output_.final_state[1][0].h.shape,
+                                  [self.batch_size, 32])
+    np.testing.assert_array_equal(encoder_output_.final_state[1][0].c.shape,
+                                  [self.batch_size, 32])
 
   def test_encode_with_multi_cell(self):
     encoder_output_ = self._test_encode_with_params({
-        "rnn_cell": {"num_layers": 4, "cell_params": {"num_units": 32}}
+        "rnn_cell": {
+            "num_layers": 4,
+            "cell_params": {
+                "num_units": 32
+            }
+        }
     })
 
     for layer_idx in range(4):
-      self.assertIsInstance(
-          encoder_output_.final_state[0][layer_idx],
-          tf.contrib.rnn.LSTMStateTuple)
-      self.assertIsInstance(
-          encoder_output_.final_state[1][layer_idx],
-          tf.contrib.rnn.LSTMStateTuple)
+      self.assertIsInstance(encoder_output_.final_state[0][layer_idx],
+                            tf.contrib.rnn.LSTMStateTuple)
+      self.assertIsInstance(encoder_output_.final_state[1][layer_idx],
+                            tf.contrib.rnn.LSTMStateTuple)
       np.testing.assert_array_equal(
           encoder_output_.final_state[0][layer_idx].h.shape,
           [self.batch_size, 32])

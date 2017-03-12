@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Vocabulary related functions.
 """
 
@@ -114,8 +113,8 @@ def create_vocabulary_lookup_table(filename, default_value=None):
   # Create word -> id mapping
   vocab_to_id_init = tf.contrib.lookup.KeyValueTensorInitializer(
       vocab_tensor, vocab_idx_tensor, tf.string, tf.int64)
-  vocab_to_id_table = tf.contrib.lookup.HashTable(
-      vocab_to_id_init, default_value)
+  vocab_to_id_table = tf.contrib.lookup.HashTable(vocab_to_id_init,
+                                                  default_value)
 
   # Create word -> count mapping
   word_to_count_init = tf.contrib.lookup.KeyValueTensorInitializer(

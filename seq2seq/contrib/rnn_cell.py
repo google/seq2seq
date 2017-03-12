@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Collection of RNN Cells
 """
 
@@ -24,21 +23,27 @@ import sys
 import inspect
 
 import tensorflow as tf
-from tensorflow.python.ops import array_ops # pylint: disable=E0611
-from tensorflow.python.util import nest # pylint: disable=E0611
-from tensorflow.contrib.rnn import MultiRNNCell # pylint: disable=E0611
+from tensorflow.python.ops import array_ops  # pylint: disable=E0611
+from tensorflow.python.util import nest  # pylint: disable=E0611
+from tensorflow.contrib.rnn import MultiRNNCell  # pylint: disable=E0611
 
 # Import all cell classes from Tensorflow
-TF_CELL_CLASSES = [x for x in tf.contrib.rnn.__dict__.values() if
-                   inspect.isclass(x) and issubclass(x, tf.contrib.rnn.RNNCell)]
+TF_CELL_CLASSES = [
+    x for x in tf.contrib.rnn.__dict__.values()
+    if inspect.isclass(x) and issubclass(x, tf.contrib.rnn.RNNCell)
+]
 for cell_class in TF_CELL_CLASSES:
   setattr(sys.modules[__name__], cell_class.__name__, cell_class)
+
 
 class ExtendedMultiRNNCell(MultiRNNCell):
   """Extends the Tensorflow MultiRNNCell with residual connections"""
 
-  def __init__(self, cells, residual_connections=False,
-               residual_combiner="add", residual_dense=False):
+  def __init__(self,
+               cells,
+               residual_connections=False,
+               residual_combiner="add",
+               residual_dense=False):
     """Create a RNN cell composed sequentially of a number of RNNCells.
 
     Args:
@@ -92,8 +97,8 @@ class ExtendedMultiRNNCell(MultiRNNCell):
         with tf.variable_scope("cell_%d" % i):
           if not nest.is_sequence(state):
             raise ValueError(
-                "Expected state to be a tuple of length %d, but received: %s"
-                % (len(self.state_size), state))
+                "Expected state to be a tuple of length %d, but received: %s" %
+                (len(self.state_size), state))
           cur_state = state[i]
           next_input, new_state = cell(cur_inp, cur_state)
 
@@ -114,6 +119,6 @@ class ExtendedMultiRNNCell(MultiRNNCell):
           prev_inputs.append(cur_inp)
 
           new_states.append(new_state)
-    new_states = (tuple(new_states) if self._state_is_tuple else
-                  array_ops.concat(new_states, 1))
+    new_states = (tuple(new_states)
+                  if self._state_is_tuple else array_ops.concat(new_states, 1))
     return cur_inp, new_states

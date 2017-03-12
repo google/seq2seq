@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Test Cases for PoolingEncoder.
 """
@@ -24,6 +23,7 @@ import tensorflow as tf
 import numpy as np
 
 from seq2seq.encoders import PoolingEncoder
+
 
 class PoolingEncoderTest(tf.test.TestCase):
   """
@@ -57,9 +57,8 @@ class PoolingEncoderTest(tf.test.TestCase):
     np.testing.assert_array_equal(
         encoder_output_.attention_values.shape,
         [self.batch_size, self.sequence_length, self.input_depth])
-    np.testing.assert_array_equal(
-        encoder_output_.final_state.shape,
-        [self.batch_size, self.input_depth])
+    np.testing.assert_array_equal(encoder_output_.final_state.shape,
+                                  [self.batch_size, self.input_depth])
 
   def test_encode_with_pos(self):
     self._test_with_params({

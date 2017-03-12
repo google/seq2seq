@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Collection of RNN encoders.
 """
@@ -27,13 +26,15 @@ from tensorflow.contrib.rnn.python.ops import rnn
 from seq2seq.encoders.encoder import Encoder, EncoderOutput
 from seq2seq.training import utils as training_utils
 
+
 def _unpack_cell(cell):
   """Unpack the cells because the stack_bidirectional_dynamic_rnn
   expects a list of cells, one per layer."""
   if isinstance(cell, tf.contrib.rnn.MultiRNNCell):
-    return cell._cells #pylint: disable=W0212
+    return cell._cells  #pylint: disable=W0212
   else:
     return [cell]
+
 
 def _default_rnn_cell_params():
   """Creates default parameters used by multiple RNN encoders.
@@ -78,9 +79,7 @@ class UnidirectionalRNNEncoder(Encoder):
 
   @staticmethod
   def default_params():
-    return {
-        "rnn_cell": _default_rnn_cell_params()
-    }
+    return {"rnn_cell": _default_rnn_cell_params()}
 
   def encode(self, inputs, sequence_length, **kwargs):
     cell = training_utils.get_rnn_cell(**self.params["rnn_cell"])
@@ -91,7 +90,9 @@ class UnidirectionalRNNEncoder(Encoder):
         dtype=tf.float32,
         **kwargs)
     return EncoderOutput(
-        outputs=outputs, final_state=state, attention_values=outputs,
+        outputs=outputs,
+        final_state=state,
+        attention_values=outputs,
         attention_values_length=sequence_length)
 
 
@@ -112,9 +113,7 @@ class BidirectionalRNNEncoder(Encoder):
 
   @staticmethod
   def default_params():
-    return {
-        "rnn_cell": _default_rnn_cell_params()
-    }
+    return {"rnn_cell": _default_rnn_cell_params()}
 
   def encode(self, inputs, sequence_length, **kwargs):
     cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
@@ -154,9 +153,7 @@ class StackBidirectionalRNNEncoder(Encoder):
 
   @staticmethod
   def default_params():
-    return {
-        "rnn_cell": _default_rnn_cell_params()
-    }
+    return {"rnn_cell": _default_rnn_cell_params()}
 
   def encode(self, inputs, sequence_length, **kwargs):
     cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])

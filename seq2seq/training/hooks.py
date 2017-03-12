@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ Collection of tf.train.SessionRunHooks
 """
 
@@ -26,18 +25,20 @@ import six
 import yaml
 
 import tensorflow as tf
-from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer # pylint: disable=E0611
-from tensorflow.python.training.summary_io import SummaryWriterCache # pylint: disable=E0611
-from tensorflow.python.client import timeline # pylint: disable=E0611
+from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer  # pylint: disable=E0611
+from tensorflow.python.training.summary_io import SummaryWriterCache  # pylint: disable=E0611
+from tensorflow.python.client import timeline  # pylint: disable=E0611
 from tensorflow import gfile
 
 from seq2seq.configurable import Configurable, abstractstaticmethod
 from seq2seq import graph_utils
 
+
 @six.add_metaclass(abc.ABCMeta)
 class TrainingHook(tf.train.SessionRunHook, Configurable):
   """Abstract base class for training hooks.
   """
+
   def __init__(self, params, model_dir):
     tf.train.SessionRunHook.__init__(self)
     Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.TRAIN)
@@ -71,9 +72,7 @@ class MetadataCaptureHook(TrainingHook):
 
   @staticmethod
   def default_params():
-    return {
-        "step": 10
-    }
+    return {"step": 10}
 
   def begin(self):
     self._global_step = tf.train.get_global_step()
@@ -84,8 +83,7 @@ class MetadataCaptureHook(TrainingHook):
     else:
       tf.logging.info("Performing full trace on next step.")
       run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-      return tf.train.SessionRunArgs(
-          self._global_step, options=run_options)
+      return tf.train.SessionRunArgs(self._global_step, options=run_options)
 
   def after_run(self, _run_context, run_values):
     step_done = run_values.results
@@ -138,13 +136,9 @@ class TokensPerSecondCounter(TrainingHook):
 
     self._tokens_last_step = 0
 
-
   @staticmethod
   def default_params():
-    return {
-        "every_n_steps": 100,
-        "every_n_secs": None
-    }
+    return {"every_n_steps": 100, "every_n_secs": None}
 
   def begin(self):
     #pylint: disable=W0201
@@ -167,9 +161,10 @@ class TokensPerSecondCounter(TrainingHook):
           name="count",
           shape=[],
           dtype=tf.int32,
-          initializer=tf.constant_initializer(0, dtype=tf.int32))
-      self._tokens_processed_add = tf.assign_add(
-          self._tokens_processed_var, self._num_tokens_tensor)
+          initializer=tf.constant_initializer(
+              0, dtype=tf.int32))
+      self._tokens_processed_add = tf.assign_add(self._tokens_processed_var,
+                                                 self._num_tokens_tensor)
 
   def before_run(self, run_context):
     return tf.train.SessionRunArgs(
@@ -275,8 +270,8 @@ class TrainSampleHook(TrainingHook):
     result_str += ("=" * 100) + "\n\n"
     tf.logging.info(result_str)
     if self._sample_dir:
-      filepath = os.path.join(
-          self._sample_dir, "samples_{:06d}.txt".format(step))
+      filepath = os.path.join(self._sample_dir,
+                              "samples_{:06d}.txt".format(step))
       with gfile.GFile(filepath, "w") as file:
         file.write(result_str)
     self._timer.update_last_triggered_step(self._iter_count - 1)
@@ -307,7 +302,6 @@ class PrintModelAnalysisHook(TrainingHook):
       tf.logging.info(file.read().decode("utf-8"))
 
 
-
 class VariableRestoreHook(TrainingHook):
   """A hooks that restored variables from a given checkpoints.
 
@@ -315,16 +309,14 @@ class VariableRestoreHook(TrainingHook):
     prefix: Variables matching this prefix are restored.
     checkpoint_path: Path to the checkpoint to restore variables from.
   """
+
   def __init__(self, params, model_dir):
     super(VariableRestoreHook, self).__init__(params, model_dir)
     self._saver = None
 
   @staticmethod
   def default_params():
-    return {
-        "prefix": "",
-        "checkpoint_path": ""
-    }
+    return {"prefix": "", "checkpoint_path": ""}
 
   def begin(self):
     variables = tf.contrib.framework.get_variables(scope=self.params["prefix"])
@@ -339,9 +331,9 @@ class VariableRestoreHook(TrainingHook):
     target_names = [varname_in_checkpoint(_.op.name) for _ in variables]
     restore_map = {k: v for k, v in zip(target_names, variables)}
 
-    tf.logging.info(
-        "Restoring variables: \n%s",
-        yaml.dump({k: v.op.name for k, v in restore_map.items()}))
+    tf.logging.info("Restoring variables: \n%s",
+                    yaml.dump({k: v.op.name
+                               for k, v in restore_map.items()}))
 
     self._saver = tf.train.Saver(restore_map)
 

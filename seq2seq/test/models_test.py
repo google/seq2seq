@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 """Tests for Models
 """
 
@@ -33,7 +31,6 @@ from seq2seq.training import utils as training_utils
 from seq2seq.test import utils as test_utils
 from seq2seq.models import BasicSeq2Seq, AttentionSeq2Seq
 
-
 TEST_PARAMS = yaml.load("""
 embedding.dim: 5
 encoder.params:
@@ -51,6 +48,7 @@ decoder.params:
     cell_params:
       num_units: 4
 """)
+
 
 class EncoderDecoderTests(tf.test.TestCase):
   """Base class for EncoderDecoder tests. Tests for specific classes should
@@ -111,7 +109,8 @@ class EncoderDecoderTests(tf.test.TestCase):
     input_pipeline_ = input_pipeline.ParallelTextInputPipeline(
         params={
             "source_files": [sources_file.name],
-            "target_files": [targets_file.name]},
+            "target_files": [targets_file.name]
+        },
         mode=mode)
     input_fn = training_utils.create_input_fn(
         pipeline=input_pipeline_, batch_size=self.batch_size)
@@ -139,31 +138,26 @@ class EncoderDecoderTests(tf.test.TestCase):
     max_decode_length = model.params["target.max_seq_len"]
     expected_decode_len = np.minimum(target_len, max_decode_length)
 
-    np.testing.assert_array_equal(
-        predictions_["logits"].shape,
-        [self.batch_size, expected_decode_len - 1,
-         model.target_vocab_info.total_size])
-    np.testing.assert_array_equal(
-        predictions_["losses"].shape,
-        [self.batch_size, expected_decode_len - 1])
-    np.testing.assert_array_equal(
-        predictions_["predicted_ids"].shape,
-        [self.batch_size, expected_decode_len - 1])
+    np.testing.assert_array_equal(predictions_["logits"].shape, [
+        self.batch_size, expected_decode_len - 1,
+        model.target_vocab_info.total_size
+    ])
+    np.testing.assert_array_equal(predictions_["losses"].shape,
+                                  [self.batch_size, expected_decode_len - 1])
+    np.testing.assert_array_equal(predictions_["predicted_ids"].shape,
+                                  [self.batch_size, expected_decode_len - 1])
     self.assertFalse(np.isnan(loss_))
-
 
   def test_infer(self):
     model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.INFER)
     predictions_, = fetches_
     pred_len = predictions_["predicted_ids"].shape[1]
 
-    np.testing.assert_array_equal(
-        predictions_["logits"].shape,
-        [self.batch_size, pred_len,
-         model.target_vocab_info.total_size])
-    np.testing.assert_array_equal(
-        predictions_["predicted_ids"].shape,
-        [self.batch_size, pred_len])
+    np.testing.assert_array_equal(predictions_["logits"].shape, [
+        self.batch_size, pred_len, model.target_vocab_info.total_size
+    ])
+    np.testing.assert_array_equal(predictions_["predicted_ids"].shape,
+                                  [self.batch_size, pred_len])
 
   def test_infer_beam_search(self):
     self.batch_size = 1
@@ -175,9 +169,8 @@ class EncoderDecoderTests(tf.test.TestCase):
     pred_len = predictions_["predicted_ids"].shape[1]
 
     vocab_size = model.target_vocab_info.total_size
-    np.testing.assert_array_equal(
-        predictions_["predicted_ids"].shape,
-        [1, pred_len, beam_width])
+    np.testing.assert_array_equal(predictions_["predicted_ids"].shape,
+                                  [1, pred_len, beam_width])
     np.testing.assert_array_equal(
         predictions_["beam_search_output.beam_parent_ids"].shape,
         [1, pred_len, beam_width])
@@ -208,9 +201,7 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
         "bridge.class": "PassThroughBridge"
     })
     params_.update(params or {})
-    return BasicSeq2Seq(
-        params=params_,
-        mode=mode)
+    return BasicSeq2Seq(params=params_, mode=mode)
 
 
 class TestAttentionSeq2Seq(EncoderDecoderTests):
@@ -232,9 +223,7 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
         "vocab_target": self.vocab_file.name,
     })
     params_.update(params or {})
-    return AttentionSeq2Seq(
-        params=params_,
-        mode=mode)
+    return AttentionSeq2Seq(params=params_, mode=mode)
 
 
 if __name__ == "__main__":

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 A basic sequence decoder that performs a softmax based on the RNN state.
 """
@@ -28,10 +27,10 @@ from seq2seq.contrib.seq2seq.helper import CustomHelper
 
 
 class AttentionDecoderOutput(
-    namedtuple(
-        "DecoderOutput",
-        ["logits", "predicted_ids", "cell_output",
-         "attention_scores", "attention_context"])):
+    namedtuple("DecoderOutput", [
+        "logits", "predicted_ids", "cell_output", "attention_scores",
+        "attention_context"
+    ])):
   """Augmented decoder output that also includes the attention scores.
   """
   pass
@@ -72,15 +71,13 @@ class AttentionDecoder(RNNDecoder):
                attention_fn,
                reverse_scores_lengths=None,
                name="attention_decoder"):
-    super(AttentionDecoder, self).__init__(
-        params, mode, name)
+    super(AttentionDecoder, self).__init__(params, mode, name)
     self.vocab_size = vocab_size
     self.attention_keys = attention_keys
     self.attention_values = attention_values
     self.attention_values_length = attention_values_length
     self.attention_fn = attention_fn
     self.reverse_scores_lengths = reverse_scores_lengths
-
 
   @property
   def output_size(self):
@@ -106,7 +103,8 @@ class AttentionDecoder(RNNDecoder):
     # Concat empty attention context
     attention_context = tf.zeros([
         tf.shape(first_inputs)[0],
-        self.attention_values.get_shape().as_list()[2]])
+        self.attention_values.get_shape().as_list()[2]
+    ])
     first_inputs = tf.concat([first_inputs, attention_context], 1)
 
     return finished, first_inputs, self.initial_state
@@ -143,13 +141,17 @@ class AttentionDecoder(RNNDecoder):
 
   def _setup(self, initial_state, helper):
     self.initial_state = initial_state
+
     def att_next_inputs(time, outputs, state, sample_ids, name=None):
       """Wraps the original decoder helper function to append the attention
       context.
       """
       finished, next_inputs, next_state = helper.next_inputs(
-          time=time, outputs=outputs, state=state,
-          sample_ids=sample_ids, name=name)
+          time=time,
+          outputs=outputs,
+          state=state,
+          sample_ids=sample_ids,
+          name=name)
       next_inputs = tf.concat([next_inputs, outputs.attention_context], 1)
       return (finished, next_inputs, next_state)
 
@@ -171,9 +173,7 @@ class AttentionDecoder(RNNDecoder):
           batch_dim=0)
 
     sample_ids = self.helper.sample(
-        time=time_,
-        outputs=logits,
-        state=cell_state)
+        time=time_, outputs=logits, state=cell_state)
 
     outputs = AttentionDecoderOutput(
         logits=logits,
@@ -183,9 +183,6 @@ class AttentionDecoder(RNNDecoder):
         attention_context=attention_context)
 
     finished, next_inputs, next_state = self.helper.next_inputs(
-        time=time_,
-        outputs=outputs,
-        state=cell_state,
-        sample_ids=sample_ids)
+        time=time_, outputs=outputs, state=cell_state, sample_ids=sample_ids)
 
     return (outputs, next_state, next_inputs, finished)

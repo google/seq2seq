@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Task where both the input and output sequence are plain text.
 """
@@ -34,6 +33,7 @@ def _get_scores(predictions_dict):
   prediction_len = _get_prediction_length(predictions_dict)
   source_len = predictions_dict["features.source_len"]
   return predictions_dict["attention_scores"][:prediction_len, :source_len]
+
 
 def _create_figure(predictions_dict):
   """Creates and returns a new figure that visualizes
@@ -60,6 +60,7 @@ def _create_figure(predictions_dict):
   fig.tight_layout()
 
   return fig
+
 
 class DumpAttention(InferenceTask):
   """Defines inference for tasks where both the input and output sequences
@@ -89,10 +90,7 @@ class DumpAttention(InferenceTask):
   @staticmethod
   def default_params():
     params = {}
-    params.update({
-        "output_dir": "",
-        "dump_plots": True
-    })
+    params.update({"output_dir": "", "dump_plots": True})
     return params
 
   def begin(self):
@@ -118,8 +116,8 @@ class DumpAttention(InferenceTask):
           fetches["features.source_tokens"].astype("S"), "utf-8")
 
       if self.params["dump_plots"]:
-        output_path = os.path.join(
-            self.params["output_dir"], "{:05d}.png".format(self._idx))
+        output_path = os.path.join(self.params["output_dir"],
+                                   "{:05d}.png".format(self._idx))
         _create_figure(fetches)
         plt.savefig(output_path)
         plt.close()
@@ -128,7 +126,7 @@ class DumpAttention(InferenceTask):
       self._attention_scores_accum.append(_get_scores(fetches))
 
   def end(self, _session):
-    scores_path = os.path.join(
-        self.params["output_dir"], "attention_scores.npz")
+    scores_path = os.path.join(self.params["output_dir"],
+                               "attention_scores.npz")
     np.savez(scores_path, *self._attention_scores_accum)
     tf.logging.info("Wrote %s", scores_path)

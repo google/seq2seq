@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Task where both the input and output sequence are plain text.
 """
@@ -46,9 +45,7 @@ class DumpBeams(InferenceTask):
   @staticmethod
   def default_params():
     params = {}
-    params.update({
-        "file": "",
-    })
+    params.update({"file": "",})
     return params
 
   def before_run(self, _run_context):
@@ -70,8 +67,7 @@ class DumpBeams(InferenceTask):
           "beam_search_output.predicted_ids"])
       self._beam_accum["beam_parent_ids"].append(fetches[
           "beam_search_output.beam_parent_ids"])
-      self._beam_accum["scores"].append(fetches[
-          "beam_search_output.scores"])
+      self._beam_accum["scores"].append(fetches["beam_search_output.scores"])
       self._beam_accum["log_probs"].append(fetches[
           "beam_search_output.log_probs"])
 

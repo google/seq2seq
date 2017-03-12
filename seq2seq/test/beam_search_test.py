@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Tests for Beam Search and related functions.
 """
@@ -28,14 +27,14 @@ from seq2seq.inference import beam_search
 
 class TestGatherTree(tf.test.TestCase):
   """Tests the gather_tree function"""
+
   def test_gather_tree(self):
     predicted_ids = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     parent_ids = np.array([[0, 0, 0], [0, 1, 1], [2, 1, 2]])
     expected_result = np.array([[2, 2, 2], [6, 5, 6], [7, 8, 9]])
 
     res = beam_search.gather_tree(
-        tf.convert_to_tensor(predicted_ids),
-        tf.convert_to_tensor(parent_ids))
+        tf.convert_to_tensor(predicted_ids), tf.convert_to_tensor(parent_ids))
     with self.test_session() as sess:
       res_ = sess.run(res)
 
@@ -44,6 +43,7 @@ class TestGatherTree(tf.test.TestCase):
 
 class TestLengthNorm(tf.test.TestCase):
   """Tests the length normalization score"""
+
   def test_length_norm(self):
     #log_probs_ = np.ones([2, 3]) / 3.0
     lengths_ = np.array([[1, 2, 3], [3, 3, 3]])
@@ -78,8 +78,10 @@ class TestBeamStep(tf.test.TestCase):
   def test_step(self):
     beam_state = beam_search.BeamSearchState(
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
-        lengths=tf.constant(2, shape=[self.config.beam_width], dtype=tf.int32),
-        finished=tf.zeros([self.config.beam_width], dtype=tf.bool))
+        lengths=tf.constant(
+            2, shape=[self.config.beam_width], dtype=tf.int32),
+        finished=tf.zeros(
+            [self.config.beam_width], dtype=tf.bool))
 
     logits_ = np.full([self.config.beam_width, self.config.vocab_size], 0.0001)
     logits_[0, 2] = 1.9
@@ -105,16 +107,15 @@ class TestBeamStep(tf.test.TestCase):
     expected_log_probs[0] += log_probs_[1, 3]
     expected_log_probs[1] += log_probs_[0, 3]
     expected_log_probs[2] += log_probs_[0, 2]
-    np.testing.assert_array_equal(
-        next_state_.log_probs,
-        expected_log_probs)
-
+    np.testing.assert_array_equal(next_state_.log_probs, expected_log_probs)
 
   def test_step_with_eos(self):
     beam_state = beam_search.BeamSearchState(
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
-        lengths=tf.convert_to_tensor([2, 1, 2], dtype=tf.int32),
-        finished=tf.constant([False, True, False], dtype=tf.bool))
+        lengths=tf.convert_to_tensor(
+            [2, 1, 2], dtype=tf.int32),
+        finished=tf.constant(
+            [False, True, False], dtype=tf.bool))
 
     logits_ = np.full([self.config.beam_width, self.config.vocab_size], 0.0001)
     logits_[0, 2] = 1.1
@@ -138,16 +139,15 @@ class TestBeamStep(tf.test.TestCase):
     expected_log_probs = state_.log_probs[outputs_.beam_parent_ids]
     expected_log_probs[1] += log_probs_[0, 2]
     expected_log_probs[2] += log_probs_[2, 2]
-    np.testing.assert_array_equal(
-        next_state_.log_probs,
-        expected_log_probs)
-
+    np.testing.assert_array_equal(next_state_.log_probs, expected_log_probs)
 
   def test_step_with_new_eos(self):
     beam_state = beam_search.BeamSearchState(
         log_probs=tf.nn.log_softmax(tf.ones(self.config.beam_width)),
-        lengths=tf.constant(2, shape=[self.config.beam_width], dtype=tf.int32),
-        finished=tf.zeros([self.config.beam_width], dtype=tf.bool))
+        lengths=tf.constant(
+            2, shape=[self.config.beam_width], dtype=tf.int32),
+        finished=tf.zeros(
+            [self.config.beam_width], dtype=tf.bool))
 
     logits_ = np.full([self.config.beam_width, self.config.vocab_size], 0.0001)
     logits_[0, 0] = 1.9
@@ -173,9 +173,7 @@ class TestBeamStep(tf.test.TestCase):
     expected_log_probs[0] += log_probs_[1, 3]
     expected_log_probs[1] += log_probs_[0, 3]
     expected_log_probs[2] += log_probs_[0, 0]
-    np.testing.assert_array_equal(
-        next_state_.log_probs,
-        expected_log_probs)
+    np.testing.assert_array_equal(next_state_.log_probs, expected_log_probs)
 
 
 class TestEosMasking(tf.test.TestCase):
@@ -183,10 +181,8 @@ class TestEosMasking(tf.test.TestCase):
   """
 
   def test_eos_masking(self):
-    probs = tf.constant([
-        [-.2, -.2, -.2, -.2, -.2],
-        [-.3, -.3, -.3, 3, 0],
-        [5, 6, 0, 0, 0]])
+    probs = tf.constant([[-.2, -.2, -.2, -.2, -.2], [-.3, -.3, -.3, 3, 0],
+                         [5, 6, 0, 0, 0]])
     eos_token = 0
     previously_finished = tf.constant([0, 1, 0], dtype=tf.float32)
     masked = beam_search.mask_probs(probs, eos_token, previously_finished)

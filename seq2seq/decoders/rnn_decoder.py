@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Base class for sequence decoders.
 """
@@ -25,7 +24,7 @@ from collections import namedtuple
 
 import six
 import tensorflow as tf
-from tensorflow.python.util import nest # pylint: disable=E0611
+from tensorflow.python.util import nest  # pylint: disable=E0611
 
 from seq2seq.graph_module import GraphModule
 from seq2seq.configurable import Configurable
@@ -35,8 +34,8 @@ from seq2seq.encoders.rnn_encoder import _toggle_dropout
 from seq2seq.training import utils as training_utils
 
 
-class DecoderOutput(namedtuple(
-    "DecoderOutput", ["logits", "predicted_ids", "cell_output"])):
+class DecoderOutput(
+    namedtuple("DecoderOutput", ["logits", "predicted_ids", "cell_output"])):
   """Output of an RNN decoder.
 
   Note that we output both the logits and predictions because during
@@ -44,6 +43,7 @@ class DecoderOutput(namedtuple(
   For example, we may be sampling from the logits instead.
   """
   pass
+
 
 @six.add_metaclass(abc.ABCMeta)
 class RNNDecoder(Decoder, GraphModule, Configurable):
@@ -93,10 +93,7 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
 
   @staticmethod
   def default_params():
-    return {
-        "max_decode_length": 100,
-        "rnn_cell": _default_rnn_cell_params()
-    }
+    return {"max_decode_length": 100, "rnn_cell": _default_rnn_cell_params()}
 
   def _build(self, initial_state, helper):
     if not self.initial_state:

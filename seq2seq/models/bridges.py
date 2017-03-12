@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A collection of bridges between encoder and decoder. A bridge defines
 how encoder information are passed to the decoder.
 """
@@ -27,13 +26,15 @@ import six
 import numpy as np
 
 import tensorflow as tf
-from tensorflow.python.util import nest # pylint: disable=E0611
+from tensorflow.python.util import nest  # pylint: disable=E0611
 
 from seq2seq.configurable import Configurable
+
 
 def _total_tensor_depth(tensor):
   """Returns the size of a tensor without the first (batch) dimension"""
   return np.prod(tensor.get_shape().as_list()[1:])
+
 
 @six.add_metaclass(abc.ABCMeta)
 class Bridge(Configurable):
@@ -48,6 +49,7 @@ class Bridge(Configurable):
     decoder_state_size: An integer or tuple of integers defining the
       state size of the decoder.
   """
+
   def __init__(self, encoder_outputs, decoder_state_size, params, mode):
     Configurable.__init__(self, params, mode)
     self.encoder_outputs = encoder_outputs
@@ -95,15 +97,15 @@ class PassThroughBridge(Bridge):
   can only be used if encoder and decoder have the exact same state size, i.e.
   use the same RNN cell.
   """
+
   @staticmethod
   def default_params():
     return {}
 
   def _create(self):
-    nest.assert_same_structure(
-        self.encoder_outputs.final_state,
-        self.decoder_state_size)
-    return  self.encoder_outputs.final_state
+    nest.assert_same_structure(self.encoder_outputs.final_state,
+                               self.decoder_state_size)
+    return self.encoder_outputs.final_state
 
 
 class InitialStateBridge(Bridge):
@@ -123,14 +125,10 @@ class InitialStateBridge(Bridge):
       layer inserted between encoder and decoder. A string for a function
       name contained in `tf.nn`, e.g. "tanh".
   """
-  def __init__(
-      self,
-      encoder_outputs,
-      decoder_state_size,
-      params,
-      mode):
-    super(InitialStateBridge, self).__init__(
-        encoder_outputs, decoder_state_size, params, mode)
+
+  def __init__(self, encoder_outputs, decoder_state_size, params, mode):
+    super(InitialStateBridge, self).__init__(encoder_outputs,
+                                             decoder_state_size, params, mode)
 
     if not hasattr(encoder_outputs, self.params["bridge_input"]):
       raise ValueError("Invalid bridge_input not in encoder outputs.")
@@ -164,5 +162,4 @@ class InitialStateBridge(Bridge):
 
     # Shape back into required state size
     initial_state = tf.split(initial_state_flat, state_size_splits, axis=1)
-    return nest.pack_sequence_as(
-        self.decoder_state_size, initial_state)
+    return nest.pack_sequence_as(self.decoder_state_size, initial_state)

@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 """BLEU metric implementation.
 """
 
@@ -31,9 +29,8 @@ import numpy as np
 from six.moves import urllib
 import tensorflow as tf
 
-def moses_multi_bleu(hypotheses,
-                     references,
-                     lowercase=False):
+
+def moses_multi_bleu(hypotheses, references, lowercase=False):
   """Calculate the bleu score for hypotheses and references
   using the MOSES ulti-bleu.perl script.
 
