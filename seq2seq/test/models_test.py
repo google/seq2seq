@@ -34,6 +34,24 @@ from seq2seq.contrib.seq2seq import helper as decode_helper
 import tensorflow as tf
 import numpy as np
 
+TEST_PARAMS = {
+    "encoder.params": {
+        "rnn_cell": {
+            "dropout_input_keep_prob": 0.8,
+            "num_layers": 2,
+            "residual_connections": True,
+            "cell_class": "LSTMCell",
+            "cell_params":  {"num_units": 12},
+        }
+    },
+    "decoder.params": {
+        "rnn_cell": {
+            "num_layers": 2,
+            "cell_class": "LSTMCell",
+            "cell_params":  {"num_units": 12}
+        }
+    }
+}
 
 class EncoderDecoderTests(tf.test.TestCase):
   """Base class for EncoderDecoder tests. Tests for specific classes should
@@ -78,158 +96,6 @@ class EncoderDecoderTests(tf.test.TestCase):
         "Example", ["source", "source_len", "target", "target_len", "labels"])
     return example_(source, source_len, target, target_len, labels)
 
-  def test_forward_pass(self):
-    """Tests model forward pass by checking the shape of the outputs."""
-    ex = self._create_example()
-    helper = decode_helper.TrainingHelper(
-        inputs=tf.convert_to_tensor(ex.target, dtype=tf.float32),
-        sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
-
-    model = self.create_model(tf.contrib.learn.ModeKeys.TRAIN)
-    decoder_output, _, _ = model.encode_decode(
-        source=tf.convert_to_tensor(
-            ex.source, dtype=tf.float32),
-        source_len=tf.convert_to_tensor(
-            ex.source_len, dtype=tf.int32),
-        decode_helper=helper)
-
-    with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
-      decoder_output_ = sess.run(decoder_output)
-
-    max_decode_length = model.params["target.max_seq_len"]
-    expected_decode_len = np.minimum(ex.target_len, max_decode_length)
-
-    # Assert shapes are correct
-    np.testing.assert_array_equal(decoder_output_.logits.shape, [
-        np.max(expected_decode_len), self.batch_size,
-        model.target_vocab_info.total_size
-    ])
-    np.testing.assert_array_equal(
-        decoder_output_.predicted_ids.shape,
-        [np.max(expected_decode_len), self.batch_size])
-
-  def test_inference(self):
-    """Tests model inference by feeding dynamic inputs based on an embedding
-    """
-    model = self.create_model(tf.contrib.learn.ModeKeys.INFER)
-    ex = self._create_example()
-
-    embeddings = tf.get_variable(
-        "W_embed", [model.target_vocab_info.total_size, self.input_depth])
-
-    helper = decode_helper.GreedyEmbeddingHelper(
-        embedding=embeddings,
-        start_tokens=[0] * self.batch_size,
-        end_token=-1)
-
-    decoder_output, _, _ = model.encode_decode(
-        source=tf.convert_to_tensor(
-            ex.source, dtype=tf.float32),
-        source_len=tf.convert_to_tensor(
-            ex.source_len, dtype=tf.int32),
-        decode_helper=helper)
-
-    with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
-      decoder_output_ = sess.run(decoder_output)
-
-    # Assert shapes are correct
-    expected_decode_len = model.params["inference.max_decode_length"]
-    np.testing.assert_array_equal(decoder_output_.logits.shape, [
-        expected_decode_len, self.batch_size,
-        model.target_vocab_info.total_size
-    ])
-    np.testing.assert_array_equal(decoder_output_.predicted_ids.shape,
-                                  [expected_decode_len, self.batch_size])
-
-  def test_inference_with_beam_search(self):
-    """Tests model inference by feeding dynamic inputs based on an embedding
-      and using beam search to decode
-    """
-    self.batch_size = 1
-    beam_width = 10
-
-    ex = self._create_example()
-
-    model = self.create_model(
-        tf.contrib.learn.ModeKeys.INFER,
-        {"inference.beam_search.beam_width": beam_width})
-
-    embeddings = tf.get_variable(
-        "W_embed", [model.target_vocab_info.total_size, self.input_depth])
-
-    helper = decode_helper.GreedyEmbeddingHelper(
-        embedding=embeddings,
-        start_tokens=[0] * beam_width,
-        end_token=-1)
-
-    decoder_output, _, _ = model.encode_decode(
-        source=tf.convert_to_tensor(
-            ex.source, dtype=tf.float32),
-        source_len=tf.convert_to_tensor(
-            ex.source_len, dtype=tf.int32),
-        decode_helper=helper)
-
-    with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
-      decoder_output_ = sess.run(decoder_output)
-
-    # Assert shapes are correct
-    expected_decode_len = model.params["inference.max_decode_length"]
-    np.testing.assert_array_equal(
-        decoder_output_.predicted_ids.shape,
-        [expected_decode_len, 1, beam_width])
-    np.testing.assert_array_equal(
-        decoder_output_.beam_search_output.beam_parent_ids.shape,
-        [expected_decode_len, 1, beam_width])
-    np.testing.assert_array_equal(
-        decoder_output_.beam_search_output.scores.shape,
-        [expected_decode_len, 1, beam_width])
-    np.testing.assert_array_equal(
-        decoder_output_.beam_search_output.original_outputs.predicted_ids.shape,
-        [expected_decode_len, 1, beam_width])
-    np.testing.assert_array_equal(
-        decoder_output_.beam_search_output.original_outputs.logits.shape,
-        [expected_decode_len, 1, beam_width,
-         model.target_vocab_info.total_size])
-
-  def test_gradients(self):
-    """Ensures the parameter gradients can be computed and are not NaN
-    """
-    ex = self._create_example()
-
-    helper = decode_helper.TrainingHelper(
-        inputs=tf.convert_to_tensor(ex.target, dtype=tf.float32),
-        sequence_length=tf.convert_to_tensor(ex.target_len, dtype=tf.int32))
-
-    model = self.create_model(tf.contrib.learn.ModeKeys.TRAIN)
-    decoder_output, _, _ = model.encode_decode(
-        source=tf.convert_to_tensor(
-            ex.source, dtype=tf.float32),
-        source_len=tf.convert_to_tensor(
-            ex.source_len, dtype=tf.int32),
-        decode_helper=helper)
-
-    # Get a loss to optimize
-    losses = seq2seq_losses.cross_entropy_sequence_loss(
-        logits=decoder_output.logits,
-        targets=tf.ones_like(decoder_output.predicted_ids),
-        sequence_length=tf.convert_to_tensor(
-            ex.target_len, dtype=tf.int32))
-    mean_loss = tf.reduce_mean(losses)
-
-    optimizer = tf.train.AdamOptimizer()
-    grads_and_vars = optimizer.compute_gradients(mean_loss)
-    train_op = optimizer.apply_gradients(grads_and_vars)
-
-    with self.test_session() as sess:
-      sess.run(tf.global_variables_initializer())
-      _, grads_and_vars_ = sess.run([train_op, grads_and_vars])
-
-    for grad, _ in grads_and_vars_:
-      self.assertFalse(np.isnan(grad).any())
-
   def _test_pipeline(self, mode, params=None):
     """Helper function to test the full model pipeline.
     """
@@ -244,7 +110,10 @@ class EncoderDecoderTests(tf.test.TestCase):
     # Build model graph
     model = self.create_model(mode, params)
     input_pipeline_ = input_pipeline.ParallelTextInputPipeline(
-        [sources_file.name], [targets_file.name])
+        params={
+            "source_files": [sources_file.name],
+            "target_files": [targets_file.name]},
+        mode=mode)
     input_fn = training_utils.create_input_fn(
         pipeline=input_pipeline_, batch_size=self.batch_size)
     features, labels = input_fn()
@@ -263,7 +132,7 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     return model, fetches_
 
-  def test_pipeline_train(self):
+  def test_train(self):
     model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.TRAIN)
     predictions_, loss_, _ = fetches_
 
@@ -284,7 +153,7 @@ class EncoderDecoderTests(tf.test.TestCase):
     self.assertFalse(np.isnan(loss_))
 
 
-  def test_pipeline_inference(self):
+  def test_infer(self):
     model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.INFER)
     predictions_, = fetches_
     pred_len = predictions_["predicted_ids"].shape[1]
@@ -297,7 +166,7 @@ class EncoderDecoderTests(tf.test.TestCase):
         predictions_["predicted_ids"].shape,
         [self.batch_size, pred_len])
 
-  def test_pipeline_beam_search_infer(self):
+  def test_infer_beam_search(self):
     self.batch_size = 1
     beam_width = 10
     model, fetches_ = self._test_pipeline(
@@ -333,29 +202,14 @@ class TestBasicSeq2Seq(EncoderDecoderTests):
 
   def create_model(self, mode, params=None):
     params_ = BasicSeq2Seq.default_params().copy()
+    params_.update(TEST_PARAMS)
     params_.update({
-        "bridge.class": "PassThroughBridge",
-        "encoder.params": {
-            "rnn_cell": {
-                "dropout_input_keep_prob": 0.8,
-                "num_layers": 2,
-                "residual_connections": True,
-                "cell_class": "LSTMCell",
-                "cell_params":  {"num_units": 12},
-            }
-        },
-        "decoder.params": {
-            "rnn_cell": {
-                "num_layers": 2,
-                "cell_class": "LSTMCell",
-                "cell_params":  {"num_units": 12}
-            }
-        }
+        "vocab_source": self.vocab_file.name,
+        "vocab_target": self.vocab_file.name,
+        "bridge.class": "PassThroughBridge"
     })
     params_.update(params or {})
     return BasicSeq2Seq(
-        source_vocab_info=self.vocab_info,
-        target_vocab_info=self.vocab_info,
         params=params_,
         mode=mode)
 
@@ -372,13 +226,14 @@ class TestAttentionSeq2Seq(EncoderDecoderTests):
 
   def create_model(self, mode, params=None):
     params_ = AttentionSeq2Seq.default_params().copy()
+    params_.update(TEST_PARAMS)
     params_.update({
-        "source.reverse": True
+        "source.reverse": True,
+        "vocab_source": self.vocab_file.name,
+        "vocab_target": self.vocab_file.name,
     })
     params_.update(params or {})
     return AttentionSeq2Seq(
-        source_vocab_info=self.vocab_info,
-        target_vocab_info=self.vocab_info,
         params=params_,
         mode=mode)
 

@@ -245,7 +245,7 @@ class Seq2SeqModel(ModelBase):
           decoder_output=decoder_output,
           features=features,
           labels=labels)
-      loss = None,
+      loss = None
       train_op = None
     else:
       losses, loss = self.compute_loss(decoder_output, features, labels)
