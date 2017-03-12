@@ -38,11 +38,15 @@ class TestPrintModelAnalysisHook(tf.test.TestCase):
   """Tests the `PrintModelAnalysisHook` hook"""
 
   def test_begin(self):
+    model_dir = tempfile.mkdtemp()
     outfile = tempfile.NamedTemporaryFile()
     tf.get_variable("weigths", [128, 128])
-    hook = hooks.PrintModelAnalysisHook(filename=outfile.name)
+    hook = hooks.PrintModelAnalysisHook(params={}, model_dir=model_dir)
     hook.begin()
-    file_contents = outfile.read().strip()
+
+    with gfile.GFile(os.path.join(model_dir, "model_analysis.txt")) as file:
+      file_contents = file.read().strip()
+
     self.assertEqual(file_contents.decode(), "_TFProfRoot (--/16.38k params)\n"
                      "  weigths (128x128, 16.38k/16.38k params)")
     outfile.close()
@@ -54,7 +58,8 @@ class TestTrainSampleHook(tf.test.TestCase):
 
   def setUp(self):
     super(TestTrainSampleHook, self).setUp()
-    self.sample_dir = tempfile.mkdtemp()
+    self.model_dir = tempfile.mkdtemp()
+    self.sample_dir = os.path.join(self.model_dir, "samples")
 
     # The hook expects these collections to be in the graph
     pred_dict = {}
@@ -65,12 +70,12 @@ class TestTrainSampleHook(tf.test.TestCase):
 
   def tearDown(self):
     super(TestTrainSampleHook, self).tearDown()
-    shutil.rmtree(self.sample_dir)
+    shutil.rmtree(self.model_dir)
 
   def test_sampling(self):
     hook = hooks.TrainSampleHook(
-        every_n_steps=10,
-        sample_dir=self.sample_dir)
+        params={"every_n_steps": 10},
+        model_dir=self.model_dir)
 
     global_step = tf.contrib.framework.get_or_create_global_step()
     no_op = tf.no_op()
@@ -111,11 +116,11 @@ class TestMetadataCaptureHook(tf.test.TestCase):
 
   def setUp(self):
     super(TestMetadataCaptureHook, self).setUp()
-    self.capture_dir = tempfile.mkdtemp()
+    self.model_dir = tempfile.mkdtemp()
 
   def tearDown(self):
     super(TestMetadataCaptureHook, self).tearDown()
-    shutil.rmtree(self.capture_dir)
+    shutil.rmtree(self.model_dir)
 
   def test_capture(self):
     global_step = tf.contrib.framework.get_or_create_global_step()
@@ -123,7 +128,9 @@ class TestMetadataCaptureHook(tf.test.TestCase):
     some_weights = tf.get_variable("weigths", [2, 128])
     computation = tf.nn.softmax(some_weights)
 
-    hook = hooks.MetadataCaptureHook(step=5, output_dir=self.capture_dir)
+    hook = hooks.MetadataCaptureHook(
+        params={"step": 5},
+        model_dir=self.model_dir)
     hook.begin()
 
     with self.test_session() as sess:
@@ -133,14 +140,14 @@ class TestMetadataCaptureHook(tf.test.TestCase):
       # Should not trigger for step 0
       sess.run(tf.assign(global_step, 0))
       mon_sess.run(computation)
-      self.assertEqual(gfile.ListDirectory(self.capture_dir), [])
+      self.assertEqual(gfile.ListDirectory(self.model_dir), [])
       # Should trigger *after* step 5
       sess.run(tf.assign(global_step, 5))
       mon_sess.run(computation)
-      self.assertEqual(gfile.ListDirectory(self.capture_dir), [])
+      self.assertEqual(gfile.ListDirectory(self.model_dir), [])
       mon_sess.run(computation)
       self.assertEqual(
-          set(gfile.ListDirectory(self.capture_dir)),
+          set(gfile.ListDirectory(self.model_dir)),
           set(["run_meta", "tfprof_log", "timeline.json"]))
 
 
@@ -149,7 +156,7 @@ class TestTokenCounter(tf.test.TestCase):
 
   def setUp(self):
     super(TestTokenCounter, self).setUp()
-    self.summary_dir = tempfile.mkdtemp()
+    self.model_dir = tempfile.mkdtemp()
     graph_utils.add_dict_to_collection({
         "source_len": tf.constant([[2, 3]])
     }, "features")
@@ -159,7 +166,7 @@ class TestTokenCounter(tf.test.TestCase):
 
   def tearDown(self):
     super(TestTokenCounter, self).tearDown()
-    shutil.rmtree(self.summary_dir, ignore_errors=True)
+    shutil.rmtree(self.model_dir, ignore_errors=True)
 
   def test_counter(self):
     graph = tf.get_default_graph()
@@ -167,10 +174,12 @@ class TestTokenCounter(tf.test.TestCase):
     train_op = tf.assign_add(global_step, 1)
 
     # Create the hook we want to test
-    summary_writer = tf.contrib.testing.FakeSummaryWriter(self.summary_dir,
+    summary_writer = tf.contrib.testing.FakeSummaryWriter(self.model_dir,
                                                           graph)
     hook = hooks.TokensPerSecondCounter(
-        summary_writer=summary_writer, every_n_steps=10)
+        params={"every_n_steps": 10},
+        model_dir=self.model_dir,
+        summary_writer=summary_writer)
     hook.begin()
 
     # Run a few perations
@@ -186,7 +195,7 @@ class TestTokenCounter(tf.test.TestCase):
 
     summary_writer.assert_summaries(
         test_case=self,
-        expected_logdir=self.summary_dir,
+        expected_logdir=self.model_dir,
         expected_graph=graph,
         expected_summaries={})
     # Hook should have triggered for global step 11 and 21
