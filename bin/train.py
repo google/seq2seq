@@ -24,7 +24,7 @@ import yaml
 import tensorflow as tf
 from tensorflow.contrib.learn.python.learn import learn_runner
 from tensorflow.contrib.learn.python.learn.estimators import run_config
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
 from seq2seq import models
 from seq2seq.configurable import _maybe_load_yaml, _create_from_dict

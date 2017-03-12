@@ -22,8 +22,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
-from tensorflow.python.training.session_run_hook import SessionRunArgs
+from tensorflow import gfile
 
 from seq2seq.tasks.decode_text import _get_prediction_length
 from seq2seq.tasks.inference_task import InferenceTask, unbatch_dict
@@ -107,7 +106,7 @@ class DumpAttention(InferenceTask):
     fetches["features.source_tokens"] = self._predictions[
         "features.source_tokens"]
     fetches["attention_scores"] = self._predictions["attention_scores"]
-    return SessionRunArgs(fetches)
+    return tf.train.SessionRunArgs(fetches)
 
   def after_run(self, _run_context, run_values):
     fetches_batch = run_values.results

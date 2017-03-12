@@ -14,8 +14,7 @@
 
 """A decoder for tf.SequenceExample"""
 
-from tensorflow.python.ops import array_ops
-from tensorflow.python.ops import parsing_ops
+import tensorflow as tf
 from tensorflow.contrib.slim.python.slim.data import data_decoder
 
 class TFSEquenceExampleDecoder(data_decoder.DataDecoder):
@@ -62,7 +61,7 @@ class TFSEquenceExampleDecoder(data_decoder.DataDecoder):
     Returns:
       the decoded items, a list of tensor.
     """
-    context, sequence = parsing_ops.parse_single_sequence_example(
+    context, sequence = tf.parse_single_sequence_example(
         serialized_example, self._context_keys_to_features,
         self._sequence_keys_to_features)
 
@@ -77,8 +76,8 @@ class TFSEquenceExampleDecoder(data_decoder.DataDecoder):
 
     # Reshape non-sparse elements just once:
     for k, value in all_features.items():
-      if isinstance(value, parsing_ops.FixedLenFeature):
-        example[k] = array_ops.reshape(example[k], value.shape)
+      if isinstance(value, tf.FixedLenFeature):
+        example[k] = tf.reshape(example[k], value.shape)
 
     if not items:
       items = self._items_to_handlers.keys()

@@ -30,7 +30,7 @@ from pydoc import locate
 import json
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
 from seq2seq.contrib import rnn_cell
 

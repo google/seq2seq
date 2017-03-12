@@ -23,7 +23,7 @@ import yaml
 from six import string_types
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
 from seq2seq import tasks, models
 from seq2seq.configurable import _maybe_load_yaml, _deep_merge_dict

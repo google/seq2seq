@@ -18,7 +18,7 @@ Task where both the input and output sequence are plain text.
 
 import numpy as np
 
-from tensorflow.python.training.session_run_hook import SessionRunArgs
+import tensorflow as tf
 
 from seq2seq.tasks.inference_task import InferenceTask, unbatch_dict
 
@@ -61,7 +61,7 @@ class DumpBeams(InferenceTask):
         "beam_search_output.scores"]
     fetches["beam_search_output.log_probs"] = self._predictions[
         "beam_search_output.log_probs"]
-    return SessionRunArgs(fetches)
+    return tf.train.SessionRunArgs(fetches)
 
   def after_run(self, _run_context, run_values):
     fetches_batch = run_values.results

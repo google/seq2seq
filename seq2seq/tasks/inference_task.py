@@ -24,7 +24,6 @@ import abc
 
 import six
 import tensorflow as tf
-from tensorflow.python.training.session_run_hook import SessionRunHook
 
 from seq2seq import graph_utils
 from seq2seq.configurable import Configurable, abstractstaticmethod
@@ -38,7 +37,7 @@ def unbatch_dict(dict_):
     yield {key: value[i] for key, value in dict_.items()}
 
 @six.add_metaclass(abc.ABCMeta)
-class InferenceTask(SessionRunHook, Configurable):
+class InferenceTask(tf.train.SessionRunHook, Configurable):
   """
   Abstract base class for inference tasks. Defines the logic used to make
   predictions for a specific type of task.

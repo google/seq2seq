@@ -27,8 +27,8 @@ import shutil
 import time
 
 import tensorflow as tf
-from tensorflow.python.training import monitored_session
-from tensorflow.python.platform import gfile
+from tensorflow.python.training import monitored_session # pylint: disable=E0611
+from tensorflow import gfile
 
 from seq2seq import graph_utils
 from seq2seq.training import hooks

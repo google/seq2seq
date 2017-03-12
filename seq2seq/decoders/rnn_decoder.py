@@ -25,7 +25,7 @@ from collections import namedtuple
 
 import six
 import tensorflow as tf
-from tensorflow.python.util import nest
+from tensorflow.python.util import nest # pylint: disable=E0611
 
 from seq2seq.graph_module import GraphModule
 from seq2seq.configurable import Configurable
@@ -88,6 +88,7 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
     """Applies final transformation to the decoder output once decoding is
     finished.
     """
+    #pylint: disable=R0201
     return (outputs, final_state)
 
   @staticmethod

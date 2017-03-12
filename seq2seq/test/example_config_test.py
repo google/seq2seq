@@ -28,7 +28,7 @@ from pydoc import locate
 import yaml
 
 import tensorflow as tf
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
 from seq2seq.test.models_test import EncoderDecoderTests
 from seq2seq import models

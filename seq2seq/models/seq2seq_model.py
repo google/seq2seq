@@ -29,6 +29,39 @@ from seq2seq.decoders.beam_search_decoder import BeamSearchDecoder
 from seq2seq.inference import beam_search
 from seq2seq.models.model_base import ModelBase, _flatten_dict
 
+
+def _create_predictions(decoder_output, features, labels, losses=None):
+  """Creates the dictionary of predictions that is returned by the model.
+  """
+  predictions = {}
+
+  # Add features and, if available, labels to predictions
+  predictions.update(_flatten_dict({"features": features}))
+  if labels is not None:
+    predictions.update(_flatten_dict({"labels": labels}))
+
+  if losses is not None:
+    predictions["losses"] = _transpose_batch_time(losses)
+
+  # Decoders returns output in time-major form [T, B, ...]
+  # Here we transpose everything back to batch-major for the user
+  decoder_output_flat = _flatten_dict(decoder_output._asdict())
+  decoder_output_flat = {
+      k: _transpose_batch_time(v) for k, v in  decoder_output_flat.items()
+  }
+  predictions.update(decoder_output_flat)
+
+  # If we predict the ids also map them back into the vocab
+  if "predicted_ids" in predictions.keys():
+    vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
+    target_id_to_vocab = vocab_tables["target_id_to_vocab"]
+    predicted_tokens = target_id_to_vocab.lookup(
+        tf.to_int64(predictions["predicted_ids"]))
+    predictions["predicted_tokens"] = predicted_tokens
+
+  return predictions
+
+
 class Seq2SeqModel(ModelBase):
   """Base class for seq2seq models with embeddings
   """
@@ -96,37 +129,6 @@ class Seq2SeqModel(ModelBase):
     """Runs decoding based on the encoder outputs.
     """
     raise NotImplementedError()
-
-  def _create_predictions(self, decoder_output, features, labels, losses=None):
-    """Creates the dictionary of predictions that is returned by the model.
-    """
-    predictions = {}
-
-    # Add features and, if available, labels to predictions
-    predictions.update(_flatten_dict({"features": features}))
-    if labels is not None:
-      predictions.update(_flatten_dict({"labels": labels}))
-
-    if losses is not None:
-      predictions["losses"] = _transpose_batch_time(losses)
-
-    # Decoders returns output in time-major form [T, B, ...]
-    # Here we transpose everything back to batch-major for the user
-    decoder_output_flat = _flatten_dict(decoder_output._asdict())
-    decoder_output_flat = {
-        k: _transpose_batch_time(v) for k, v in  decoder_output_flat.items()
-    }
-    predictions.update(decoder_output_flat)
-
-    # If we predict the ids also map them back into the vocab
-    if "predicted_ids" in predictions.keys():
-      vocab_tables = graph_utils.get_dict_from_collection("vocab_tables")
-      target_id_to_vocab = vocab_tables["target_id_to_vocab"]
-      predicted_tokens = target_id_to_vocab.lookup(
-          tf.to_int64(predictions["predicted_ids"]))
-      predictions["predicted_tokens"] = predicted_tokens
-
-    return predictions
 
   def _get_beam_search_decoder(self, decoder):
     """Wraps a decoder into a Beam Search decoder.
@@ -237,6 +239,7 @@ class Seq2SeqModel(ModelBase):
     Returns a tuple `(losses, loss)`, where `losses` are the per-batch
     losses and loss is a single scalar tensor to minimize.
     """
+    #pylint: disable=R0201
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(
         logits=decoder_output.logits[:, :, :],
@@ -257,7 +260,7 @@ class Seq2SeqModel(ModelBase):
     decoder_output, _, = self.decode(encoder_output, features, labels)
 
     if self.mode == tf.contrib.learn.ModeKeys.INFER:
-      predictions = self._create_predictions(
+      predictions = _create_predictions(
           decoder_output=decoder_output,
           features=features,
           labels=labels)
@@ -270,7 +273,7 @@ class Seq2SeqModel(ModelBase):
       if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
         train_op = self._build_train_op(loss)
 
-      predictions = self._create_predictions(
+      predictions = _create_predictions(
           decoder_output=decoder_output,
           features=features,
           labels=labels,

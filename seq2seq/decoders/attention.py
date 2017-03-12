@@ -23,8 +23,7 @@ import abc
 import six
 
 import tensorflow as tf
-from tensorflow.python.framework import function
-from tensorflow.python.ops import math_ops
+from tensorflow.python.framework import function # pylint: disable=E0611
 
 from seq2seq.graph_module import GraphModule
 from seq2seq.configurable import Configurable
@@ -36,7 +35,7 @@ from seq2seq.configurable import Configurable
 def att_sum_bahdanau(v_att, keys, query):
   """Calculates a batch- and timweise dot product with a variable"""
   return tf.reduce_sum(
-      v_att * math_ops.tanh(keys + tf.expand_dims(query, 1)), [2])
+      v_att * tf.tanh(keys + tf.expand_dims(query, 1)), [2])
 
 @function.Defun(tf.float32, tf.float32, func_name="att_sum_dot", noinline=True)
 def att_sum_dot(keys, query):

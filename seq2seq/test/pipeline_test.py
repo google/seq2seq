@@ -31,7 +31,7 @@ import yaml
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.platform import gfile
+from tensorflow import gfile
 
 from seq2seq.test import utils as test_utils
 

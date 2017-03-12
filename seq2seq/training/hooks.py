@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Collection of SessionRunHooks
+""" Collection of tf.train.SessionRunHooks
 """
 
 from __future__ import absolute_import
@@ -26,23 +26,20 @@ import six
 import yaml
 
 import tensorflow as tf
-from tensorflow.python.training import training_util
-from tensorflow.python.training.session_run_hook import SessionRunHook
-from tensorflow.python.training.session_run_hook import SessionRunArgs
-from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer
-from tensorflow.python.training.summary_io import SummaryWriterCache
-from tensorflow.python.client import timeline
-from tensorflow.python.platform import gfile
+from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer # pylint: disable=E0611
+from tensorflow.python.training.summary_io import SummaryWriterCache # pylint: disable=E0611
+from tensorflow.python.client import timeline # pylint: disable=E0611
+from tensorflow import gfile
 
 from seq2seq.configurable import Configurable, abstractstaticmethod
 from seq2seq import graph_utils
 
 @six.add_metaclass(abc.ABCMeta)
-class TrainingHook(SessionRunHook, Configurable):
+class TrainingHook(tf.train.SessionRunHook, Configurable):
   """Abstract base class for training hooks.
   """
   def __init__(self, params, model_dir):
-    SessionRunHook.__init__(self)
+    tf.train.SessionRunHook.__init__(self)
     Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.TRAIN)
     self._model_dir = model_dir
 
@@ -79,15 +76,15 @@ class MetadataCaptureHook(TrainingHook):
     }
 
   def begin(self):
-    self._global_step = training_util.get_global_step()
+    self._global_step = tf.train.get_global_step()
 
   def before_run(self, _run_context):
     if not self._active:
-      return SessionRunArgs(self._global_step)
+      return tf.train.SessionRunArgs(self._global_step)
     else:
       tf.logging.info("Performing full trace on next step.")
       run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-      return SessionRunArgs(
+      return tf.train.SessionRunArgs(
           self._global_step, options=run_options)
 
   def after_run(self, _run_context, run_values):
@@ -161,7 +158,7 @@ class TokensPerSecondCounter(TrainingHook):
       self._num_tokens_tensor += tf.reduce_sum(labels["target_len"])
 
     self._tokens_last_step = 0
-    self._global_step_tensor = training_util.get_global_step()
+    self._global_step_tensor = tf.train.get_global_step()
 
     # Create a variable that stores how many tokens have been processed
     # Should be global for distributed training
@@ -175,7 +172,7 @@ class TokensPerSecondCounter(TrainingHook):
           self._tokens_processed_var, self._num_tokens_tensor)
 
   def before_run(self, run_context):
-    return SessionRunArgs(
+    return tf.train.SessionRunArgs(
         [self._global_step_tensor, self._tokens_processed_add])
 
   def after_run(self, _run_context, run_values):
@@ -234,7 +231,7 @@ class TrainSampleHook(TrainingHook):
 
   def begin(self):
     self._iter_count = 0
-    self._global_step = training_util.get_global_step()
+    self._global_step = tf.train.get_global_step()
     self._pred_dict = graph_utils.get_dict_from_collection("predictions")
     # Create the sample directory
     if self._sample_dir is not None:
@@ -248,8 +245,8 @@ class TrainSampleHook(TrainingHook):
           "target_words": self._pred_dict["labels.target_tokens"],
           "target_len": self._pred_dict["labels.target_len"]
       }
-      return SessionRunArgs([fetches, self._global_step])
-    return SessionRunArgs([{}, self._global_step])
+      return tf.train.SessionRunArgs([fetches, self._global_step])
+    return tf.train.SessionRunArgs([{}, self._global_step])
 
   def after_run(self, _run_context, run_values):
     result_dict, step = run_values.results
