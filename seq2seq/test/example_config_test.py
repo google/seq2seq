@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Test Cases for example configuration files.
 """
@@ -36,6 +35,7 @@ from seq2seq import models
 EXAMPLE_CONFIG_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../example_configs"))
 
+
 def _load_model_from_config(config_path, hparam_overrides, vocab_file, mode):
   """Loads model from a configuration file"""
   with gfile.GFile(config_path) as config_file:
@@ -48,12 +48,12 @@ def _load_model_from_config(config_path, hparam_overrides, vocab_file, mode):
   model_params["decoder.params"]["max_decode_length"] = 5
   model_params["vocab_source"] = vocab_file
   model_params["vocab_target"] = vocab_file
-  return model_cls(
-      params=model_params,
-      mode=mode)
+  return model_cls(params=model_params, mode=mode)
+
 
 class ExampleConfigTest(object):
   """Interface for configuration-based tests"""
+
   def __init__(self, *args, **kwargs):
     super(ExampleConfigTest, self).__init__(*args, **kwargs)
     self.vocab_file = None
@@ -70,20 +70,27 @@ class ExampleConfigTest(object):
         vocab_file=self.vocab_file.name,
         mode=mode)
 
+
 class TestNMTLarge(ExampleConfigTest, EncoderDecoderTests):
   """Tests nmt_large.yml"""
+
   def _config_path(self):
     return os.path.join(EXAMPLE_CONFIG_DIR, "nmt_large.yml")
 
+
 class TestNMTMedium(ExampleConfigTest, EncoderDecoderTests):
   """Tests nmt_medium.yml"""
+
   def _config_path(self):
     return os.path.join(EXAMPLE_CONFIG_DIR, "nmt_medium.yml")
 
+
 class TestNMTSmall(ExampleConfigTest, EncoderDecoderTests):
   """Tests nmt_small.yml"""
+
   def _config_path(self):
     return os.path.join(EXAMPLE_CONFIG_DIR, "nmt_small.yml")
+
 
 if __name__ == "__main__":
   tf.test.main()

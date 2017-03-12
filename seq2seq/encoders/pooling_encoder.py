@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 An encoder that pools over embeddings, as described in
 https://arxiv.org/abs/1611.02344.
@@ -45,17 +44,14 @@ def _create_position_embedding(embedding_dim, num_positions, lengths, maxlen):
     embeddings for each position. All elements past `lengths` are zero.
   """
   batch_size = tf.shape(lengths)[0]
-  embedding = tf.get_variable(
-      "position_embedding",
-      [num_positions, embedding_dim])
+  embedding = tf.get_variable("position_embedding",
+                              [num_positions, embedding_dim])
   # Create matrix of positions, mask out positions that are not
   positions = tf.tile([tf.range(maxlen)], [batch_size, 1])
   positions_embed = tf.nn.embedding_lookup(embedding, positions)
   # Mask out positions that are padded
   positions_mask = tf.sequence_mask(
-      lengths=lengths,
-      maxlen=maxlen,
-      dtype=tf.float32)
+      lengths=lengths, maxlen=maxlen, dtype=tf.float32)
   positions_embed = positions_embed * tf.expand_dims(positions_mask, 2)
   return positions_embed
 

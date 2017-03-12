@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Various testing utilities
 """
 
@@ -22,6 +21,7 @@ from __future__ import unicode_literals
 
 import tempfile
 import tensorflow as tf
+
 
 def create_temp_parallel_data(sources, targets):
   """

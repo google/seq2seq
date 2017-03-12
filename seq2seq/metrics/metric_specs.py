@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 """Collection of MetricSpecs for training and evaluation
 """
 
@@ -31,6 +29,7 @@ from tensorflow.contrib.learn import MetricSpec
 
 from seq2seq.metrics import rouge
 from seq2seq.metrics import bleu
+
 
 def accumulate_strings(values, name="strings"):
   """Accumulates strings into a vector.
@@ -51,9 +50,7 @@ def accumulate_strings(values, name="strings"):
       validate_shape=True)
   value_tensor = tf.identity(strings)
   update_op = tf.assign(
-      ref=strings,
-      value=tf.concat([strings, values], 0),
-      validate_shape=False)
+      ref=strings, value=tf.concat([strings, values], 0), validate_shape=False)
   return value_tensor, update_op
 
 
@@ -68,6 +65,7 @@ class TextMetricSpec(MetricSpec):
     eos_token: A string token used to find the end of a sequence. Hypotheses
       and references will be slcied until this token is found.
   """
+
   def __init__(self, name, separator=" ", eos_token="SEQUENCE_END"):
     # We don't call the super constructor on purpose
     #pylint: disable=W0231
@@ -113,10 +111,12 @@ class TextMetricSpec(MetricSpec):
       references = np.char.encode(references, "utf-8")
 
     # Slice all hypotheses and references up to EOS
-    sliced_hypotheses = [x.split(self.eos_token.encode("utf-8"))[0].strip()
-                         for x in hypotheses]
-    sliced_references = [x.split(self.eos_token.encode("utf-8"))[0].strip()
-                         for x in references]
+    sliced_hypotheses = [
+        x.split(self.eos_token.encode("utf-8"))[0].strip() for x in hypotheses
+    ]
+    sliced_references = [
+        x.split(self.eos_token.encode("utf-8"))[0].strip() for x in references
+    ]
 
     # Strip special "@@ " tokens used for BPE
     # See https://github.com/rsennrich/subword-nmt
@@ -126,8 +126,8 @@ class TextMetricSpec(MetricSpec):
     sliced_references = [_.replace(b"@@ ", b"") for _ in sliced_references]
 
     # Convert back to unicode object
-    sliced_hypotheses = [_.decode("utf-8") for _ in  sliced_hypotheses]
-    sliced_references = [_.decode("utf-8") for _ in  sliced_references]
+    sliced_hypotheses = [_.decode("utf-8") for _ in sliced_hypotheses]
+    sliced_references = [_.decode("utf-8") for _ in sliced_references]
 
     return self.metric_fn(sliced_hypotheses, sliced_references)
 
@@ -149,19 +149,18 @@ class TextMetricSpec(MetricSpec):
 class BleuMetricSpec(TextMetricSpec):
   """Calculates BLEU score using the Moses multi-bleu.perl script.
   """
+
   def __init__(self, separator=" ", eos_token="SEQUENCE_END"):
     super(BleuMetricSpec, self).__init__("bleu_metric", separator, eos_token)
 
   def metric_fn(self, hypotheses, references):
-    return bleu.moses_multi_bleu(
-        hypotheses,
-        references,
-        lowercase=False)
+    return bleu.moses_multi_bleu(hypotheses, references, lowercase=False)
 
 
 class RougeMetricSpec(TextMetricSpec):
   """Calculates BLEU score using the Moses multi-bleu.perl script.
   """
+
   def __init__(self, metric_name, **kwargs):
     super(RougeMetricSpec, self).__init__(metric_name, **kwargs)
     self.metric_name = metric_name
@@ -174,6 +173,7 @@ class RougeMetricSpec(TextMetricSpec):
 
 class LogPerplexityMetricSpec(MetricSpec):
   """A MetricSpec to calculate straming log perplexity"""
+
   def __init__(self):
     """Initializer"""
     # We don't call the super constructor on purpose

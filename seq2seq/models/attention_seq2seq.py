@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Sequence to Sequence model with attention
 """
@@ -39,10 +38,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     params: A dictionary of hyperparameters
   """
 
-  def __init__(self,
-               params,
-               mode,
-               name="att_seq2seq"):
+  def __init__(self, params, mode, name="att_seq2seq"):
     super(AttentionSeq2Seq, self).__init__(params, mode, name)
 
   @staticmethod
@@ -50,12 +46,14 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     params = BasicSeq2Seq.default_params().copy()
     params.update({
         "attention.class": "AttentionLayerBahdanau",
-        "attention.params": {"num_units": 128},
+        "attention.params": {
+            "num_units": 128
+        },
         "bridge.class": "seq2seq.models.bridges.ZeroBridge",
         "encoder.class": "seq2seq.encoders.BidirectionalRNNEncoder",
-        "encoder.params": {}, # Arbitrary parameters for the encoder
+        "encoder.params": {},  # Arbitrary parameters for the encoder
         "decoder.class": "seq2seq.decoders.AttentionDecoder",
-        "decoder.params": {} # Arbitrary parameters for the decoder
+        "decoder.params": {}  # Arbitrary parameters for the decoder
     })
     return params
 
@@ -63,8 +61,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     attention_class = locate(self.params["attention.class"]) or \
       getattr(decoders.attention, self.params["attention.class"])
     attention_layer = attention_class(
-        params=self.params["attention.params"],
-        mode=self.mode)
+        params=self.params["attention.params"], mode=self.mode)
 
     # If the input sequence is reversed we also need to reverse
     # the attention scores.

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Operations related to calculating sequence losses.
 """
 
@@ -37,8 +36,7 @@ def cross_entropy_sequence_loss(logits, targets, sequence_length):
   """
   with tf.name_scope("cross_entropy_sequence_loss"):
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
-        logits=logits,
-        labels=targets)
+        logits=logits, labels=targets)
 
     # Mask out the losses we don't care about
     loss_mask = tf.sequence_mask(

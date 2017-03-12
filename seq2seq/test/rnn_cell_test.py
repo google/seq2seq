@@ -12,11 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Unit tests for input-related operations.
 """
-
 
 from __future__ import absolute_import
 from __future__ import division
@@ -28,19 +26,18 @@ from seq2seq.contrib import rnn_cell
 
 import numpy as np
 
+
 class ExtendedMultiRNNCellTest(tf.test.TestCase):
   """Tests the ExtendedMultiRNNCell"""
 
   def test_without_residuals(self):
     inputs = tf.constant(np.random.randn(1, 2))
-    state = (
-        tf.constant(np.random.randn(1, 2)),
-        tf.constant(np.random.randn(1, 2)))
+    state = (tf.constant(np.random.randn(1, 2)),
+             tf.constant(np.random.randn(1, 2)))
 
     with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
       standard_cell = tf.contrib.rnn.MultiRNNCell(
-          [tf.contrib.rnn.GRUCell(2) for _ in range(2)],
-          state_is_tuple=True)
+          [tf.contrib.rnn.GRUCell(2) for _ in range(2)], state_is_tuple=True)
       res_standard = standard_cell(inputs, state, scope="standard")
 
       test_cell = rnn_cell.ExtendedMultiRNNCell(
@@ -59,14 +56,14 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
   def _test_with_residuals(self, inputs, **kwargs):
     """Runs the cell in a session"""
     inputs = tf.convert_to_tensor(inputs)
-    state = (
-        tf.constant(np.random.randn(1, 2)),
-        tf.constant(np.random.randn(1, 2)))
+    state = (tf.constant(np.random.randn(1, 2)),
+             tf.constant(np.random.randn(1, 2)))
 
     with tf.variable_scope("root", initializer=tf.constant_initializer(0.5)):
       test_cell = rnn_cell.ExtendedMultiRNNCell(
           [tf.contrib.rnn.GRUCell(2) for _ in range(2)],
-          residual_connections=True, **kwargs)
+          residual_connections=True,
+          **kwargs)
       res_test = test_cell(inputs, state, scope="test")
 
     with self.test_session() as sess:
@@ -141,6 +138,7 @@ class ExtendedMultiRNNCellTest(tf.test.TestCase):
       self.assertEqual(res_[0].shape, (1, 2 + (5 + 2) + 5))
       self.assertEqual(res_[1][0].shape, (1, 2))
       self.assertEqual(res_[1][1].shape, (1, 2))
+
 
 if __name__ == "__main__":
   tf.test.main()

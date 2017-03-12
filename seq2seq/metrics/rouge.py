@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ROUGe metric implementation.
 
 This is a modified and slightly extended verison of
@@ -26,6 +25,7 @@ import itertools
 import numpy as np
 
 #pylint: disable=C0103
+
 
 def _get_ngrams(n, text):
   """Calcualtes n-grams.
@@ -49,6 +49,7 @@ def _split_into_words(sentences):
   """Splits multiple sentences into words and flattens the result"""
   return list(itertools.chain(*[_.split(" ") for _ in sentences]))
 
+
 def _get_word_ngrams(n, sentences):
   """Calculates word n-grams for multiple sentences.
   """
@@ -57,6 +58,7 @@ def _get_word_ngrams(n, sentences):
 
   words = _split_into_words(sentences)
   return _get_ngrams(n, words)
+
 
 def _len_lcs(x, y):
   """
@@ -168,10 +170,11 @@ def rouge_n(evaluated_sentences, reference_sentences, n=2):
   else:
     precision = overlapping_count / evaluated_count
   recall = overlapping_count / reference_count
-  f1_score = 2.0 * ((precision * recall)/(precision + recall + 1e-8))
+  f1_score = 2.0 * ((precision * recall) / (precision + recall + 1e-8))
 
   # return overlapping_count / reference_count
   return f1_score, precision, recall
+
 
 def _f_lcs(llcs, m, n):
   """
@@ -323,18 +326,22 @@ def rouge(hypotheses, references):
   # hypotheses, references = zip(*hyps_and_refs)
 
   # Calculate ROUGE-1 F1, precision, recall scores
-  rouge_1 = [rouge_n([hyp], [ref], 1) for hyp, ref
-             in zip(hypotheses, references)]
+  rouge_1 = [
+      rouge_n([hyp], [ref], 1) for hyp, ref in zip(hypotheses, references)
+  ]
   rouge_1_f, rouge_1_p, rouge_1_r = map(np.mean, zip(*rouge_1))
 
   # Calculate ROUGE-2 F1, precision, recall scores
-  rouge_2 = [rouge_n([hyp], [ref], 2) for hyp, ref
-             in zip(hypotheses, references)]
+  rouge_2 = [
+      rouge_n([hyp], [ref], 2) for hyp, ref in zip(hypotheses, references)
+  ]
   rouge_2_f, rouge_2_p, rouge_2_r = map(np.mean, zip(*rouge_2))
 
   # Calculate ROUGE-L F1 scores (recal//precision TODO)
-  rouge_l_f = [rouge_l_sentence_level([hyp], [ref]) for hyp, ref
-               in zip(hypotheses, references)]
+  rouge_l_f = [
+      rouge_l_sentence_level([hyp], [ref])
+      for hyp, ref in zip(hypotheses, references)
+  ]
   rouge_l_f = np.mean(rouge_l_f)
 
   return {

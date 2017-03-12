@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Definition of a basic seq2seq model
 """
@@ -42,10 +41,7 @@ class BasicSeq2Seq(Seq2SeqModel):
     params: A dictionary of hyperparameters
   """
 
-  def __init__(self,
-               params,
-               mode,
-               name="basic_seq2seq"):
+  def __init__(self, params, mode, name="basic_seq2seq"):
     super(BasicSeq2Seq, self).__init__(params, mode, name)
     self.encoder_class = locate(self.params["encoder.class"])
     self.decoder_class = locate(self.params["decoder.class"])
@@ -57,9 +53,9 @@ class BasicSeq2Seq(Seq2SeqModel):
         "bridge.class": "seq2seq.models.bridges.InitialStateBridge",
         "bridge.params": {},
         "encoder.class": "seq2seq.encoders.UnidirectionalRNNEncoder",
-        "encoder.params": {}, # Arbitrary parameters for the encoder
+        "encoder.params": {},  # Arbitrary parameters for the encoder
         "decoder.class": "seq2seq.decoders.BasicDecoder",
-        "decoder.params": {} # Arbitrary parameters for the decoder
+        "decoder.params": {}  # Arbitrary parameters for the decoder
     })
     return params
 
@@ -82,8 +78,8 @@ class BasicSeq2Seq(Seq2SeqModel):
 
   def _decode_train(self, decoder, bridge, _encoder_output, _features, labels):
     """Runs decoding in training mode"""
-    target_embedded = tf.nn.embedding_lookup(
-        self.target_embedding, labels["target_ids"])
+    target_embedded = tf.nn.embedding_lookup(self.target_embedding,
+                                             labels["target_ids"])
     helper_train = tf_decode_helper.TrainingHelper(
         inputs=target_embedded[:, :-1],
         sequence_length=labels["target_len"] - 1)
@@ -106,8 +102,8 @@ class BasicSeq2Seq(Seq2SeqModel):
 
   @templatemethod("encode")
   def encode(self, features, labels):
-    source_embedded = tf.nn.embedding_lookup(
-        self.source_embedding, features["source_ids"])
+    source_embedded = tf.nn.embedding_lookup(self.source_embedding,
+                                             features["source_ids"])
     encoder_fn = self.encoder_class(self.params["encoder.params"], self.mode)
     return encoder_fn(source_embedded, features["source_len"])
 
@@ -121,8 +117,8 @@ class BasicSeq2Seq(Seq2SeqModel):
         encoder_outputs=encoder_output,
         decoder_state_size=decoder.cell.state_size)
     if self.mode == tf.contrib.learn.ModeKeys.INFER:
-      return self._decode_infer(
-          decoder, bridge, encoder_output, features, labels)
+      return self._decode_infer(decoder, bridge, encoder_output, features,
+                                labels)
     else:
-      return self._decode_train(
-          decoder, bridge, encoder_output, features, labels)
+      return self._decode_train(decoder, bridge, encoder_output, features,
+                                labels)

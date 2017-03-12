@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Abstract base class for inference tasks.
 """
@@ -28,6 +27,7 @@ import tensorflow as tf
 from seq2seq import graph_utils
 from seq2seq.configurable import Configurable, abstractstaticmethod
 
+
 def unbatch_dict(dict_):
   """Converts a dictionary of batch items to a batch/list of
   dictionary items.
@@ -35,6 +35,7 @@ def unbatch_dict(dict_):
   batch_size = list(dict_.values())[0].shape[0]
   for i in range(batch_size):
     yield {key: value[i] for key, value in dict_.items()}
+
 
 @six.add_metaclass(abc.ABCMeta)
 class InferenceTask(tf.train.SessionRunHook, Configurable):
@@ -51,6 +52,7 @@ class InferenceTask(tf.train.SessionRunHook, Configurable):
   Args:
     params: See Params above.
   """
+
   def __init__(self, params):
     Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.INFER)
     self._predictions = None

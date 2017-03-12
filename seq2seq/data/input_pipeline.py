@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Collection of input pipelines.
 
@@ -34,6 +33,7 @@ from tensorflow.contrib.slim.python.slim.data import tfexample_decoder
 from seq2seq.configurable import Configurable
 from seq2seq.data import split_tokens_decoder, parallel_data_provider
 from seq2seq.data.sequence_example_decoder import TFSEquenceExampleDecoder
+
 
 def make_input_pipeline_from_def(def_dict, mode, **kwargs):
   """Creates an InputPipeline object from a dictionary definition.
@@ -76,6 +76,7 @@ class InputPipeline(Configurable):
     num_epochs: Number of times to iterate through the dataset. If None,
       iterate forever.
   """
+
   def __init__(self, params, mode):
     Configurable.__init__(self, params, mode)
 
@@ -171,7 +172,8 @@ class ParallelTextInputPipeline(InputPipeline):
           items_to_descriptions={})
 
     return parallel_data_provider.ParallelDataProvider(
-        dataset1=dataset_source, dataset2=dataset_target,
+        dataset1=dataset_source,
+        dataset2=dataset_target,
         shuffle=self.params["shuffle"],
         num_epochs=self.params["num_epochs"],
         **kwargs)
@@ -250,8 +252,8 @@ class TFRecordInputPipeline(InputPipeline):
         func=lambda dict: splitter_target.decode(
             dict[self.params["target_field"]], ["target_len"])[0])
 
-    decoder = tfexample_decoder.TFExampleDecoder(
-        keys_to_features, items_to_handlers)
+    decoder = tfexample_decoder.TFExampleDecoder(keys_to_features,
+                                                 items_to_handlers)
 
     dataset = tf.contrib.slim.dataset.Dataset(
         data_sources=self.params["files"],
@@ -304,7 +306,8 @@ class ImageCaptioningInputPipeline(InputPipeline):
   def make_data_provider(self, **kwargs):
 
     context_keys_to_features = {
-        self.params["image_field"]: tf.FixedLenFeature([], dtype=tf.string),
+        self.params["image_field"]: tf.FixedLenFeature(
+            [], dtype=tf.string),
         "image/format": tf.FixedLenFeature(
             [], dtype=tf.string, default_value=self.params["image_format"]),
     }
@@ -321,14 +324,13 @@ class ImageCaptioningInputPipeline(InputPipeline):
             image_key=self.params["image_field"],
             format_key="image/format",
             channels=3),
-        "target_ids": tfexample_decoder.Tensor(
-            self.params["caption_ids_field"]),
-        "target_tokens": tfexample_decoder.Tensor(
-            self.params["caption_tokens_field"]),
+        "target_ids":
+        tfexample_decoder.Tensor(self.params["caption_ids_field"]),
+        "target_tokens":
+        tfexample_decoder.Tensor(self.params["caption_tokens_field"]),
         "target_len": tfexample_decoder.ItemHandlerCallback(
             keys=[self.params["caption_tokens_field"]],
-            func=lambda dict: tf.size(
-                dict[self.params["caption_tokens_field"]]))
+            func=lambda x: tf.size(x[self.params["caption_tokens_field"]]))
     }
 
     decoder = TFSEquenceExampleDecoder(

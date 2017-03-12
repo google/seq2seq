@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Test Cases for decoders.
 """
@@ -92,8 +91,7 @@ class DecoderTests(object):
     decoder_output, _ = decoder_fn(initial_state, helper)
 
     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
-        logits=decoder_output.logits,
-        labels=labels)
+        logits=decoder_output.logits, labels=labels)
     optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
     grads_and_vars = optimizer.compute_gradients(tf.reduce_mean(losses))
 
@@ -111,9 +109,7 @@ class DecoderTests(object):
     embeddings = tf.get_variable("W_embed", [self.vocab_size, self.input_depth])
 
     helper = decode_helper.GreedyEmbeddingHelper(
-        embedding=embeddings,
-        start_tokens=[0] * self.batch_size,
-        end_token=-1)
+        embedding=embeddings, start_tokens=[0] * self.batch_size, end_token=-1)
     decoder_fn = self.create_decoder(
         helper=helper, mode=tf.contrib.learn.ModeKeys.INFER)
     initial_state = decoder_fn.cell.zero_state(
@@ -130,7 +126,6 @@ class DecoderTests(object):
         [self.max_decode_length, self.batch_size, self.vocab_size])
     np.testing.assert_array_equal(decoder_output_.predicted_ids.shape,
                                   [self.max_decode_length, self.batch_size])
-
 
   def test_with_beam_search(self):
     self.batch_size = 1
@@ -194,13 +189,9 @@ class BasicDecoderTest(tf.test.TestCase, DecoderTests):
   def create_decoder(self, helper, mode):
     params = BasicDecoder.default_params()
     params["max_decode_length"] = self.max_decode_length
-    decoder = BasicDecoder(
-        params=params,
-        mode=mode,
-        vocab_size=self.vocab_size)
+    decoder = BasicDecoder(params=params, mode=mode, vocab_size=self.vocab_size)
 
     return decoder
-
 
 
 class AttentionDecoderTest(tf.test.TestCase, DecoderTests):

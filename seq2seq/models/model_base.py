@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Base class for models"""
 
 from __future__ import absolute_import
@@ -23,6 +22,7 @@ import tensorflow as tf
 
 from seq2seq.configurable import Configurable
 from seq2seq.training import utils as training_utils
+
 
 def _flatten_dict(dict_, parent_key="", sep="."):
   """Flattens a nested dictionary. Namedtuples within

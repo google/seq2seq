@@ -114,13 +114,13 @@ class CustomHelper(Helper):
     return (finished, next_inputs)
 
   def sample(self, time, outputs, state, name=None):
-    with ops.name_scope(
-        name, "%sSample" % type(self).__name__, (time, outputs, state)):
+    with ops.name_scope(name, "%sSample" % type(self).__name__,
+                        (time, outputs, state)):
       return self._sample_fn(time=time, outputs=outputs, state=state)
 
   def next_inputs(self, time, outputs, state, sample_ids, name=None):
-    with ops.name_scope(
-        name, "%sNextInputs" % type(self).__name__, (time, outputs, state)):
+    with ops.name_scope(name, "%sNextInputs" % type(self).__name__,
+                        (time, outputs, state)):
       return self._next_inputs_fn(
           time=time, outputs=outputs, state=state, sample_ids=sample_ids)
 
@@ -151,7 +151,8 @@ class TrainingHelper(Helper):
 
       def _unstack_ta(inp):
         return tensor_array_ops.TensorArray(
-            dtype=inp.dtype, size=array_ops.shape(inp)[0],
+            dtype=inp.dtype,
+            size=array_ops.shape(inp)[0],
             element_shape=inp.get_shape()[1:]).unstack(inp)
 
       self._input_tas = nest.map_structure(_unstack_ta, inputs)
@@ -183,7 +184,8 @@ class TrainingHelper(Helper):
   def sample(self, time, outputs, name=None, **unused_kwargs):
     with ops.name_scope(name, "TrainingHelperSample", [time, outputs]):
       sample_ids = math_ops.cast(
-          math_ops.argmax(outputs, axis=-1), dtypes.int32)
+          math_ops.argmax(
+              outputs, axis=-1), dtypes.int32)
       return sample_ids
 
   def next_inputs(self, time, outputs, state, name=None, **unused_kwargs):
@@ -193,8 +195,10 @@ class TrainingHelper(Helper):
       next_time = time + 1
       finished = (next_time >= self._sequence_length)
       all_finished = math_ops.reduce_all(finished)
+
       def read_from_ta(inp):
         return inp.read(next_time)
+
       next_inputs = control_flow_ops.cond(
           all_finished, lambda: self._zero_inputs,
           lambda: nest.map_structure(read_from_ta, self._input_tas))
@@ -208,8 +212,15 @@ class ScheduledEmbeddingTrainingHelper(TrainingHelper):
   values elsewhere.
   """
 
-  def __init__(self, inputs, sequence_length, embedding, sampling_probability,
-               time_major=False, seed=None, scheduling_seed=None, name=None):
+  def __init__(self,
+               inputs,
+               sequence_length,
+               embedding,
+               sampling_probability,
+               time_major=False,
+               seed=None,
+               scheduling_seed=None,
+               name=None):
     """Initializer.
 
     Args:
@@ -286,16 +297,17 @@ class ScheduledEmbeddingTrainingHelper(TrainingHelper):
         where_sampling_flat = array_ops.reshape(where_sampling, [-1])
         where_not_sampling_flat = array_ops.reshape(where_not_sampling, [-1])
         sample_ids_sampling = array_ops.gather(sample_ids, where_sampling_flat)
-        inputs_not_sampling = array_ops.gather(
-            base_next_inputs, where_not_sampling_flat)
+        inputs_not_sampling = array_ops.gather(base_next_inputs,
+                                               where_not_sampling_flat)
         sampled_next_inputs = self._embedding_fn(sample_ids_sampling)
         base_shape = array_ops.shape(base_next_inputs)
-        return (array_ops.scatter_nd(indices=where_sampling,
-                                     updates=sampled_next_inputs,
-                                     shape=base_shape)
-                + array_ops.scatter_nd(indices=where_not_sampling,
-                                       updates=inputs_not_sampling,
-                                       shape=base_shape))
+        return (array_ops.scatter_nd(
+            indices=where_sampling,
+            updates=sampled_next_inputs,
+            shape=base_shape) + array_ops.scatter_nd(
+                indices=where_not_sampling,
+                updates=inputs_not_sampling,
+                shape=base_shape))
 
       all_finished = math_ops.reduce_all(finished)
       next_inputs = control_flow_ops.cond(
@@ -354,8 +366,7 @@ class GreedyEmbeddingHelper(Helper):
     if not isinstance(outputs, ops.Tensor):
       raise TypeError("Expected outputs to be a single Tensor, got: %s" %
                       outputs)
-    sample_ids = math_ops.cast(
-        math_ops.argmax(outputs, axis=-1), dtypes.int32)
+    sample_ids = math_ops.cast(math_ops.argmax(outputs, axis=-1), dtypes.int32)
     return sample_ids
 
   def next_inputs(self, time, outputs, state, sample_ids, name=None):

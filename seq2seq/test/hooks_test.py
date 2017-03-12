@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests for SessionRunHooks.
 """
 
@@ -27,7 +26,7 @@ import shutil
 import time
 
 import tensorflow as tf
-from tensorflow.python.training import monitored_session # pylint: disable=E0611
+from tensorflow.python.training import monitored_session  # pylint: disable=E0611
 from tensorflow import gfile
 
 from seq2seq import graph_utils
@@ -74,8 +73,7 @@ class TestTrainSampleHook(tf.test.TestCase):
 
   def test_sampling(self):
     hook = hooks.TrainSampleHook(
-        params={"every_n_steps": 10},
-        model_dir=self.model_dir)
+        params={"every_n_steps": 10}, model_dir=self.model_dir)
 
     global_step = tf.contrib.framework.get_or_create_global_step()
     no_op = tf.no_op()
@@ -129,8 +127,7 @@ class TestMetadataCaptureHook(tf.test.TestCase):
     computation = tf.nn.softmax(some_weights)
 
     hook = hooks.MetadataCaptureHook(
-        params={"step": 5},
-        model_dir=self.model_dir)
+        params={"step": 5}, model_dir=self.model_dir)
     hook.begin()
 
     with self.test_session() as sess:
@@ -174,8 +171,7 @@ class TestTokenCounter(tf.test.TestCase):
     train_op = tf.assign_add(global_step, 1)
 
     # Create the hook we want to test
-    summary_writer = tf.contrib.testing.FakeSummaryWriter(self.model_dir,
-                                                          graph)
+    summary_writer = tf.contrib.testing.FakeSummaryWriter(self.model_dir, graph)
     hook = hooks.TokensPerSecondCounter(
         params={"every_n_steps": 10},
         model_dir=self.model_dir,
@@ -186,8 +182,7 @@ class TestTokenCounter(tf.test.TestCase):
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       #pylint: disable=W0212
-      mon_sess = monitored_session._HookedSession(
-          sess, [hook])
+      mon_sess = monitored_session._HookedSession(sess, [hook])
       for _ in range(30):
         time.sleep(0.01)
         mon_sess.run(train_op)

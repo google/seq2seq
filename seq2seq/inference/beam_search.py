@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """In-Graph Beam Search Implementation.
 """
 
@@ -23,12 +22,11 @@ from collections import namedtuple
 import numpy as np
 
 import tensorflow as tf
-from tensorflow.python.util import nest # pylint: disable=E0611
+from tensorflow.python.util import nest  # pylint: disable=E0611
+
 
 class BeamSearchState(
-    namedtuple("BeamSearchState", [
-        "log_probs", "finished", "lengths"
-    ])):
+    namedtuple("BeamSearchState", ["log_probs", "finished", "lengths"])):
   """State for a single step of beam search.
 
   Args:
@@ -38,10 +36,10 @@ class BeamSearchState(
   """
   pass
 
+
 class BeamSearchStepOutput(
-    namedtuple("BeamSearchStepOutput", [
-        "scores", "predicted_ids", "beam_parent_ids"
-    ])):
+    namedtuple("BeamSearchStepOutput",
+               ["scores", "predicted_ids", "beam_parent_ids"])):
   """Outputs for a single step of beam search.
 
   Args:
@@ -52,12 +50,10 @@ class BeamSearchStepOutput(
   """
   pass
 
+
 class BeamSearchConfig(
     namedtuple("BeamSearchConfig", [
-        "beam_width",
-        "vocab_size",
-        "eos_token",
-        "length_penalty_weight",
+        "beam_width", "vocab_size", "eos_token", "length_penalty_weight",
         "choose_successors_fn"
     ])):
   """Configuration object for beam search.
@@ -92,9 +88,7 @@ def gather_tree_py(values, parents):
 def gather_tree(values, parents):
   """Tensor version of gather_tree_py"""
   res = tf.py_func(
-      func=gather_tree_py,
-      inp=[values, parents],
-      Tout=values.dtype)
+      func=gather_tree_py, inp=[values, parents], Tout=values.dtype)
   res.set_shape(values.get_shape().as_list())
   return res
 
@@ -111,8 +105,10 @@ def create_initial_beam_state(config):
   """
   return BeamSearchState(
       log_probs=tf.zeros([config.beam_width]),
-      finished=tf.zeros([config.beam_width], dtype=tf.bool),
-      lengths=tf.zeros([config.beam_width], dtype=tf.int32))
+      finished=tf.zeros(
+          [config.beam_width], dtype=tf.bool),
+      lengths=tf.zeros(
+          [config.beam_width], dtype=tf.int32))
 
 
 def length_penalty(sequence_lengths, penalty_factor):
@@ -127,9 +123,8 @@ def length_penalty(sequence_lengths, penalty_factor):
   Returns:
     The length penalty factor, a tensor fo shape [beam_size].
    """
-  return tf.div(
-      (5. + tf.to_float(sequence_lengths))**penalty_factor,
-      (5. + 1.)**penalty_factor)
+  return tf.div((5. + tf.to_float(sequence_lengths))**penalty_factor, (5. + 1.)
+                **penalty_factor)
 
 
 def hyp_score(log_probs, sequence_lengths, config):
@@ -141,7 +136,7 @@ def hyp_score(log_probs, sequence_lengths, config):
       sequence_lengths=sequence_lengths,
       penalty_factor=config.length_penalty_weight)
 
-  score = log_probs/length_penality_
+  score = log_probs / length_penality_
   return score
 
 
@@ -226,12 +221,12 @@ def beam_search_step(time_, logits, beam_state, config):
   # Calculate the continuation lengths
   # We add 1 to all continuations that are not EOS and were not
   # finished previously
-  lengths_to_add = tf.one_hot(
-      [config.eos_token] * config.beam_width, config.vocab_size, 0, 1)
+  lengths_to_add = tf.one_hot([config.eos_token] * config.beam_width,
+                              config.vocab_size, 0, 1)
   add_mask = (1 - tf.to_int32(previously_finished))
   lengths_to_add = tf.expand_dims(add_mask, 1) * lengths_to_add
-  new_prediction_lengths = tf.expand_dims(
-      prediction_lengths, 1) + lengths_to_add
+  new_prediction_lengths = tf.expand_dims(prediction_lengths,
+                                          1) + lengths_to_add
 
   # Calculate the scores for each beam
   scores = hyp_score(
@@ -242,13 +237,11 @@ def beam_search_step(time_, logits, beam_state, config):
   scores_flat = tf.reshape(scores, [-1])
   # During the first time step we only consider the initial beam
   scores_flat = tf.cond(
-      tf.convert_to_tensor(time_) > 0,
-      lambda: scores_flat,
-      lambda: scores[0])
+      tf.convert_to_tensor(time_) > 0, lambda: scores_flat, lambda: scores[0])
 
   # Pick the next beams according to the specified successors function
-  next_beam_scores, word_indices = config.choose_successors_fn(
-      scores_flat, config)
+  next_beam_scores, word_indices = config.choose_successors_fn(scores_flat,
+                                                               config)
   next_beam_scores.set_shape([config.beam_width])
   word_indices.set_shape([config.beam_width])
 

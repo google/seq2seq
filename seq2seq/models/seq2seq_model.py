@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Base class for models"""
 
 from __future__ import absolute_import
@@ -47,7 +46,8 @@ def _create_predictions(decoder_output, features, labels, losses=None):
   # Here we transpose everything back to batch-major for the user
   decoder_output_flat = _flatten_dict(decoder_output._asdict())
   decoder_output_flat = {
-      k: _transpose_batch_time(v) for k, v in  decoder_output_flat.items()
+      k: _transpose_batch_time(v)
+      for k, v in decoder_output_flat.items()
   }
   predictions.update(decoder_output_flat)
 
@@ -187,10 +187,10 @@ class Seq2SeqModel(ModelBase):
 
     # Slice source to max_len
     if self.params["source.max_seq_len"] is not None:
-      features["source_tokens"] = features[
-          "source_tokens"][:, :self.params["source.max_seq_len"]]
-      features["source_len"] = tf.minimum(
-          features["source_len"], self.params["source.max_seq_len"])
+      features["source_tokens"] = features["source_tokens"][:, :self.params[
+          "source.max_seq_len"]]
+      features["source_len"] = tf.minimum(features["source_len"],
+                                          self.params["source.max_seq_len"])
 
     # Look up the source ids in the vocabulary
     features["source_ids"] = source_vocab_to_id.lookup(features[
@@ -215,10 +215,10 @@ class Seq2SeqModel(ModelBase):
 
     # Slices targets to max length
     if self.params["target.max_seq_len"] is not None:
-      labels["target_tokens"] = labels[
-          "target_tokens"][:, :self.params["target.max_seq_len"]]
-      labels["target_len"] = tf.minimum(
-          labels["target_len"], self.params["target.max_seq_len"])
+      labels["target_tokens"] = labels["target_tokens"][:, :self.params[
+          "target.max_seq_len"]]
+      labels["target_len"] = tf.minimum(labels["target_len"],
+                                        self.params["target.max_seq_len"])
 
     # Look up the target ids in the vocabulary
     labels["target_ids"] = target_vocab_to_id.lookup(labels["target_tokens"])
@@ -261,9 +261,7 @@ class Seq2SeqModel(ModelBase):
 
     if self.mode == tf.contrib.learn.ModeKeys.INFER:
       predictions = _create_predictions(
-          decoder_output=decoder_output,
-          features=features,
-          labels=labels)
+          decoder_output=decoder_output, features=features, labels=labels)
       loss = None
       train_op = None
     else:

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Unit tests for attention functions.
 """
@@ -66,12 +65,10 @@ class AttentionLayerTest(tf.test.TestCase):
       feed_dict[inputs_length_pl] = np.arange(self.batch_size) + 1
       scores_, context_ = sess.run([scores, context], feed_dict)
 
-    np.testing.assert_array_equal(
-        scores_.shape,
-        [self.batch_size, self.seq_len])
-    np.testing.assert_array_equal(
-        context_.shape,
-        [self.batch_size, self.input_dim])
+    np.testing.assert_array_equal(scores_.shape,
+                                  [self.batch_size, self.seq_len])
+    np.testing.assert_array_equal(context_.shape,
+                                  [self.batch_size, self.input_dim])
 
     for idx, batch in enumerate(scores_, 1):
       # All scores that are padded should be zero
@@ -84,6 +81,7 @@ class AttentionLayerTest(tf.test.TestCase):
 
 class AttentionLayerDotTest(AttentionLayerTest):
   """Tests the AttentionLayerDot class"""
+
   def _create_layer(self):
     return AttentionLayerDot(
         params={"num_units": self.attention_dim},
@@ -95,6 +93,7 @@ class AttentionLayerDotTest(AttentionLayerTest):
 
 class AttentionLayerBahdanauTest(AttentionLayerTest):
   """Tests the AttentionLayerBahdanau class"""
+
   def _create_layer(self):
     return AttentionLayerBahdanau(
         params={"num_units": self.attention_dim},

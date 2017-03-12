@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Abstract base class for objects that are configurable using
 a parameters dictionary.
@@ -30,25 +29,30 @@ import yaml
 
 import tensorflow as tf
 
-class abstractstaticmethod(staticmethod): #pylint: disable=C0111,C0103
+
+class abstractstaticmethod(staticmethod):  #pylint: disable=C0111,C0103
   """Decorates a method as abstract and static"""
   __slots__ = ()
+
   def __init__(self, function):
     super(abstractstaticmethod, self).__init__(function)
     function.__isabstractmethod__ = True
+
   __isabstractmethod__ = True
+
 
 def _create_from_dict(dict_, default_module, *args, **kwargs):
   """Creates a configurable class from a dictionary. The dictionary must have
   "class" and "params" properties. The class can be either fully qualified, or
   it is looked up in the modules passed via `default_module`.
   """
-  class_ = locate(dict_["class"]) or  getattr(default_module, dict_["class"])
+  class_ = locate(dict_["class"]) or getattr(default_module, dict_["class"])
   params = {}
   if "params" in dict_:
     params = dict_["params"]
   instance = class_(params, *args, **kwargs)
   return instance
+
 
 def _maybe_load_yaml(item):
   """Parses `item` only if it is a string. If `item` is a dictionary
@@ -61,6 +65,7 @@ def _maybe_load_yaml(item):
   else:
     raise ValueError("Got {}, expected YAML string or dict", type(item))
 
+
 def _deep_merge_dict(dict_x, dict_y, path=None):
   """Recursively merges dict_y into dict_x.
   """
@@ -70,12 +75,13 @@ def _deep_merge_dict(dict_x, dict_y, path=None):
       if isinstance(dict_x[key], dict) and isinstance(dict_y[key], dict):
         _deep_merge_dict(dict_x[key], dict_y[key], path + [str(key)])
       elif dict_x[key] == dict_y[key]:
-        pass # same leaf value
+        pass  # same leaf value
       else:
         raise Exception("Conflict at {}".format(".".join(path + [str(key)])))
     else:
       dict_x[key] = dict_y[key]
   return dict_x
+
 
 def _parse_params(params, default_params):
   """Parses parameter values to the types defined by the default parameters.
@@ -114,6 +120,7 @@ class Configurable(object):
     params: A dictionary of parameters.
     mode: A value in tf.contrib.learn.ModeKeys
   """
+
   def __init__(self, params, mode):
     self._params = _parse_params(params, self.default_params())
     self._mode = mode
