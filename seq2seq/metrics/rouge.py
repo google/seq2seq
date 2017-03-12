@@ -119,6 +119,7 @@ def _recon_lcs(x, y):
   table = _lcs(x, y)
 
   def _recon(i, j):
+    """private recon calculation"""
     if i == 0 or j == 0:
       return []
     elif x[i - 1] == y[j - 1]:

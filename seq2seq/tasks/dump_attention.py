@@ -16,7 +16,6 @@
 Task where both the input and output sequence are plain text.
 """
 
-import functools
 import os
 
 import numpy as np
@@ -24,12 +23,10 @@ from matplotlib import pyplot as plt
 
 import tensorflow as tf
 from tensorflow.python.platform import gfile
-from tensorflow.python.training.session_run_hook import SessionRunHook
 from tensorflow.python.training.session_run_hook import SessionRunArgs
 
 from seq2seq.tasks.decode_text import _get_prediction_length
 from seq2seq.tasks.inference_task import InferenceTask, unbatch_dict
-from seq2seq.training import hooks
 
 
 def _get_scores(predictions_dict):

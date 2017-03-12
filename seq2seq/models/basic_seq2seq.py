@@ -74,12 +74,14 @@ class BasicSeq2Seq(Seq2SeqModel):
         mode=self.mode)
 
   def _create_decoder(self, _encoder_output, _features, _labels):
+    """Creates a decoder instance based on the passed parameters."""
     return self.decoder_class(
         params=self.params["decoder.params"],
         mode=self.mode,
         vocab_size=self.target_vocab_info.total_size)
 
   def _decode_train(self, decoder, bridge, _encoder_output, _features, labels):
+    """Runs decoding in training mode"""
     target_embedded = tf.nn.embedding_lookup(
         self.target_embedding, labels["target_ids"])
     helper_train = tf_decode_helper.TrainingHelper(
@@ -89,6 +91,7 @@ class BasicSeq2Seq(Seq2SeqModel):
     return decoder(decoder_initial_state, helper_train)
 
   def _decode_infer(self, decoder, bridge, _encoder_output, features, labels):
+    """Runs decoding in inference mode"""
     batch_size = self.batch_size(features, labels)
     if self.use_beam_search:
       batch_size = self.params["inference.beam_search.beam_width"]

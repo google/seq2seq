@@ -59,7 +59,7 @@ class AttentionSeq2Seq(BasicSeq2Seq):
     })
     return params
 
-  def _create_decoder(self, encoder_output, features, labels):
+  def _create_decoder(self, encoder_output, features, _labels):
     attention_class = locate(self.params["attention.class"]) or \
       getattr(decoders.attention, self.params["attention.class"])
     attention_layer = attention_class(

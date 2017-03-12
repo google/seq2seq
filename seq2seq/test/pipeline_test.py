@@ -79,13 +79,6 @@ class PipelineTest(tf.test.TestCase):
     tf.app.flags.FLAGS.output_dir = self.output_dir
     tf.app.flags.FLAGS.metrics = yaml.dump([
         "log_perplexity", "bleu", "rouge_1/f_score", "rouge_l/f_score"])
-
-    """
-      log_perplexity,bleu,rouge_1/f_score,rouge_l/f_score"""
-    # tf.app.flags.FLAGS.train_source = sources_train.name
-    # tf.app.flags.FLAGS.train_target = targets_train.name
-    # tf.app.flags.FLAGS.vocab_source = vocab_source.name
-    # tf.app.flags.FLAGS.vocab_target = vocab_target.name
     tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
     tf.app.flags.FLAGS.model_params = """
     attention.params:

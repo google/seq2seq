@@ -74,7 +74,7 @@ class EncoderDecoderTests(tf.test.TestCase):
   def tearDown(self):
     self.vocab_file.close()
 
-  def create_model(self, mode, _params=None):
+  def create_model(self, _mode, _params=None):
     """Creates model class to be tested. Subclasses must implement this method.
     """
     self.skipTest("Base module should not be tested.")

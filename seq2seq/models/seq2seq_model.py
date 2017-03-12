@@ -62,17 +62,24 @@ class Seq2SeqModel(ModelBase):
     return params
 
   def batch_size(self, features, labels):
+    """Returns the batch size of the curren batch based on the passed
+    features.
+    """
     return tf.shape(features["source_ids"])[0]
 
   @property
   @templatemethod("source_embedding")
   def source_embedding(self):
+    """Returns the embedding used for the source sequence.
+    """
     return tf.get_variable(
         "W", [self.source_vocab_info.total_size, self.params["embedding.dim"]])
 
   @property
   @templatemethod("target_embedding")
   def target_embedding(self):
+    """Returns the embedding used for the target sequence.
+    """
     if self.params["embedding.share"]:
       return self.source_embedding
     return tf.get_variable(
@@ -80,10 +87,14 @@ class Seq2SeqModel(ModelBase):
 
   @templatemethod("encode")
   def encode(self, features, labels):
+    """Encodes the inputs.
+    """
     raise NotImplementedError()
 
   @templatemethod("decode")
   def decode(self, encoder_output, features, labels):
+    """Runs decoding based on the encoder outputs.
+    """
     raise NotImplementedError()
 
   def _create_predictions(self, decoder_output, features, labels, losses=None):
@@ -221,6 +232,11 @@ class Seq2SeqModel(ModelBase):
     return features, labels
 
   def compute_loss(self, decoder_output, _features, labels):
+    """Computes the loss for this model.
+
+    Returns a tuple `(losses, loss)`, where `losses` are the per-batch
+    losses and loss is a single scalar tensor to minimize.
+    """
     # Calculate loss per example-timestep of shape [B, T]
     losses = seq2seq_losses.cross_entropy_sequence_loss(
         logits=decoder_output.logits[:, :, :],

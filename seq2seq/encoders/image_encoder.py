@@ -55,7 +55,7 @@ class InceptionV3Encoder(Encoder):
         method=tf.image.ResizeMethod.BILINEAR)
 
     outputs, _ = inception_v3_base(tf.to_float(inputs))
-    output_shape = outputs.get_shape()
+    output_shape = outputs.get_shape() #pylint: disable=E1101
     shape_list = output_shape.as_list()
 
     # Take attentin over output elemnts in width and height dimension:

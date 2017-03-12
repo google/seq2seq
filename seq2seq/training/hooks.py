@@ -22,23 +22,25 @@ from __future__ import print_function
 import abc
 import os
 
-import tensorflow as tf
 import six
 import yaml
 
+import tensorflow as tf
+from tensorflow.python.training import training_util
 from tensorflow.python.training.session_run_hook import SessionRunHook
 from tensorflow.python.training.session_run_hook import SessionRunArgs
 from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer
-from tensorflow.python.training import training_util
 from tensorflow.python.training.summary_io import SummaryWriterCache
 from tensorflow.python.client import timeline
 from tensorflow.python.platform import gfile
 
-from seq2seq.configurable import Configurable
+from seq2seq.configurable import Configurable, abstractstaticmethod
 from seq2seq import graph_utils
 
 @six.add_metaclass(abc.ABCMeta)
 class TrainingHook(SessionRunHook, Configurable):
+  """Abstract base class for training hooks.
+  """
   def __init__(self, params, model_dir):
     SessionRunHook.__init__(self)
     Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.TRAIN)
@@ -46,7 +48,13 @@ class TrainingHook(SessionRunHook, Configurable):
 
   @property
   def model_dir(self):
+    """Returns the directory model checkpoints are written to.
+    """
     return os.path.abspath(self._model_dir)
+
+  @abstractstaticmethod
+  def default_params():
+    raise NotImplementedError()
 
 
 class MetadataCaptureHook(TrainingHook):
@@ -279,8 +287,6 @@ class TrainSampleHook(TrainingHook):
 
 class PrintModelAnalysisHook(TrainingHook):
   """Writes the parameters of the model to a file and stdout.
-
-
   """
 
   #pylint: disable=missing-docstring
@@ -306,6 +312,12 @@ class PrintModelAnalysisHook(TrainingHook):
 
 
 class VariableRestoreHook(TrainingHook):
+  """A hooks that restored variables from a given checkpoints.
+
+  Params:
+    prefix: Variables matching this prefix are restored.
+    checkpoint_path: Path to the checkpoint to restore variables from.
+  """
   def __init__(self, params, model_dir):
     super(VariableRestoreHook, self).__init__(params, model_dir)
     self._saver = None
@@ -321,6 +333,8 @@ class VariableRestoreHook(TrainingHook):
     variables = tf.contrib.framework.get_variables(scope=self.params["prefix"])
 
     def varname_in_checkpoint(name):
+      """Removes the prefix from the variable name.
+      """
       prefix_parts = self.params["prefix"].split("/")
       checkpoint_prefix = "/".join(prefix_parts[:-1])
       return name.replace(checkpoint_prefix + "/", "")

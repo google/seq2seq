@@ -30,6 +30,10 @@ from seq2seq.models.attention_seq2seq import AttentionSeq2Seq
 
 
 class Image2Seq(AttentionSeq2Seq):
+  """A model that encodes an image and produces a sequence
+  of tokens.
+  """
+
   def __init__(self, params, mode, name="image_seq2seq"):
     super(Image2Seq, self).__init__(params, mode, name)
     self.params["source.reverse"] = False
@@ -61,7 +65,7 @@ class Image2Seq(AttentionSeq2Seq):
     encoder_fn = self.encoder_class(self.params["encoder.params"], self.mode)
     return encoder_fn(features["image"])
 
-  def batch_size(self, features, labels):
+  def batch_size(self, features, _labels):
     return tf.shape(features["image"])[0]
 
   def _preprocess(self, features, labels):

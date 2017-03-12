@@ -39,6 +39,10 @@ class abstractstaticmethod(staticmethod): #pylint: disable=C0111,C0103
   __isabstractmethod__ = True
 
 def _create_from_dict(dict_, default_module, *args, **kwargs):
+  """Creates a configurable class from a dictionary. The dictionary must have
+  "class" and "params" properties. The class can be either fully qualified, or
+  it is looked up in the modules passed via `default_module`.
+  """
   class_ = locate(dict_["class"]) or  getattr(default_module, dict_["class"])
   params = {}
   if "params" in dict_:

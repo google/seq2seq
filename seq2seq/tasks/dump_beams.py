@@ -16,54 +16,12 @@
 Task where both the input and output sequence are plain text.
 """
 
-import functools
-import os
-
 import numpy as np
-from matplotlib import pyplot as plt
 
-import tensorflow as tf
-from tensorflow.python.platform import gfile
-from tensorflow.python.training.session_run_hook import SessionRunHook
 from tensorflow.python.training.session_run_hook import SessionRunArgs
 
-from seq2seq.tasks.decode_text import _get_prediction_length
 from seq2seq.tasks.inference_task import InferenceTask, unbatch_dict
-from seq2seq.training import hooks
 
-
-def _get_scores(predictions_dict):
-  """Returns the attention scores, sliced by source and target length.
-  """
-  prediction_len = _get_prediction_length(predictions_dict)
-  source_len = predictions_dict["features.source_len"]
-  return predictions_dict["attention_scores"][:prediction_len, :source_len]
-
-def _create_figure(predictions_dict):
-  """Creates and returns a new figure that visualizes
-  attention scores for for a single model predictions.
-  """
-
-  # Find out how long the predicted sequence is
-  target_words = list(predictions_dict["predicted_tokens"])
-
-  prediction_len = _get_prediction_length(predictions_dict)
-
-  # Get source words
-  source_len = predictions_dict["features.source_len"]
-  source_words = predictions_dict["features.source_tokens"][:source_len]
-
-  # Plot
-  fig = plt.figure(figsize=(8, 8))
-  plt.imshow(
-      X=predictions_dict["attention_scores"][:prediction_len, :source_len],
-      interpolation="nearest",
-      cmap=plt.cm.Blues)
-  plt.xticks(np.arange(source_len), source_words, rotation=45)
-  plt.yticks(np.arange(prediction_len), target_words, rotation=-45)
-  fig.tight_layout()
-
-  return fig
 
 class DumpBeams(InferenceTask):
   """Defines inference for tasks where both the input and output sequences

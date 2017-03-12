@@ -22,7 +22,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import shutil
 import tempfile
 import tensorflow as tf
 import numpy as np
@@ -31,7 +30,6 @@ from seq2seq.contrib import rnn_cell
 from seq2seq.data import input_pipeline
 from seq2seq.test import utils as test_utils
 from seq2seq.training import utils as training_utils
-from seq2seq.training import hooks
 
 class TestGetRNNCell(tf.test.TestCase):
   """Tests the get_rnn_cell function.

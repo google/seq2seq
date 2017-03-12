@@ -49,9 +49,8 @@ class AttentionLayer(GraphModule, Configurable):
   """
   Attention layer according to https://arxiv.org/abs/1409.0473.
 
-  Args:
+  Params:
     num_units: Number of units used in the attention layer
-    name: Name for this graph module
   """
 
   def __init__(self, params, mode, name="attention"):
@@ -132,10 +131,15 @@ class AttentionLayer(GraphModule, Configurable):
 
 
 class AttentionLayerDot(AttentionLayer):
+  """An attention layer that calculates attention scores using
+  a dot product.
+  """
   def score_fn(self, keys, query):
     return att_sum_dot(keys, query)
 
 class AttentionLayerBahdanau(AttentionLayer):
+  """An attention layer that calculates attention scores using
+  a parameterized multiplication."""
   def score_fn(self, keys, query):
     v_att = tf.get_variable(
         "v_att", shape=[self.params["num_units"]], dtype=tf.float32)

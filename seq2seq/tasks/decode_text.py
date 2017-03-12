@@ -17,18 +17,13 @@ Task where both the input and output sequence are plain text.
 """
 
 import functools
-import os
 
 import numpy as np
-from matplotlib import pyplot as plt
 
-import tensorflow as tf
 from tensorflow.python.platform import gfile
-from tensorflow.python.training.session_run_hook import SessionRunHook
 from tensorflow.python.training.session_run_hook import SessionRunArgs
 
 from seq2seq.tasks.inference_task import InferenceTask, unbatch_dict
-from seq2seq.training import hooks
 
 
 def _get_prediction_length(predictions_dict):
@@ -131,7 +126,7 @@ class DecodeText(InferenceTask):
     fetches["predicted_tokens"] = self._predictions["predicted_tokens"]
     fetches["features.source_len"] = self._predictions["features.source_len"]
     fetches["features.source_tokens"] = self._predictions[
-      "features.source_tokens"]
+        "features.source_tokens"]
 
     if "attention_scores" in self._predictions:
       fetches["attention_scores"] = self._predictions["attention_scores"]

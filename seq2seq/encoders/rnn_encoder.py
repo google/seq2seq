@@ -28,6 +28,8 @@ from seq2seq.encoders.encoder import Encoder, EncoderOutput
 from seq2seq.training import utils as training_utils
 
 def _default_rnn_cell_params():
+  """Creates default parameters used by multiple RNN encoders.
+  """
   return {
       "cell_class": "BasicLSTMCell",
       "cell_params": {

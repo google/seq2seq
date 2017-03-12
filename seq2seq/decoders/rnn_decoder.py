@@ -20,8 +20,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import abc
 from collections import namedtuple
 
+import six
 import tensorflow as tf
 from tensorflow.python.util import nest
 
@@ -43,7 +45,7 @@ class DecoderOutput(namedtuple(
   """
   pass
 
-
+@six.add_metaclass(abc.ABCMeta)
 class RNNDecoder(Decoder, GraphModule, Configurable):
   """Base class for RNN decoders.
 
@@ -63,6 +65,14 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
     # Not initialized yet
     self.initial_state = None
     self.helper = None
+
+  @abc.abstractmethod
+  def initialize(self, name=None):
+    raise NotImplementedError
+
+  @abc.abstractmethod
+  def step(self, name=None):
+    raise NotImplementedError
 
   @property
   def batch_size(self):

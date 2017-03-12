@@ -22,9 +22,17 @@ from __future__ import print_function
 import tensorflow as tf
 
 def templatemethod(name_):
+  """This decorator wraps a method with `tf.make_template`. For example,
+
+  @templatemethod
+  def my_method():
+    # Create variables
+  """
   def template_decorator(func):
+    """Inner decorator function"""
     def func_wrapper(*args, **kwargs):
-      templated_func =  tf.make_template(name_, func)
+      """Inner wrapper function"""
+      templated_func = tf.make_template(name_, func)
       return templated_func(*args, **kwargs)
     return func_wrapper
   return template_decorator

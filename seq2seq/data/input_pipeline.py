@@ -305,7 +305,8 @@ class ImageCaptioningInputPipeline(InputPipeline):
 
     context_keys_to_features = {
         self.params["image_field"]: tf.FixedLenFeature([], dtype=tf.string),
-        "image/format": tf.FixedLenFeature([], dtype=tf.string, default_value=self.params["image_format"]),
+        "image/format": tf.FixedLenFeature(
+            [], dtype=tf.string, default_value=self.params["image_format"]),
     }
 
     sequence_keys_to_features = {
@@ -326,7 +327,8 @@ class ImageCaptioningInputPipeline(InputPipeline):
             self.params["caption_tokens_field"]),
         "target_len": tfexample_decoder.ItemHandlerCallback(
             keys=[self.params["caption_tokens_field"]],
-            func=lambda dict: tf.size(dict[self.params["caption_tokens_field"]]))
+            func=lambda dict: tf.size(
+                dict[self.params["caption_tokens_field"]]))
     }
 
     decoder = TFSEquenceExampleDecoder(

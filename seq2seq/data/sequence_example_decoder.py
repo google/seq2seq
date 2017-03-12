@@ -32,7 +32,9 @@ class TFSEquenceExampleDecoder(data_decoder.DataDecoder):
   contains the instructions for post_processing its tensors for stage 2.
   """
 
-  def __init__(self, context_keys_to_features, sequence_keys_to_features, items_to_handlers):
+  def __init__(self, context_keys_to_features,
+               sequence_keys_to_features,
+               items_to_handlers):
     """Constructs the decoder.
     Args:
       keys_to_features: a dictionary from TF-Example keys to either

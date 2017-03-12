@@ -22,8 +22,6 @@ TODO(dennybritz): Delete this code when it becomes available in TF.
 Seq2seq layer operations for use in neural networks.
 """
 
-
-
 # pylint: skip-file
 
 from __future__ import absolute_import

@@ -27,9 +27,12 @@ import tensorflow as tf
 from tensorflow.python.training.session_run_hook import SessionRunHook
 
 from seq2seq import graph_utils
-from seq2seq.configurable import Configurable
+from seq2seq.configurable import Configurable, abstractstaticmethod
 
 def unbatch_dict(dict_):
+  """Converts a dictionary of batch items to a batch/list of
+  dictionary items.
+  """
   batch_size = list(dict_.values())[0].shape[0]
   for i in range(batch_size):
     yield {key: value[i] for key, value in dict_.items()}
@@ -55,3 +58,7 @@ class InferenceTask(SessionRunHook, Configurable):
 
   def begin(self):
     self._predictions = graph_utils.get_dict_from_collection("predictions")
+
+  @abstractstaticmethod
+  def default_params():
+    raise NotImplementedError()
