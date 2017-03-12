@@ -251,32 +251,32 @@
             "title": "Visualizing Beam Search"
         },
         {
-            "location": "/benchmarks/",
+            "location": "/results/",
             "text": "Machine Translation: WMT'15 English-German\n\n\nSingle models only, no ensembles. Results are listed in chronological order.\n\n\n\n\n\n\n\n\nModel Name & Reference\n\n\nSettings / Notes\n\n\nTraining Time\n\n\nTest Set BLEU\n\n\n\n\n\n\n\n\n\n\ntf-seq2seq\n\n\nConfiguration\n\n\n~4 days on 8 NVidia K80 GPUs\n\n\nnewstest2014: \n22.19\n \n newstest2015: \n25.23\n\n\n\n\n\n\nGehring, et al. (2016-11)\n \n Deep Convolutional 15/5\n\n\n\n\n---\n\n\nnewstest2014: - \n newstest2015: \n24.3\n\n\n\n\n\n\nWu et al. (2016-09)\n \n GNMT\n\n\n8 encoder/decoder layers, 1024 LSTM units, 32k shared wordpieces (similar to BPE); residual between layers connections; lots of other tricks; newstest2012 and newstest2013 as validation sets.\n\n\n---\n\n\nnewstest2014:\u00a0\n24.61\n \nnewstest2015: -\n\n\n\n\n\n\nZhou et al. (2016-06)\n \n Deep-Att\n\n\n\n\n---\n\n\nnewstest2014: \n20.6\n \n newstest2015: -\n\n\n\n\n\n\nChung, et al. (2016-03)\n \n BPE-Char\n\n\nCharacter-level decoder with BPE encoder.\n Based on Bahdanau attention model; Bidirectional encoder with 512 GRU units; 2-layer GRU decoder with 1024 units; Adam; batch size 128; gradient clipping at norm 1; Moses Tokenizer; limit sequences to 50 symbols in source and 100 symbols and 500 characters in target.\n\n\n---\n\n\nnewstest2014: \n21.5\n \n newstest2015: \n23.9\n\n\n\n\n\n\nSennrich et al. (2015-8)\n \n BPE\n\n\nAuthors propose BPE for subword unit nsegmentation as a pre/post-processing step to handle open vocabulary\n;  Base model is based on \nBahndanau's paper\n. Bidirectional encoder; GRU; 1000 hidden units; 1000 attention units; 620-dimensional word embeddings; single-layer; beam search width 12; Adadelta with batch size 80; Using \nGroundhog\n;\n\n\n\n\nnewstest2014: - \nnewstest2015: \n20.5\n\n\n\n\n\n\nLuong et al. (2015-08)\n\n\nNovel local/global attention mechanism;\n 50k vocabulary; 4 layers in encoder and decoder; unidirectional encoder; gradient clipping at norm 5;  1028 LSTM units, 1028-dimensional embeddings; (somewhat complicated) SGD decay schedule; dropout 0.2; UNK replace;\n\n\n---\n\n\nnewstest2014: \n20.9\n \n newstest2015: -\n\n\n\n\n\n\nJean et al. (2014-12)\n \n RNNsearch-LV\n\n\nAuthors propose a new sampling-based approach to incorporate a larger vocabulary\n; Base model is based on \nBahndanau's paper\n. Bidirectional encoder; GRU; 1000 hidden units; 1000 attention units; 620-dimensional word embeddings; single-layer; beam search width 12;\n\n\n---\n\n\nnewstest2014: \n19.4\n \n newstest2015: -\n\n\n\n\n\n\n\n\nMachine Translation: WMT'17\n\n\nComing soon.\n\n\nText Summarization: Gigaword\n\n\nComing soon.\n\n\nImage Captioning: MSCOCO\n\n\nComing soon.\n\n\nConversational Modeling\n\n\nComing soon.",
-            "title": "Benchmarks"
+            "title": "Results"
         },
         {
-            "location": "/benchmarks/#machine-translation-wmt15-english-german",
+            "location": "/results/#machine-translation-wmt15-english-german",
             "text": "Single models only, no ensembles. Results are listed in chronological order.     Model Name & Reference  Settings / Notes  Training Time  Test Set BLEU      tf-seq2seq  Configuration  ~4 days on 8 NVidia K80 GPUs  newstest2014:  22.19    newstest2015:  25.23    Gehring, et al. (2016-11)    Deep Convolutional 15/5   ---  newstest2014: -   newstest2015:  24.3    Wu et al. (2016-09)    GNMT  8 encoder/decoder layers, 1024 LSTM units, 32k shared wordpieces (similar to BPE); residual between layers connections; lots of other tricks; newstest2012 and newstest2013 as validation sets.  ---  newstest2014:\u00a0 24.61   newstest2015: -    Zhou et al. (2016-06)    Deep-Att   ---  newstest2014:  20.6    newstest2015: -    Chung, et al. (2016-03)    BPE-Char  Character-level decoder with BPE encoder.  Based on Bahdanau attention model; Bidirectional encoder with 512 GRU units; 2-layer GRU decoder with 1024 units; Adam; batch size 128; gradient clipping at norm 1; Moses Tokenizer; limit sequences to 50 symbols in source and 100 symbols and 500 characters in target.  ---  newstest2014:  21.5    newstest2015:  23.9    Sennrich et al. (2015-8)    BPE  Authors propose BPE for subword unit nsegmentation as a pre/post-processing step to handle open vocabulary ;  Base model is based on  Bahndanau's paper . Bidirectional encoder; GRU; 1000 hidden units; 1000 attention units; 620-dimensional word embeddings; single-layer; beam search width 12; Adadelta with batch size 80; Using  Groundhog ;   newstest2014: -  newstest2015:  20.5    Luong et al. (2015-08)  Novel local/global attention mechanism;  50k vocabulary; 4 layers in encoder and decoder; unidirectional encoder; gradient clipping at norm 5;  1028 LSTM units, 1028-dimensional embeddings; (somewhat complicated) SGD decay schedule; dropout 0.2; UNK replace;  ---  newstest2014:  20.9    newstest2015: -    Jean et al. (2014-12)    RNNsearch-LV  Authors propose a new sampling-based approach to incorporate a larger vocabulary ; Base model is based on  Bahndanau's paper . Bidirectional encoder; GRU; 1000 hidden units; 1000 attention units; 620-dimensional word embeddings; single-layer; beam search width 12;  ---  newstest2014:  19.4    newstest2015: -",
             "title": "Machine Translation: WMT'15 English-German"
         },
         {
-            "location": "/benchmarks/#machine-translation-wmt17",
+            "location": "/results/#machine-translation-wmt17",
             "text": "Coming soon.",
             "title": "Machine Translation: WMT'17"
         },
         {
-            "location": "/benchmarks/#text-summarization-gigaword",
+            "location": "/results/#text-summarization-gigaword",
             "text": "Coming soon.",
             "title": "Text Summarization: Gigaword"
         },
         {
-            "location": "/benchmarks/#image-captioning-mscoco",
+            "location": "/results/#image-captioning-mscoco",
             "text": "Coming soon.",
             "title": "Image Captioning: MSCOCO"
         },
         {
-            "location": "/benchmarks/#conversational-modeling",
+            "location": "/results/#conversational-modeling",
             "text": "Coming soon.",
             "title": "Conversational Modeling"
         },
