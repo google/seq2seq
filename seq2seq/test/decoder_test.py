@@ -192,11 +192,12 @@ class BasicDecoderTest(tf.test.TestCase, DecoderTests):
     DecoderTests.__init__(self)
 
   def create_decoder(self, helper, mode):
+    params = BasicDecoder.default_params()
+    params["max_decode_length"] = self.max_decode_length
     decoder = BasicDecoder(
-        params=BasicDecoder.default_params(),
+        params=params,
         mode=mode,
-        vocab_size=self.vocab_size,
-        max_decode_length=self.max_decode_length)
+        vocab_size=self.vocab_size)
 
     return decoder
 
@@ -223,15 +224,16 @@ class AttentionDecoderTest(tf.test.TestCase, DecoderTests):
     attention_keys = tf.convert_to_tensor(
         np.random.randn(self.batch_size, self.input_seq_len, 32),
         dtype=tf.float32)
+    params = AttentionDecoder.default_params()
+    params["max_decode_length"] = self.max_decode_length
     return AttentionDecoder(
-        params=AttentionDecoder.default_params(),
+        params=params,
         mode=mode,
         vocab_size=self.vocab_size,
         attention_keys=attention_keys,
         attention_values=attention_values,
         attention_values_length=np.arange(self.batch_size) + 1,
-        attention_fn=attention_fn,
-        max_decode_length=self.max_decode_length)
+        attention_fn=attention_fn)
 
   def test_attention_scores(self):
     decoder_output_ = self.test_with_fixed_inputs()
