@@ -77,7 +77,7 @@ def _deep_merge_dict(dict_x, dict_y, path=None):
       elif dict_x[key] == dict_y[key]:
         pass  # same leaf value
       else:
-        raise Exception("Conflict at {}".format(".".join(path + [str(key)])))
+        dict_x[key] = dict_y[key]
     else:
       dict_x[key] = dict_y[key]
   return dict_x
