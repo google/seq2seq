@@ -1,6 +1,10 @@
+## What to work on
+
+If you are interested in contributing but are unsure what work on, take a look at the open [Github Issues](https://github.com/google/seq2seq/issues). We are always looking for contributors.
+
 ## Development Setup
 
-1\. Install Python3. If you're on a Mac the easiest way to do this is probably using [Homebrew](http://brew.sh/). Then,
+We recommend using Python 3. If you're on a Mac the easiest way to do this is probably using [Homebrew](http://brew.sh/). Then,
 
 ```bash
 # Clone this repository.
@@ -15,62 +19,39 @@ source ~/tf-venv/bin/activate
 pip install -e .
 pip install nose pylint tox yapf mkdocs
 
-# Make sure tests are passing.
+# Make sure the tests are passing.
 nosetests
 
 # Code :)
+
+# Make sure the tests are passing
+nosetests
+
+# Before submitting a pull request,
+# run the full test suite for Python 3 and Python 2.7
+tox
 ```
-
-## Github Workflow
-
-Pushing directly to the master branch is disabled and you must create feature branches and submit them via pull request. To make things easier you can also use the [Github Desktop app](https://desktop.github.com/). A typical workflow looks as follows:
-
-```
-# Make sure you are in the seq2seq root directory.
-# Start from the master branch.
-git checkout master
-
-# Pull latest changes from Github.
-git pull
-
-# Create a new feature branch.
-git checkout -b feature/my-new-feature
-
-# Make changes and commits
-echo "blabla" >> test
-git commit -am "Test commit"
-
-# Push the branch upstream.
-git push -u origin/my-new-feature
-
-# Submit a pull request on Github.
-```
-
-After you submit a Pull Request, one person must review the change and
-CircleCI integration tests must be passing before you can merge into the
-master branch.
-
 
 ## Python Style
 
-We use [pylint](https://www.pylint.org/) and [yapf](https://github.com/google/yapf) for automated code formatting. Before submitting a pull request, make sure you run them:
+We use [pylint](https://www.pylint.org/) to enforce coding style. Before submitting a pull request, make
+sure you run:
 
 ```bash
-# Run this and fix all errors.
-pylint ./seq2seq
-
-# Optional, run this to auto-format all code.
-yapf -ir ./seq2seq
+pylint seq2seq
 ```
 
-Note that CircleCI integration test will fail if pylint reports any critical
-errors, preventing you from merging your changes.
+CircleCI integration tests will fail if pylint reports any critica errors, preventing use from merging your changes. If you are unsure about code formatting, you can use [yapf](https://github.com/google/yapf) for automated code formatting:
 
-## Tensorflow Style
+```bash
+yapf -ir ./seq2seq/some/file/you/changed
+```
+
+## Recommended Tensorflow Style
 
 ### GraphModule
 
-All classes that modify the Graph should inherit from `seq2seq.graph_module.GraphModule`, which is a wrapper around TensorFlow's [`tf.make_template`](https://www.tensorflow.org/versions/r0.12/api_docs/python/state_ops.html#make_template) function that enables easy variable sharing. Basically, it allows you to do something like this:
+All classes that modify the Graph should inherit from `seq2seq.graph_module.GraphModule`, which is a wrapper around TensorFlow's [`tf.make_template`](https://www.tensorflow.org/versions/r0.12/api_docs/python/state_ops.html#make_template) function that enables easy variable sharing, allowing you to do something like this:
 
 ```python
 encode_fn = SomeEncoderModule(...)
