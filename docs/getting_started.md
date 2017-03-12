@@ -6,6 +6,9 @@ Python 2.7 or Python 3.5. Follow the [TensorFlow Getting Started](https://www.te
 ```bash
 git clone https://github.com/google/seq2seq.git
 cd seq2seq
+
+# Install package and dependencies
+pip intall -e .
 ```
 
 To make sure everything works as expect you can run a simple pipeline unit test:
@@ -14,9 +17,18 @@ To make sure everything works as expect you can run a simple pipeline unit test:
 python -m unittest seq2seq.test.pipeline_test
 ```
 
-If you see a "success" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,
+If you see a "OK" message, you are all set. Note that you may need to install pyrouge, pyyaml, and matplotlib, in order for these tests to pass. If you run into other setup issues,
 please [file a Github issue](https://github.com/google/seq2seq/issues).
 
+## Common Installation Issues
+
+### Incorrect matploblib backend
+
+In order to generate plots using matplotlib you need to have set the correct [backend](http://matplotlib.org/faq/usage_faq.html#what-is-a-backend). Also see this [StackOverflow thread](http://stackoverflow.com/questions/4930524/how-can-i-set-the-backend-in-matplotlib-in-python). To use the `Agg` backend, simply:
+
+```
+echo "backend : Agg" >> $HOME/.config/matplotlib/matplotlibrc
+```
 
 ## Next Steps
 
