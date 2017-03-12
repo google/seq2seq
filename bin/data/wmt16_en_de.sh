@@ -142,15 +142,15 @@ ${BASE_DIR}/bin/tools/generate_char_vocab.py \
 
 # Create vocabulary for EN data
 $BASE_DIR/bin/tools/generate_vocab.py \
-  --input_file ${OUTPUT_DIR}/train.tok.clean.en \
-  --output_file ${OUTPUT_DIR}/vocab.50k.en \
-  --max_vocab_size 50000
+   --max_vocab_size 50000 \
+  < ${OUTPUT_DIR}/train.tok.clean.en \
+  > ${OUTPUT_DIR}/vocab.50k.en \
 
 # Create vocabulary for DE data
 $BASE_DIR/bin/tools/generate_vocab.py \
-  --input_file ${OUTPUT_DIR}/train.tok.clean.de \
-  --output_file ${OUTPUT_DIR}/vocab.50k.de \
   --max_vocab_size 50000
+  < ${OUTPUT_DIR}/train.tok.clean.de \
+  > ${OUTPUT_DIR}/vocab.50k.de \
 
 # Generate Subword Units (BPE)
 # Clone Subword NMT
