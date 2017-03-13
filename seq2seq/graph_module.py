@@ -25,7 +25,7 @@ import tensorflow as tf
 
 class GraphModule(object):
   """
-  C onvenience class that makes it easy to share variables.
+  Convenience class that makes it easy to share variables.
   Each insance of this class creates its own set of variables, but
   each subsequent execution of an instance will re-use its variables.
 
