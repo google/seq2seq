@@ -4,6 +4,8 @@
 
 **[READ THE DOCUMENTATION](https://google.github.io/seq2seq)**
 
+**[CONTRIBUTING](https://google.github.io/seq2seq/contributing/)**
+
 ---
 
 A general-purpose encoder-decoder framework for Tensorflow that can be used for Machine Translation, Text Summarization, Conversational Modeling, Image Captioning, and more.
