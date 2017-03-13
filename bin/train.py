@@ -210,7 +210,9 @@ def main(_argv):
       tf.logging.info("Loading config from %s", config_path)
       with gfile.GFile(config_path.strip()) as config_file:
         config_flags = yaml.load(config_file)
-        final_config.update(config_flags)
+        final_config =  _deep_merge_dict(final_config, config_flags)
+
+  tf.logging.info("Final Config:\n%s", yaml.dump(final_config))
 
   # Merge flags with config values
   for flag_key, flag_value in final_config.items():
