@@ -206,6 +206,9 @@ def main(_argv):
   final_config = {}
   if FLAGS.config_paths:
     for config_path in FLAGS.config_paths.split(","):
+      config_path = config_path.strip()
+      if not config_path:
+        continue
       config_path = os.path.abspath(config_path)
       tf.logging.info("Loading config from %s", config_path)
       with gfile.GFile(config_path.strip()) as config_file:
