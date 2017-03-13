@@ -23,9 +23,10 @@ setup(
     version="0.1",
     install_requires=[
         "numpy",
-        "tensorflow",
         "matplotlib",
         "pyyaml",
         "pyrouge"
-    ]
+    ],
+    extras_require={'tensorflow': ['tensorflow'],
+                    'tensorflow with gpu': ['tensorflow-gpu']},
 )
