@@ -2,7 +2,7 @@
 
 ## Neural Machine Translation Background
 
-This tutorial is not meant to be a general introduction to Neural Machine Translation and does go into detail of how these models works internally. For more details on the theory of Sequence-to-Sequence and Machine Translation models, we recommend the following resources:
+This tutorial is not meant to be a general introduction to Neural Machine Translation and does not go into detail of how these models works internally. For more details on the theory of Sequence-to-Sequence and Machine Translation models, we recommend the following resources:
 
 - [Neural Machine Translation and Sequence-to-sequence Models: A Tutorial (Neubig et al.)](https://arxiv.org/abs/1703.01619)
 - [Neural Machine Translation by Jointly Learning to Align and Translate (Bahdanau et al.)](https://arxiv.org/abs/1409.0473)
