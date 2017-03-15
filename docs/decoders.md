@@ -20,4 +20,4 @@ A Recurrent Neural Network decoder that produces a sequence of output tokens.
 ### [`AttentionDecoder`](https://github.com/google/seq2seq/blob/master/seq2seq/decoders/attention_decoder.py)
 ---
 
-A Recurrent Neural Network decoder that produces a sequence of output tokens using an attention mechanisms over its inputs. Parameters are the same asfor `BasicDecoder`.
+A Recurrent Neural Network decoder that produces a sequence of output tokens using an attention mechanisms over its inputs. Parameters are the same as for `BasicDecoder`.
