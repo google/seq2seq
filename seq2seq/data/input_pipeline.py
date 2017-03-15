@@ -122,7 +122,7 @@ class ParallelTextInputPipeline(InputPipeline):
 
   Params:
     source_files: An array of file names for the source data.
-    target_files: An array of file names for the target data. These mut
+    target_files: An array of file names for the target data. These must
       be aligned to the `source_files`.
     source_delimiter: A character to split the source text on. Defaults
       to  " " (space). For character-level training this can be set to the
