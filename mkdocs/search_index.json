@@ -327,7 +327,7 @@
         },
         {
             "location": "/license/",
-            "text": "License\n\n\nThe code is available under the \nApache License\n.\n\n\nCitation\n\n\nIf you use this code for academic purposes, plase cite it as:\n\n\n@article{COMING SOON}",
+            "text": "License\n\n\nThe code is available under the \nApache License\n.\n\n\nCitation\n\n\nIf you use this code for academic purposes, plase cite it as:\n\n\n@ARTICLE{Britz:2017,\n  author          = {{Britz}, D. and {Goldie}, A. and {Luong}, T. and {Le}, Q.},\n  title           = \"{Massive Exploration of Neural Machine Translation Architectures}\",\n  journal         = {ArXiv e-prints},\n  archivePrefix   = \"arXiv\",\n  eprinttype      = {arxiv},\n  eprint          = {1703.03906},\n  primaryClass    = \"cs.CL\",\n  keywords        = {Computer Science - Computation and Language},\n  year            = 2017,\n  month           = mar,\n}",
             "title": "License"
         },
         {
@@ -337,7 +337,7 @@
         },
         {
             "location": "/license/#citation",
-            "text": "If you use this code for academic purposes, plase cite it as:  @article{COMING SOON}",
+            "text": "If you use this code for academic purposes, plase cite it as:  @ARTICLE{Britz:2017,\n  author          = {{Britz}, D. and {Goldie}, A. and {Luong}, T. and {Le}, Q.},\n  title           = \"{Massive Exploration of Neural Machine Translation Architectures}\",\n  journal         = {ArXiv e-prints},\n  archivePrefix   = \"arXiv\",\n  eprinttype      = {arxiv},\n  eprint          = {1703.03906},\n  primaryClass    = \"cs.CL\",\n  keywords        = {Computer Science - Computation and Language},\n  year            = 2017,\n  month           = mar,\n}",
             "title": "Citation"
         },
         {
