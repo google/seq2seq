@@ -14,6 +14,8 @@ A general-purpose encoder-decoder framework for Tensorflow that can be used for 
 
 ---
 
+The official code used for the [Massive Exploration of Neural Machine Translation Architectures](https://arxiv.org/abs/1703.03906) paper.
+
 If you use this code for academic purposes, please cite it as:
 
 ```
