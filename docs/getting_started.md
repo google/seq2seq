@@ -8,7 +8,7 @@ git clone https://github.com/google/seq2seq.git
 cd seq2seq
 
 # Install package and dependencies
-pip intall -e .
+pip install -e .
 ```
 
 To make sure everything works as expect you can run a simple pipeline unit test:
