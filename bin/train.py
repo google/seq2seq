@@ -136,17 +136,17 @@ def create_experiment(output_dir):
       def_dict=FLAGS.input_pipeline_train,
       mode=tf.contrib.learn.ModeKeys.TRAIN)
 
-  # Development data input pipeline
-  dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
-      def_dict=FLAGS.input_pipeline_dev,
-      mode=tf.contrib.learn.ModeKeys.EVAL,
-      shuffle=False, num_epochs=1)
-
   # Create training input function
   train_input_fn = training_utils.create_input_fn(
       pipeline=train_input_pipeline,
       batch_size=FLAGS.batch_size,
       bucket_boundaries=bucket_boundaries)
+
+  # Development data input pipeline
+  dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
+      def_dict=FLAGS.input_pipeline_dev,
+      mode=tf.contrib.learn.ModeKeys.EVAL,
+      shuffle=False, num_epochs=1)
 
   # Create eval input function
   eval_input_fn = training_utils.create_input_fn(
@@ -213,7 +213,7 @@ def main(_argv):
       tf.logging.info("Loading config from %s", config_path)
       with gfile.GFile(config_path.strip()) as config_file:
         config_flags = yaml.load(config_file)
-        final_config =  _deep_merge_dict(final_config, config_flags)
+        final_config = _deep_merge_dict(final_config, config_flags)
 
   tf.logging.info("Final Config:\n%s", yaml.dump(final_config))
 
@@ -233,6 +233,12 @@ def main(_argv):
 
   if not FLAGS.output_dir:
     FLAGS.output_dir = tempfile.mkdtemp()
+
+  if not FLAGS.input_pipeline_train:
+    raise ValueError("You must specify input_pipeline_train")
+
+  if not FLAGS.input_pipeline_dev:
+    raise ValueError("You must specify input_pipeline_dev")
 
   learn_runner.run(
       experiment_fn=create_experiment,
