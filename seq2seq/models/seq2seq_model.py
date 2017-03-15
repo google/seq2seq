@@ -17,6 +17,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import collections
 import tensorflow as tf
 
 from seq2seq import graph_utils
@@ -44,7 +45,9 @@ def _create_predictions(decoder_output, features, labels, losses=None):
 
   # Decoders returns output in time-major form [T, B, ...]
   # Here we transpose everything back to batch-major for the user
-  decoder_output_flat = _flatten_dict(decoder_output._asdict())
+  output_dict = collections.OrderedDict(
+      zip(decoder_output._fields, decoder_output))
+  decoder_output_flat = _flatten_dict(output_dict)
   decoder_output_flat = {
       k: _transpose_batch_time(v)
       for k, v in decoder_output_flat.items()
