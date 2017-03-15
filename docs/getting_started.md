@@ -32,7 +32,7 @@ echo "backend : Agg" >> $HOME/.config/matplotlib/matplotlibrc
 
 ## Next Steps
 
-- Learn about [concepts and terminology](concepts/)
-- Read through the [Neural Machine Translation Tutorial](nmt/)
-- Use [pre-processed datasets](data/) or train a model on your own data
-- [Contribute!](contributing)
+- Learn about [concepts and terminology](concepts.md)
+- Read through the [Neural Machine Translation Tutorial](nmt.md)
+- Use [pre-processed datasets](data.md) or train a model on your own data
+- [Contribute!](contributing.md)
