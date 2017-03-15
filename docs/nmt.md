@@ -2,7 +2,7 @@
 
 ## Neural Machine Translation Background
 
-This tutorial is not meant to be a general introduction to Neural Machine Translation and does go into detail of how these models works internally. For more details on the theory of Sequence-to-Sequence and Machine Translation models, we recommend the following resources:
+This tutorial is not meant to be a general introduction to Neural Machine Translation and does not go into detail of how these models works internally. For more details on the theory of Sequence-to-Sequence and Machine Translation models, we recommend the following resources:
 
 - [Neural Machine Translation and Sequence-to-sequence Models: A Tutorial (Neubig et al.)](https://arxiv.org/abs/1703.01619)
 - [Neural Machine Translation by Jointly Learning to Align and Translate (Bahdanau et al.)](https://arxiv.org/abs/1409.0473)
@@ -60,7 +60,7 @@ Das ist der Fall von Alexander Ni@@ ki@@ tin
 
 To make it easy to get started we have prepared an already pre-processed dataset based on the [English-German WMT'16 Translation Task](http://www.statmt.org/wmt16/translation-task.html). To learn more about how the data was generated, you can take a look at the [wmt16_en_de.sh](https://github.com/google/seq2seq/blob/master/bin/data/wmt16_en_de.sh) data generation script. The script downloads the data, tokenizes it using the [Moses Tokenizer](https://github.com/moses-smt/mosesdecoder/blob/master/scripts/tokenizer/tokenizer.perl), cleans the training data, and learns a vocabulary of ~32,000 subword units.
 
-- [Download pre-processed WMT'16 EN-DE Data (502MB)](https://drive.google.com/open?id=0B_bZck-ksdkpREE3LXJlMXVLUWM)
+- [Download pre-processed WMT'16 EN-DE Data (502MB)](https://drive.google.com/open?id=0B_bZck-ksdkpM25jRUN2X2UxMm8)
 
 After extraction, you should see the folowing files:
 
