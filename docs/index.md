@@ -25,7 +25,7 @@ We built tf-seq2seq with the following goals in mind:
 
 **1. How does this framework compare to the [Google Neural Machine Translation](https://research.googleblog.com/2016/09/a-neural-network-for-machine.html) system? Is this the official open-source implementation?**
 
-No, this is not an official open-source implementation of the GNMT system. This framework was built from the bottom up to cover a wider range of tasks, Neural Machine Translation being one of them. We have not replicated the exact GNMT architecture in this framework, but we welcome [contributions](contributing/) in that direction.
+No, this is not an official open-source implementation of the GNMT system. This framework was built from the bottom up to cover a wider range of tasks, Neural Machine Translation being one of them. We have not replicated the exact GNMT architecture in this framework, but we welcome [contributions](contributing.md) in that direction.
 
 
 ## Related Frameworks
