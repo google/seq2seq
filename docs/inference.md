@@ -4,7 +4,7 @@ When calling the inference script `bin/infer.py`, you must provide a list of tas
 
 ## DecodeText
 
-The `DecodeText` task reads the model predicitons and prints the predictions to standard output. It has the following parameters:
+The `DecodeText` task reads the model predictions and prints the predictions to standard output. It has the following parameters:
 
 - `delimiter`: String to join the tokens predicted by the model on. Defaults to space.
 - `unk_replace`: If set to `True`, perform unknown token replacement based on attention scores. Default is `False`. See below for more details.
