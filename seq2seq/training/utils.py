@@ -79,7 +79,7 @@ class TrainOptions(object):
         "model_params": self.model_params,
     }
 
-    with gfile.GFile(TrainOptions.path(model_dir), "w") as file:
+    with gfile.GFile(TrainOptions.path(model_dir), "wb") as file:
       file.write(json.dumps(options_dict).encode("utf-8"))
 
   @staticmethod
@@ -89,7 +89,7 @@ class TrainOptions(object):
     Args:
       model_dir: Path to the model directory.
     """
-    with gfile.GFile(TrainOptions.path(model_dir), "r") as file:
+    with gfile.GFile(TrainOptions.path(model_dir)) as file:
       options_dict = json.loads(file.read().decode("utf-8"))
     options_dict = defaultdict(None, options_dict)
 
