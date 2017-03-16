@@ -37,10 +37,12 @@ def process_story(text):
   # Join all highlights into a single blob
   highlights_joined = "; ".join(highlights)
   highlights_joined = re.sub(r"\s+", " ", highlights_joined)
+  highlights_joined = highlights_joined.strip()
 
   # Remove newlines from story
   # story_text = story_text.replace("\n", " ")
   story_text = re.sub(r"\s+", " ", story_text)
+  story_text = story_text.strip()
 
   return story_text, highlights_joined
 
@@ -48,7 +50,9 @@ def main(*args, **kwargs):
   """Program entry point"""
   story_text = "\n".join(list(fileinput.input()))
   story, highlights = process_story(story_text)
-  print("{}\t{}".format(story, highlights))
+
+  if story and highlights:
+    print("{}\t{}".format(story, highlights))
 
 if __name__ == '__main__':
   main()

@@ -34,17 +34,17 @@ for story in $(find $DATA_DIR/ -name *.story); do
 done
 
 # Split processed files into stories and summaries
-cut -f 1 ${OUTPUT_DIR}/stories_and_summaries.txt | ${OUTPUT_DIR}/data.stories
-cut -f 2 ${OUTPUT_DIR}/stories_and_summaries.txt | ${OUTPUT_DIR}/data.summaries
+cut -f 1 ${OUTPUT_DIR}/stories_and_summaries.txt > ${OUTPUT_DIR}/data.stories
+cut -f 2 ${OUTPUT_DIR}/stories_and_summaries.txt > ${OUTPUT_DIR}/data.summaries
 
 # Split into train/dev/test
 # First 1000 lines are dev, next 1000 lines are test, the rest is train
-tail -n +2000 ${OUTPUT_DIR}/data.stories > tail -n +2000 ${OUTPUT_DIR}/train.stories
-tail -n +2000 ${OUTPUT_DIR}/data.summaries > tail -n +2000 ${OUTPUT_DIR}/train.summaries
-head -n 1000 ${OUTPUT_DIR}/data.stories > tail -n +2000 ${OUTPUT_DIR}/dev.stories
-head -n 1000 ${OUTPUT_DIR}/data.summaries > tail -n +2000 ${OUTPUT_DIR}/dev.summaries
-head -n 2000 | tail -n +1000 | ${OUTPUT_DIR}/data.stories > tail -n +2000 ${OUTPUT_DIR}/test.stories
-head -n 2000 | tail -n +1000 | ${OUTPUT_DIR}/data.summaries > tail -n +2000 ${OUTPUT_DIR}/test.summaries
+tail -n +2000 ${OUTPUT_DIR}/data.stories > ${OUTPUT_DIR}/train.stories
+tail -n +2000 ${OUTPUT_DIR}/data.summaries > ${OUTPUT_DIR}/train.summaries
+head -n 1000 ${OUTPUT_DIR}/data.stories > ${OUTPUT_DIR}/dev.stories
+head -n 1000 ${OUTPUT_DIR}/data.summaries > ${OUTPUT_DIR}/dev.summaries
+head -n 2000 ${OUTPUT_DIR}/data.stories | tail -n +1000  > ${OUTPUT_DIR}/test.stories
+head -n 2000 ${OUTPUT_DIR}/data.summaries | tail -n +1000 > ${OUTPUT_DIR}/test.summaries
 
 # Use google/sentencepiece to learn vocabulary
 # Follow installation instructions at https://github.com/google/sentencepiece
