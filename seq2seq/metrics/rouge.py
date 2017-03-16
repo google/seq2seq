@@ -195,7 +195,7 @@ def _f_p_r_lcs(llcs, m, n):
   beta = p_lcs / (r_lcs + 1e-12)
   num = (1 + (beta**2)) * r_lcs * p_lcs
   denom = r_lcs + ((beta**2) * p_lcs)
-  f_lcs =  num / (denom + 1e-12)
+  f_lcs = num / (denom + 1e-12)
   return f_lcs, p_lcs, r_lcs
 
 
@@ -314,7 +314,7 @@ def rouge_l_summary_level(evaluated_sentences, reference_sentences):
   for ref_s in reference_sentences:
     union_lcs_sum_across_all_references += _union_lcs(evaluated_sentences,
                                                       ref_s)
-  return _f_r_p_lcs(union_lcs_sum_across_all_references, m, n)
+  return _f_p_r_lcs(union_lcs_sum_across_all_references, m, n)
 
 
 def rouge(hypotheses, references):
@@ -343,7 +343,7 @@ def rouge(hypotheses, references):
       rouge_l_sentence_level([hyp], [ref])
       for hyp, ref in zip(hypotheses, references)
   ]
-  rouge_l_f, rouge_l_p, rouge_l_r = map(np.mean, zip(*rouge_l)) 
+  rouge_l_f, rouge_l_p, rouge_l_r = map(np.mean, zip(*rouge_l))
 
   return {
       "rouge_1/f_score": rouge_1_f,
