@@ -15,7 +15,13 @@
 Task where both the input and output sequence are plain text.
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import functools
+from pydoc import locate
 
 import numpy as np
 
@@ -113,11 +119,19 @@ class DecodeText(InferenceTask):
       self._unk_replace_fn = functools.partial(
           _unk_replace, mapping=self._unk_mapping)
 
+    self._postproc_fn = None
+    if self.params["postproc_fn"]:
+      self._postproc_fn = locate(self.params["postproc_fn"])
+      if self._postproc_fn is None:
+        raise ValueError("postproc_fn not found: {}".format(
+            self.params["postproc_fn"]))
+
   @staticmethod
   def default_params():
     params = {}
     params.update({
         "delimiter": " ",
+        "postproc_fn": "",
         "unk_replace": False,
         "unk_mapping": None,
     })
@@ -164,8 +178,11 @@ class DecodeText(InferenceTask):
 
       sent = self.params["delimiter"].join(predicted_tokens).split(
           "SEQUENCE_END")[0]
-      # Replace special BPE tokens
-      sent = sent.replace("@@ ", "")
+
+      # Apply postproc
+      if self._postproc_fn:
+        sent = self._postproc_fn(sent)
+
       sent = sent.strip()
 
       print(sent)

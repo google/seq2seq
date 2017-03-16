@@ -102,7 +102,7 @@ class TestBleuMetricSpec(TestTextMetricSpec):
   """Tests the `BleuMetricSpec`"""
 
   def test_bleu(self):
-    metric_spec = BleuMetricSpec()
+    metric_spec = BleuMetricSpec({})
     return self._test_metric_spec(
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
@@ -114,7 +114,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
   """Tests the `RougeMetricSpec`"""
 
   def test_rouge_1_f_score(self):
-    metric_spec = RougeMetricSpec("rouge_1/f_score")
+    metric_spec = RougeMetricSpec({"rouge_type":  "rouge_1/f_score"})
     return self._test_metric_spec(
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
@@ -122,7 +122,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
         expected_scores=[1.0, 0.954])
 
   def test_rouge_2_f_score(self):
-    metric_spec = RougeMetricSpec("rouge_2/f_score")
+    metric_spec = RougeMetricSpec({"rouge_type":  "rouge_2/f_score"})
     return self._test_metric_spec(
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],
@@ -130,7 +130,7 @@ class TestRougeMetricSpec(TestTextMetricSpec):
         expected_scores=[1.0, 0.8])
 
   def test_rouge_l_f_score(self):
-    metric_spec = RougeMetricSpec("rouge_l/f_score")
+    metric_spec = RougeMetricSpec({"rouge_type":  "rouge_l/f_score"})
     return self._test_metric_spec(
         metric_spec=metric_spec,
         hyps=["A B C D E F", "A B C D E F"],

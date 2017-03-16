@@ -8,13 +8,3 @@ hooks:
   - class: TokensPerSecondCounter
     params:
        every_n_steps: 100
-metrics:
-  - bleu
-  - log_perplexity
-  - rouge_1/f_score
-  - rouge_1/r_score
-  - rouge_1/p_score
-  - rouge_2/f_score
-  - rouge_2/r_score
-  - rouge_2/p_score
-  - rouge_l/f_score
