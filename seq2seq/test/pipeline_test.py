@@ -79,8 +79,13 @@ class PipelineTest(tf.test.TestCase):
 
     # Set training flags
     tf.app.flags.FLAGS.output_dir = self.output_dir
-    tf.app.flags.FLAGS.metrics = yaml.dump(
-        ["log_perplexity", "bleu", "rouge_1/f_score", "rouge_l/f_score"])
+    tf.app.flags.FLAGS.metrics = """
+      - class: LogPerplexityMetricSpec
+      - class: BleuMetricSpec
+      - class: RougeMetricSpec
+        params:
+          rouge_type: rouge_1/f_score
+    """
     tf.app.flags.FLAGS.model = "AttentionSeq2Seq"
     tf.app.flags.FLAGS.model_params = """
     attention.params:
@@ -213,6 +218,8 @@ class PipelineTest(tf.test.TestCase):
     """
     tf.app.flags.FLAGS.tasks = """
     - class: DecodeText
+      params:
+        postproc_fn: seq2seq.data.postproc.decode_sentencepiece
     - class: DumpBeams
       params:
         file: {}

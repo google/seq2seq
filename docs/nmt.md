@@ -159,7 +159,10 @@ export MODEL_DIR=${TMPDIR:-/tmp}/nmt_tutorial
 mkdir -p $MODEL_DIR
 
 python -m bin.train \
-  --config_paths="./example_configs/nmt_small.yml,./example_configs/train_seq2seq.yml" \
+  --config_paths="
+      ./example_configs/nmt_small.yml,
+      ./example_configs/train_seq2seq.yml,
+      ./example_configs/text_metrics_bpe.yml" \
   --model_params "
       vocab_source: $VOCAB_SOURCE
       vocab_target: $VOCAB_TARGET" \

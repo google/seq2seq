@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2017 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,11 +12,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Collection of input-related utlities.
+
+"""
+A collection of commonly used post-processing functions.
 """
 
-from seq2seq.data import input_pipeline
-from seq2seq.data import parallel_data_provider
-from seq2seq.data import postproc
-from seq2seq.data import split_tokens_decoder
-from seq2seq.data import vocab
+def strip_bpe(text):
+  """Deodes text that was processed using BPE from
+  https://github.com/rsennrich/subword-nmt"""
+  return text.replace("@@ ", "").strip()
+
+def decode_sentencepiece(text):
+  """Decodes text that uses https://github.com/google/sentencepiece encoding.
+  Assumes that pieces are separated by a space"""
+  return "".join(text.split(" ")).replace("▁", " ").strip()

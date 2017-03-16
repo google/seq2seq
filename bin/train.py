@@ -30,7 +30,7 @@ from seq2seq import models
 from seq2seq.configurable import _maybe_load_yaml, _create_from_dict
 from seq2seq.configurable import _deep_merge_dict
 from seq2seq.data import input_pipeline
-from seq2seq.metrics.metric_specs import METRIC_SPECS_DICT
+from seq2seq.metrics import metric_specs
 from seq2seq.training import hooks
 from seq2seq.training import utils as training_utils
 
@@ -176,8 +176,10 @@ def create_experiment(output_dir):
     train_hooks.append(hook)
 
   # Create metrics
-  metric_list = FLAGS.metrics
-  eval_metrics = {m : METRIC_SPECS_DICT[m] for m in metric_list}
+  eval_metrics = {}
+  for dict_ in FLAGS.metrics:
+    metric = _create_from_dict(dict_, metric_specs)
+    eval_metrics[metric.name] = metric
 
   experiment = tf.contrib.learn.Experiment(
       estimator=estimator,
