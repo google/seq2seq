@@ -377,7 +377,10 @@ model_params:
 mkdir -p $MODEL_DIR
 
 python -m bin.train \
-  --config_paths=&quot;./example_configs/nmt_small.yml,./example_configs/train_seq2seq.yml&quot; \
+  --config_paths=&quot;
+      ./example_configs/nmt_small.yml,
+      ./example_configs/train_seq2seq.yml,
+      ./example_configs/text_metrics_bpe.yml&quot; \
   --model_params &quot;
       vocab_source: $VOCAB_SOURCE
       vocab_target: $VOCAB_TARGET&quot; \

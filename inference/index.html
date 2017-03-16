@@ -221,7 +221,7 @@
                 <h2 id="inference-tasks">Inference Tasks</h2>
 <p>When calling the inference script <code>bin/infer.py</code>, you must provide a list of tasks to run. The most basic task, <code>DecodeText</code>, simply prints out the model predictions. By additing more tasks you can perform additional features, such as storing debugging infromation or visualization attention scores. Under the hood, each <code>InferenceTask</code> is implemented as a Tensorflow <a href="https://www.tensorflow.org/api_docs/python/tf/train/SessionRunHook">SessionRunHook</a> that requests outputs from the model and knows how to process them.</p>
 <h2 id="decodetext">DecodeText</h2>
-<p>The <code>DecodeText</code> task reads the model predicitons and prints the predictions to standard output. It has the following parameters:</p>
+<p>The <code>DecodeText</code> task reads the model predictions and prints the predictions to standard output. It has the following parameters:</p>
 <ul>
 <li><code>delimiter</code>: String to join the tokens predicted by the model on. Defaults to space.</li>
 <li><code>unk_replace</code>: If set to <code>True</code>, perform unknown token replacement based on attention scores. Default is <code>False</code>. See below for more details.</li>
