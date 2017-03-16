@@ -90,7 +90,7 @@ class TrainOptions(object):
       model_dir: Path to the model directory.
     """
     with gfile.GFile(TrainOptions.path(model_dir)) as file:
-      options_dict = json.loads(file.read().decode("utf-8"))
+      options_dict = json.loads(file.read())
     options_dict = defaultdict(None, options_dict)
 
     return TrainOptions(
