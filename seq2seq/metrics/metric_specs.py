@@ -29,6 +29,7 @@ import tensorflow as tf
 from tensorflow.contrib import metrics
 from tensorflow.contrib.learn import MetricSpec
 
+from seq2seq.data import postproc
 from seq2seq.configurable import Configurable
 from seq2seq.metrics import rouge
 from seq2seq.metrics import bleu
@@ -76,6 +77,7 @@ class TextMetricSpec(Configurable, MetricSpec):
     Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.EVAL)
     self._name = name
     self._eos_token = self.params["eos_token"]
+    self._sos_token = self.params["sos_token"]
     self._separator = self.params["separator"]
     self._postproc_fn = None
     if self.params["postproc_fn"]:
@@ -92,6 +94,7 @@ class TextMetricSpec(Configurable, MetricSpec):
   @staticmethod
   def default_params():
     return {
+        "sos_token": "SEQUENCE_START",
         "eos_token": "SEQUENCE_END",
         "separator": " ",
         "postproc_fn": "",
@@ -105,9 +108,8 @@ class TextMetricSpec(Configurable, MetricSpec):
       # Join tokens into single strings
       predictions_flat = tf.reduce_join(
           predictions["predicted_tokens"], 1, separator=self._separator)
-      # We slice from 1: to not include the SEQUENCE_START token
       labels_flat = tf.reduce_join(
-          labels["target_tokens"][:,1:], 1, separator=self._separator)
+          labels["target_tokens"], 1, separator=self._separator)
 
       sources_value, sources_update = accumulate_strings(
           values=predictions_flat, name="sources")
@@ -135,17 +137,15 @@ class TextMetricSpec(Configurable, MetricSpec):
     if references.dtype.kind == np.dtype("U"):
       references = np.char.encode(references, "utf-8")
 
-    # Slice all hypotheses and references up to EOS
-    sliced_hypotheses = [
-        x.split(self._eos_token.encode("utf-8"))[0].strip() for x in hypotheses
-    ]
-    sliced_references = [
-        x.split(self._eos_token.encode("utf-8"))[0].strip() for x in references
-    ]
-
     # Convert back to unicode object
-    sliced_hypotheses = [_.decode("utf-8") for _ in sliced_hypotheses]
-    sliced_references = [_.decode("utf-8") for _ in sliced_references]
+    hypotheses = [_.decode("utf-8") for _ in hypotheses]
+    references = [_.decode("utf-8") for _ in references]
+
+    # Slice all hypotheses and references up to SOS -> EOS
+    sliced_hypotheses = [postproc.slice_text(
+        _, self._eos_token, self._sos_token) for _ in hypotheses]
+    sliced_references = [postproc.slice_text(
+        _, self._eos_token, self._sos_token) for _ in references]
 
     # Apply postprocessing function
     if self._postproc_fn:
