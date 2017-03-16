@@ -298,8 +298,8 @@ class PrintModelAnalysisHook(TrainingHook):
         tf.get_default_graph(), tfprof_options=opts)
 
     # Print the model analysis
-    with gfile.GFile(self._filename, "r") as file:
-      tf.logging.info(file.read().decode("utf-8"))
+    with gfile.GFile(self._filename) as file:
+      tf.logging.info(file.read())
 
 
 class VariableRestoreHook(TrainingHook):
