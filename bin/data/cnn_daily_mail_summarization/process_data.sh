@@ -30,7 +30,7 @@ echo "Writing to $OUTPUT_DIR"
 for story in $(find $DATA_DIR/ -name *.story); do
   $BASE_DIR/bin/data/cnn_daily_mail_summarization/process_story.py \
     < $story \
-    > ${OUTPUT_DIR}/stories_and_summaries.txt
+    >> ${OUTPUT_DIR}/stories_and_summaries.txt
 done
 
 # Split processed files into stories and summaries
