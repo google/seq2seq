@@ -18,6 +18,7 @@ A basic sequence decoder that performs a softmax based on the RNN state.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import tensorflow as tf
 from seq2seq.decoders.rnn_decoder import RNNDecoder, DecoderOutput
