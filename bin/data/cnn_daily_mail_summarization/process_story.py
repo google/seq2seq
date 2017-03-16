@@ -36,6 +36,7 @@ def process_story(text):
 
   # Join all highlights into a single blob
   highlights_joined = "; ".join(highlights)
+  highlights_joined = re.sub(r"\s+", " ", highlights_joined)
 
   # Remove newlines from story
   # story_text = story_text.replace("\n", " ")
