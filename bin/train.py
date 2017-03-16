@@ -229,8 +229,10 @@ def main(_argv):
     if hasattr(FLAGS, flag_key) and isinstance(getattr(FLAGS, flag_key), dict):
       merged_value = _deep_merge_dict(flag_value, getattr(FLAGS, flag_key))
       setattr(FLAGS, flag_key, merged_value)
-    else:
+    elif hasattr(FLAGS, flag_key):
       setattr(FLAGS, flag_key, flag_value)
+    else:
+      tf.logging.warning("Ignoring config flag: %s", flag_key)
 
   if FLAGS.save_checkpoints_secs is None \
     and FLAGS.save_checkpoints_steps is None:
