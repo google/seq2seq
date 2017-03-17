@@ -74,8 +74,8 @@ class MetadataCaptureHook(TrainingHook):
     step: The step number to trace. The hook is only enable for this step.
   """
 
-  def __init__(self, params, model_dir):
-    super(MetadataCaptureHook, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True):
+    super(MetadataCaptureHook, self).__init__(params, model_dir, is_chief)
     self._active = False
     self._done = False
     self._global_step = None
@@ -99,7 +99,7 @@ class MetadataCaptureHook(TrainingHook):
       return tf.train.SessionRunArgs(self._global_step, options=run_options)
 
   def after_run(self, _run_context, run_values):
-    if not self.is_chief:
+    if not self.is_chief or self._done:
       return
 
     step_done = run_values.results
@@ -139,8 +139,8 @@ class TokensPerSecondCounter(TrainingHook):
     defines as `len(source) + len(target)`.
   """
 
-  def __init__(self, params, model_dir, summary_writer=None):
-    super(TokensPerSecondCounter, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True, summary_writer=None):
+    super(TokensPerSecondCounter, self).__init__(params, model_dir, is_chief)
 
     self._summary_tag = "tokens/sec"
     self._timer = SecondOrStepTimer(
@@ -228,8 +228,8 @@ class TrainSampleHook(TrainingHook):
 
   #pylint: disable=missing-docstring
 
-  def __init__(self, params, model_dir):
-    super(TrainSampleHook, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True):
+    super(TrainSampleHook, self).__init__(params, model_dir, is_chief)
     self._sample_dir = os.path.join(self.model_dir, "samples")
     self._timer = SecondOrStepTimer(
         every_secs=self.params["every_n_secs"],
@@ -308,8 +308,8 @@ class PrintModelAnalysisHook(TrainingHook):
   """
 
   #pylint: disable=missing-docstring
-  def __init__(self, params, model_dir):
-    super(PrintModelAnalysisHook, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True):
+    super(PrintModelAnalysisHook, self).__init__(params, model_dir, is_chief)
     self._filename = os.path.join(self.model_dir, "model_analysis.txt")
 
   @staticmethod
@@ -337,8 +337,8 @@ class VariableRestoreHook(TrainingHook):
     checkpoint_path: Path to the checkpoint to restore variables from.
   """
 
-  def __init__(self, params, model_dir):
-    super(VariableRestoreHook, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True):
+    super(VariableRestoreHook, self).__init__(params, model_dir, is_chief)
     self._saver = None
 
   @staticmethod
