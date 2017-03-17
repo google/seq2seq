@@ -148,10 +148,18 @@ class TextMetricSpec(Configurable, MetricSpec):
     sliced_references = [postproc.slice_text(
         _, self._eos_token, self._sos_token) for _ in references]
 
+    if sliced_hypotheses:
+      tf.logging.info(sliced_hypotheses[-1])
+
     # Apply postprocessing function
     if self._postproc_fn:
       sliced_hypotheses = [self._postproc_fn(_) for _ in sliced_hypotheses]
       sliced_references = [self._postproc_fn(_) for _ in sliced_references]
+
+    if sliced_hypotheses:
+      tf.logging.info(sliced_hypotheses[-1])
+      tf.logging.info(sliced_references[-1])
+      tf.logging.info("")
 
     return self.metric_fn(sliced_hypotheses, sliced_references)
 
