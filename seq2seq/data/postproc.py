@@ -32,12 +32,14 @@ def decode_sentencepiece(text):
   Assumes that pieces are separated by a space"""
   return "".join(text.split(" ")).replace("▁", " ").strip()
 
-def slice_text(text, eos_token="SEQUENCE_END", sos_token="SEQUENCE_START"):
+def slice_text(text,
+               eos_token="SEQUENCE_END",
+               sos_token="SEQUENCE_START"):
   """Slices text from SEQUENCE_START to SEQUENCE_END, not including
   these special tokens.
   """
   eos_index = text.find(eos_token)
-  text = text[:eos_index] if eos_index > 1 else text
+  text = text[:eos_index] if eos_index > -1 else text
   sos_index = text.find(sos_token)
-  text = text[sos_index+1:] if sos_index > 1 else text
-  return text
+  text = text[sos_index+len(sos_token):] if sos_index > -1 else text
+  return text.strip()

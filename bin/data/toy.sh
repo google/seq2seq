@@ -62,16 +62,20 @@ ${BASE_DIR}/bin/tools/generate_vocab.py \
   > ${OUTPUT_DIR_TRAIN}/vocab.targets.txt
 echo "Wrote ${OUTPUT_DIR_TRAIN}/vocab.targets.txt"
 
-# Create character vocabulary
-${BASE_DIR}/bin/tools/generate_char_vocab.py \
-  < ${OUTPUT_DIR_TRAIN}/sources.txt \
-  > ${OUTPUT_DIR_TRAIN}/vocab.sources.char.txt
-${BASE_DIR}/bin/tools/generate_char_vocab.py \
-  < ${OUTPUT_DIR_TRAIN}/targets.txt \
-  > ${OUTPUT_DIR_TRAIN}/vocab.targets.char.txt
-
-# Creating zip file
-# ARCHIVE_PATH="${OUTPUT_DIR}/toy_copy.tar.gz"
-# tar -cvzf ${ARCHIVE_PATH} \
-#   -C ${OUTPUT_DIR} train/ dev/ test/
-# echo "Wrote ${ARCHIVE_PATH}"
+# Optionally encode data with google/sentencepice
+# Useful for testing
+if [ "$SENTENCEPIECE" = true ]; then
+  spm_train \
+    --input=${OUTPUT_DIR_TRAIN}/sources.txt,${OUTPUT_DIR_TRAIN}/targets.txt \
+    --model_prefix=${OUTPUT_DIR}/bpe \
+    --vocab_size=20 \
+    --model_type=bpe
+  for dir in ${OUTPUT_DIR_TRAIN} ${OUTPUT_DIR_DEV} ${OUTPUT_DIR_TEST}; do
+    spm_encode --model=${OUTPUT_DIR}/bpe.model --output_format=piece \
+      < ${dir}/sources.txt \
+      > ${dir}/sources.bpe.txt
+    spm_encode --model=${OUTPUT_DIR}/bpe.model --output_format=piece \
+      < ${dir}/targets.txt \
+      > ${dir}/targets.bpe.txt
+  done
+fi
