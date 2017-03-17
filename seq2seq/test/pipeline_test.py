@@ -79,6 +79,11 @@ class PipelineTest(tf.test.TestCase):
 
     # Set training flags
     tf.app.flags.FLAGS.output_dir = self.output_dir
+    tf.app.flags.FLAGS.hooks = """
+      - class: PrintModelAnalysisHook
+      - class: MetadataCaptureHook
+      - class: TrainSampleHook
+    """
     tf.app.flags.FLAGS.metrics = """
       - class: LogPerplexityMetricSpec
       - class: BleuMetricSpec
