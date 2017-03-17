@@ -41,16 +41,24 @@ class TrainingHook(tf.train.SessionRunHook, Configurable):
   """Abstract base class for training hooks.
   """
 
-  def __init__(self, params, model_dir):
+  def __init__(self, params, model_dir, is_chief=True):
     tf.train.SessionRunHook.__init__(self)
     Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.TRAIN)
     self._model_dir = model_dir
+    self._is_chief = is_chief
 
   @property
   def model_dir(self):
     """Returns the directory model checkpoints are written to.
     """
     return os.path.abspath(self._model_dir)
+
+  @property
+  def is_chief(self):
+    """Returns true if and only if the current process is the chief.
+    This is used for distributed training.
+    """
+    return self._is_chief
 
   @abstractstaticmethod
   def default_params():
@@ -66,9 +74,10 @@ class MetadataCaptureHook(TrainingHook):
     step: The step number to trace. The hook is only enable for this step.
   """
 
-  def __init__(self, params, model_dir):
-    super(MetadataCaptureHook, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True):
+    super(MetadataCaptureHook, self).__init__(params, model_dir, is_chief)
     self._active = False
+    self._done = False
     self._global_step = None
     self._output_dir = os.path.abspath(self.model_dir)
 
@@ -80,6 +89,8 @@ class MetadataCaptureHook(TrainingHook):
     self._global_step = tf.train.get_global_step()
 
   def before_run(self, _run_context):
+    if not self.is_chief or self._done:
+      return
     if not self._active:
       return tf.train.SessionRunArgs(self._global_step)
     else:
@@ -88,6 +99,9 @@ class MetadataCaptureHook(TrainingHook):
       return tf.train.SessionRunArgs(self._global_step, options=run_options)
 
   def after_run(self, _run_context, run_values):
+    if not self.is_chief or self._done:
+      return
+
     step_done = run_values.results
     if self._active:
       tf.logging.info("Captured full trace at step %s", step_done)
@@ -115,8 +129,9 @@ class MetadataCaptureHook(TrainingHook):
           run_meta=run_values.run_metadata)
       tf.logging.info("Saved op log to %s", self._output_dir)
       self._active = False
+      self._done = True
 
-    self._active = (step_done == self.params["step"])
+    self._active = (step_done >= self.params["step"])
 
 
 class TokensPerSecondCounter(TrainingHook):
@@ -124,8 +139,8 @@ class TokensPerSecondCounter(TrainingHook):
     defines as `len(source) + len(target)`.
   """
 
-  def __init__(self, params, model_dir, summary_writer=None):
-    super(TokensPerSecondCounter, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True, summary_writer=None):
+    super(TokensPerSecondCounter, self).__init__(params, model_dir, is_chief)
 
     self._summary_tag = "tokens/sec"
     self._timer = SecondOrStepTimer(
@@ -143,6 +158,9 @@ class TokensPerSecondCounter(TrainingHook):
     return {"every_n_steps": 100, "every_n_secs": None}
 
   def begin(self):
+    if not self.is_chief:
+      return
+
     #pylint: disable=W0201
     features = graph_utils.get_dict_from_collection("features")
     labels = graph_utils.get_dict_from_collection("labels")
@@ -169,10 +187,16 @@ class TokensPerSecondCounter(TrainingHook):
                                                  self._num_tokens_tensor)
 
   def before_run(self, run_context):
+    if not self.is_chief:
+      return
+
     return tf.train.SessionRunArgs(
         [self._global_step_tensor, self._tokens_processed_add])
 
   def after_run(self, _run_context, run_values):
+    if not self.is_chief:
+      return
+
     global_step, num_tokens = run_values.results
     tokens_processed = num_tokens - self._tokens_last_step
 
@@ -204,8 +228,8 @@ class TrainSampleHook(TrainingHook):
 
   #pylint: disable=missing-docstring
 
-  def __init__(self, params, model_dir):
-    super(TrainSampleHook, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True):
+    super(TrainSampleHook, self).__init__(params, model_dir, is_chief)
     self._sample_dir = os.path.join(self.model_dir, "samples")
     self._timer = SecondOrStepTimer(
         every_secs=self.params["every_n_secs"],
@@ -284,8 +308,8 @@ class PrintModelAnalysisHook(TrainingHook):
   """
 
   #pylint: disable=missing-docstring
-  def __init__(self, params, model_dir):
-    super(PrintModelAnalysisHook, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True):
+    super(PrintModelAnalysisHook, self).__init__(params, model_dir, is_chief)
     self._filename = os.path.join(self.model_dir, "model_analysis.txt")
 
   @staticmethod
@@ -293,11 +317,12 @@ class PrintModelAnalysisHook(TrainingHook):
     return {}
 
   def begin(self):
-    # Dump to file
-    opts = tf.contrib.tfprof.model_analyzer.TRAINABLE_VARS_PARAMS_STAT_OPTIONS
-    opts['dump_to_file'] = os.path.abspath(self._filename)
-    tf.contrib.tfprof.model_analyzer.print_model_analysis(
-        tf.get_default_graph(), tfprof_options=opts)
+    # Dump to file on the chief worker
+    if self.is_chief:
+      opts = tf.contrib.tfprof.model_analyzer.TRAINABLE_VARS_PARAMS_STAT_OPTIONS
+      opts['dump_to_file'] = os.path.abspath(self._filename)
+      tf.contrib.tfprof.model_analyzer.print_model_analysis(
+          tf.get_default_graph(), tfprof_options=opts)
 
     # Print the model analysis
     with gfile.GFile(self._filename) as file:
@@ -312,8 +337,8 @@ class VariableRestoreHook(TrainingHook):
     checkpoint_path: Path to the checkpoint to restore variables from.
   """
 
-  def __init__(self, params, model_dir):
-    super(VariableRestoreHook, self).__init__(params, model_dir)
+  def __init__(self, params, model_dir, is_chief=True):
+    super(VariableRestoreHook, self).__init__(params, model_dir, is_chief)
     self._saver = None
 
   @staticmethod

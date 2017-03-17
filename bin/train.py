@@ -177,7 +177,10 @@ def create_experiment(output_dir):
   # Create hooks
   train_hooks = []
   for dict_ in FLAGS.hooks:
-    hook = _create_from_dict(dict_, hooks, model_dir=estimator.model_dir)
+    hook = _create_from_dict(
+        dict_, hooks,
+        model_dir=estimator.model_dir,
+        is_chief=config.is_chief)
     train_hooks.append(hook)
 
   # Create metrics
