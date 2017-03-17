@@ -317,14 +317,12 @@ class PrintModelAnalysisHook(TrainingHook):
     return {}
 
   def begin(self):
-    if not self.is_chief:
-      return
-
-    # Dump to file
-    opts = tf.contrib.tfprof.model_analyzer.TRAINABLE_VARS_PARAMS_STAT_OPTIONS
-    opts['dump_to_file'] = os.path.abspath(self._filename)
-    tf.contrib.tfprof.model_analyzer.print_model_analysis(
-        tf.get_default_graph(), tfprof_options=opts)
+    # Dump to file on the chief worker
+    if self.is_chief:
+      opts = tf.contrib.tfprof.model_analyzer.TRAINABLE_VARS_PARAMS_STAT_OPTIONS
+      opts['dump_to_file'] = os.path.abspath(self._filename)
+      tf.contrib.tfprof.model_analyzer.print_model_analysis(
+          tf.get_default_graph(), tfprof_options=opts)
 
     # Print the model analysis
     with gfile.GFile(self._filename) as file:
