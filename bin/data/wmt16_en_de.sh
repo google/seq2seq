@@ -148,7 +148,7 @@ $BASE_DIR/bin/tools/generate_vocab.py \
 
 # Create vocabulary for DE data
 $BASE_DIR/bin/tools/generate_vocab.py \
-  --max_vocab_size 50000
+  --max_vocab_size 50000 \
   < ${OUTPUT_DIR}/train.tok.clean.de \
   > ${OUTPUT_DIR}/vocab.50k.de \
 

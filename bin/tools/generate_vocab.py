@@ -20,9 +20,9 @@
 Generate vocabulary for a tokenized text file.
 """
 
+import sys
 import argparse
 import collections
-import fileinput
 import logging
 
 parser = argparse.ArgumentParser(
@@ -44,13 +44,18 @@ parser.add_argument(
     type=bool,
     help="If set to true, downcase all text before processing.",
     default=False)
-
+parser.add_argument(
+    "infile",
+    nargs="?",
+    type=argparse.FileType("r"),
+    default=sys.stdin,
+    help="Input tokenized text file to be processed.")
 args = parser.parse_args()
 
 # Counter for all words in the vocabulary
 cnt = collections.Counter()
 
-for line in fileinput.input():
+for line in args.infile:
   if args.downcase:
     line = line.lower()
   tokens = line.strip().split(" ")
