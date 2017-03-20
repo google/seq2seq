@@ -47,10 +47,10 @@ class AttentionDecoder(RNNDecoder):
       state.
     vocab_size: Output vocabulary size, i.e. number of units
       in the softmax layer
-    attention_values: The sequence used to calculate attention scores.
+    attention_keys: The sequence used to calculate attention scores.
       A tensor of shape `[B, T, ...]`.
     attention_values: The sequence to attend over.
-      A tensor of shape `[B, T, ...]`.
+      A tensor of shape `[B, T, input_dim]`.   
     attention_values_length: Sequence length of the attention values.
       An int32 Tensor of shape `[B]`.
     attention_fn: The attention function to use. This function map from
