@@ -35,7 +35,7 @@ from seq2seq.contrib import rnn_cell
 
 
 class TrainOptions(object):
-  """A collectionf of options that are passed to the training script
+  """A collection of options that are passed to the training script
   and can be saved to perform inference later.
 
   Args:
