@@ -22,7 +22,7 @@ import tensorflow as tf
 
 
 def cross_entropy_sequence_loss(logits, targets, sequence_length):
-  """Calculates the per-example Ccross-entropy loss for a sequence of logits and
+  """Calculates the per-example cross-entropy loss for a sequence of logits and
     masks out all losses passed the sequence length.
 
   Args:
