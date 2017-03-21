@@ -86,8 +86,7 @@ class AttentionDecoder(RNNDecoder):
         logits=self.vocab_size,
         predicted_ids=tf.TensorShape([]),
         cell_output=self.cell.output_size,
-        attention_scores=tf.concat(
-            [[0], tf.shape(self.attention_values)[1:-1]], 0),
+        attention_scores=tf.shape(self.attention_values)[1:-1],
         attention_context=self.attention_values.get_shape()[-1])
 
   @property
