@@ -171,7 +171,12 @@ def rouge_n(evaluated_sentences, reference_sentences, n=2):
     precision = 0.0
   else:
     precision = overlapping_count / evaluated_count
-  recall = overlapping_count / reference_count
+
+  if reference_count == 0:
+    recall = 0.0
+  else:
+    recall = overlapping_count / reference_count
+
   f1_score = 2.0 * ((precision * recall) / (precision + recall + 1e-8))
 
   # return overlapping_count / reference_count
