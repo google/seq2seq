@@ -27,6 +27,7 @@ from __future__ import unicode_literals
 import argparse
 import os
 import numpy as np
+import io
 
 PARSER = argparse.ArgumentParser(description="Generates toy datasets.")
 PARSER.add_argument(
@@ -110,12 +111,12 @@ def write_parallel_text(sources, targets, output_prefix):
   source_filename = os.path.abspath(os.path.join(output_prefix, "sources.txt"))
   target_filename = os.path.abspath(os.path.join(output_prefix, "targets.txt"))
 
-  with open(source_filename, "w") as source_file:
+  with io.open(source_filename, "w", encoding='utf8') as source_file:
     for record in sources:
       source_file.write(record + "\n")
   print("Wrote {}".format(source_filename))
 
-  with open(target_filename, "w") as target_file:
+  with io.open(target_filename, "w", encoding='utf8') as target_file:
     for record in targets:
       target_file.write(record + "\n")
   print("Wrote {}".format(target_filename))
