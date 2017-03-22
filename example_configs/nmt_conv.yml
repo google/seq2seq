@@ -1,0 +1,32 @@
+model: AttentionSeq2Seq
+model_params:
+  attention.class: seq2seq.decoders.attention.AttentionLayerBahdanau
+  attention.params:
+    num_units: 512
+  bridge.class: seq2seq.models.bridges.ZeroBridge
+  embedding.dim: 512
+  encoder.class: seq2seq.encoders.ConvEncoder
+  encoder.params:
+    attention_cnn.units: 512
+    attention_cnn.kernel_size: 3
+    attention_cnn.layers: 15
+    output_cnn.units: 256
+    output_cnn.kernel_size: 3
+    output_cnn.layers: 5
+    position_embeddings.enable: true
+    position_embeddings.combiner_fn: "tensorflow.add"
+    position_embeddings.num_positions: 52
+  decoder.class: seq2seq.decoders.AttentionDecoder
+  decoder.params:
+    rnn_cell:
+      cell_class: LSTMCell
+      cell_params:
+        num_units: 512
+      dropout_input_keep_prob: 0.8
+      dropout_output_keep_prob: 1.0
+      num_layers: 4
+  optimizer.name: Adam
+  optimizer.learning_rate: 0.0001
+  source.max_seq_len: 50
+  source.reverse: false
+  target.max_seq_len: 50

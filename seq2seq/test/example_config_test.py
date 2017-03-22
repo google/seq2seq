@@ -91,6 +91,12 @@ class TestNMTSmall(ExampleConfigTest, EncoderDecoderTests):
   def _config_path(self):
     return os.path.join(EXAMPLE_CONFIG_DIR, "nmt_small.yml")
 
+class TestNMTConv(ExampleConfigTest, EncoderDecoderTests):
+  """Tests nmt_small.yml"""
+
+  def _config_path(self):
+    return os.path.join(EXAMPLE_CONFIG_DIR, "nmt_conv.yml")
+
 
 if __name__ == "__main__":
   tf.test.main()
