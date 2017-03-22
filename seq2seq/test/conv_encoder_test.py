@@ -23,16 +23,16 @@ from __future__ import unicode_literals
 import tensorflow as tf
 import numpy as np
 
-from seq2seq.encoders import PoolingEncoder
+from seq2seq.encoders import ConvEncoder
 
 
-class PoolingEncoderTest(tf.test.TestCase):
+class ConvEncoderTest(tf.test.TestCase):
   """
-  Tests the PoolingEncoder class.
+  Tests the ConvEncoder class.
   """
 
   def setUp(self):
-    super(PoolingEncoderTest, self).setUp()
+    super(ConvEncoderTest, self).setUp()
     self.batch_size = 4
     self.sequence_length = 16
     self.input_depth = 10
@@ -45,32 +45,32 @@ class PoolingEncoderTest(tf.test.TestCase):
     example_length = tf.ones(
         self.batch_size, dtype=tf.int32) * self.sequence_length
 
-    encode_fn = PoolingEncoder(params, self.mode)
+    encode_fn = ConvEncoder(params, self.mode)
     encoder_output = encode_fn(inputs, example_length)
 
     with self.test_session() as sess:
       sess.run(tf.global_variables_initializer())
       encoder_output_ = sess.run(encoder_output)
 
+    att_value_units = encode_fn.params["attention_cnn.units"]
+    output_units = encode_fn.params["output_cnn.units"]
+
     np.testing.assert_array_equal(
         encoder_output_.outputs.shape,
-        [self.batch_size, self.sequence_length, self.input_depth])
+        [self.batch_size, self.sequence_length, att_value_units])
     np.testing.assert_array_equal(
         encoder_output_.attention_values.shape,
-        [self.batch_size, self.sequence_length, self.input_depth])
-    np.testing.assert_array_equal(encoder_output_.final_state.shape,
-                                  [self.batch_size, self.input_depth])
+        [self.batch_size, self.sequence_length, output_units])
+    np.testing.assert_array_equal(
+        encoder_output_.final_state.shape,
+        [self.batch_size, output_units])
 
   def test_encode_with_pos(self):
     self._test_with_params({
         "position_embeddings.enable": True,
-        "position_embeddings.num_positions": self.sequence_length
-    })
-
-  def test_encode_without_pos(self):
-    self._test_with_params({
-        "position_embeddings.enable": False,
-        "position_embeddings.num_positions": 0
+        "position_embeddings.num_positions": self.sequence_length,
+        "attention_cnn.units": 5,
+        "output_cnn.units": 6
     })
 
 if __name__ == "__main__":
