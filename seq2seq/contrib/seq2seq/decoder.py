@@ -32,8 +32,6 @@ import abc
 
 import six
 
-import tensorflow as tf
-
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
@@ -128,7 +126,6 @@ class Decoder(object):
 
 def _create_zero_outputs(size, dtype, batch_size):
   """Create a zero outputs Tensor structure."""
-
   def _t(s):
     return (s if isinstance(s, ops.Tensor) else constant_op.constant(
         tensor_shape.TensorShape(s).as_list(),
@@ -194,12 +191,13 @@ def dynamic_decode(decoder,
 
     initial_finished, initial_inputs, initial_state = decoder.initialize()
 
-    zero_outputs = _create_zero_outputs(
-        decoder.output_size, decoder.output_dtype, decoder.batch_size)
+    zero_outputs = _create_zero_outputs(decoder.output_size,
+                                        decoder.output_dtype,
+                                        decoder.batch_size)
 
     if maximum_iterations is not None:
-      initial_finished = math_ops.logical_or(initial_finished,
-                                             0 >= maximum_iterations)
+      initial_finished = math_ops.logical_or(
+          initial_finished, 0 >= maximum_iterations)
     initial_time = constant_op.constant(0, dtype=dtypes.int32)
 
     def _shape(batch_size, from_shape):
@@ -242,8 +240,8 @@ def dynamic_decode(decoder,
        decoder_finished) = decoder.step(time, inputs, state)
       next_finished = math_ops.logical_or(decoder_finished, finished)
       if maximum_iterations is not None:
-        next_finished = math_ops.logical_or(next_finished,
-                                            time + 1 >= maximum_iterations)
+        next_finished = math_ops.logical_or(
+            next_finished, time + 1 >= maximum_iterations)
 
       nest.assert_same_structure(state, decoder_state)
       nest.assert_same_structure(outputs_ta, next_outputs)
@@ -253,17 +251,24 @@ def dynamic_decode(decoder,
       if impute_finished:
         emit = nest.map_structure(
             lambda out, zero: array_ops.where(finished, zero, out),
-            next_outputs, zero_outputs)
+            next_outputs,
+            zero_outputs)
       else:
         emit = next_outputs
 
       # Copy through states past finish
       def _maybe_copy_state(new, cur):
-        return (new if isinstance(cur, tensor_array_ops.TensorArray) else
-                array_ops.where(finished, cur, new))
+        # TensorArrays and scalar states get passed through.
+        if isinstance(cur, tensor_array_ops.TensorArray):
+          pass_through = True
+        else:
+          new.set_shape(cur.shape)
+          pass_through = (new.shape.ndims == 0)
+        return new if pass_through else array_ops.where(finished, cur, new)
 
       if impute_finished:
-        next_state = nest.map_structure(_maybe_copy_state, decoder_state, state)
+        next_state = nest.map_structure(
+            _maybe_copy_state, decoder_state, state)
       else:
         next_state = decoder_state
 
