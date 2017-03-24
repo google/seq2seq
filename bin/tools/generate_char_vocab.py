@@ -12,12 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
-Generate characyer vocabulary for a text file.
+Generate character vocabulary for a text file.
 """
 
 import fileinput
+
 
 def main():
   """Main function"""
@@ -28,6 +28,7 @@ def main():
       chars.add(char)
 
   print("\n".join(sorted(list(chars))))
+
 
 if __name__ == "__main__":
   main()
