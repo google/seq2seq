@@ -199,8 +199,8 @@ Throughout the traning process you will see the loss decreasing and samples gene
 tensorboard --logdir $MODEL_DIR
 ```
 
-![Log Perplexity](/images/nmt_tutorial_ppl.png)
-![BLEU Score](/images/nmt_tutorial_bleu.png)
+![Log Perplexity](images/nmt_tutorial_ppl.png)
+![BLEU Score](images/nmt_tutorial_bleu.png)
 
 ## Making predictions
 
