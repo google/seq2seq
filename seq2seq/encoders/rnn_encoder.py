@@ -87,7 +87,7 @@ class UnidirectionalRNNEncoder(Encoder):
   def encode(self, inputs, sequence_length, **kwargs):
     scope = tf.get_variable_scope()
     scope.set_initializer(tf.random_uniform_initializer(
-        self.params["init_scale"],
+        -self.params["init_scale"],
         self.params["init_scale"]))
 
     cell = training_utils.get_rnn_cell(**self.params["rnn_cell"])
@@ -129,7 +129,7 @@ class BidirectionalRNNEncoder(Encoder):
   def encode(self, inputs, sequence_length, **kwargs):
     scope = tf.get_variable_scope()
     scope.set_initializer(tf.random_uniform_initializer(
-        self.params["init_scale"],
+        -self.params["init_scale"],
         self.params["init_scale"]))
 
     cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
@@ -177,7 +177,7 @@ class StackBidirectionalRNNEncoder(Encoder):
   def encode(self, inputs, sequence_length, **kwargs):
     scope = tf.get_variable_scope()
     scope.set_initializer(tf.random_uniform_initializer(
-        self.params["init_scale"],
+        -self.params["init_scale"],
         self.params["init_scale"]))
 
     cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
