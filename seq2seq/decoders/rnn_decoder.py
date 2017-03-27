@@ -95,9 +95,9 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
   @staticmethod
   def default_params():
     return {
-      "max_decode_length": 100,
-      "rnn_cell": _default_rnn_cell_params(),
-      "init_scale": 0.04,
+        "max_decode_length": 100,
+        "rnn_cell": _default_rnn_cell_params(),
+        "init_scale": 0.04,
     }
 
   def _build(self, initial_state, helper):
@@ -106,7 +106,7 @@ class RNNDecoder(Decoder, GraphModule, Configurable):
 
     scope = tf.get_variable_scope()
     scope.set_initializer(tf.random_uniform_initializer(
-        self.params["init_scale"],
+        -self.params["init_scale"],
         self.params["init_scale"]))
 
     maximum_iterations = None
