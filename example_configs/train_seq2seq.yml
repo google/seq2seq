@@ -5,6 +5,3 @@ hooks:
   - class: TrainSampleHook
     params:
       every_n_steps: 1000
-  - class: TokensPerSecondCounter
-    params:
-       every_n_steps: 100
