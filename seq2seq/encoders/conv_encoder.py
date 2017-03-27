@@ -37,6 +37,8 @@ class ConvEncoder(Encoder):
     attention_cnn.units: Number of units in `cnn_a`. Same in each layer.
     attention_cnn.kernel_size: Kernel size for `cnn_a`.
     attention_cnn.layers: Number of layers in `cnn_a`.
+    embedding_dropout_keep_prob: Dropout keep probability
+      applied to the embeddings.
     output_cnn.units: Number of units in `cnn_c`. Same in each layer.
     output_cnn.kernel_size: Kernel size for `cnn_c`.
     output_cnn.layers: Number of layers in `cnn_c`.
@@ -58,6 +60,7 @@ class ConvEncoder(Encoder):
         "attention_cnn.units": 512,
         "attention_cnn.kernel_size": 3,
         "attention_cnn.layers": 15,
+        "embedding_dropout_keep_prob": 0.8,
         "output_cnn.units": 256,
         "output_cnn.kernel_size": 3,
         "output_cnn.layers": 5,
@@ -74,6 +77,12 @@ class ConvEncoder(Encoder):
           lengths=sequence_length,
           maxlen=tf.shape(inputs)[1])
       inputs = self._combiner_fn(inputs, positions_embed)
+
+    # Apply dropout to embeddings
+    inputs = tf.contrib.layers.dropout(
+        inputs=inputs,
+        keep_prob=self.params["embedding_dropout_keep_prob"],
+        is_training=self.mode == tf.contrib.learn.ModeKeys.TRAIN)
 
     with tf.variable_scope("cnn_a"):
       cnn_a_output = inputs

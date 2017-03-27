@@ -62,6 +62,7 @@ class PoolingEncoder(Encoder):
   embeddings and a configurable pooling window.
 
   Params:
+    dropout_keep_prob: Dropout keep probability applied to the embeddings.
     pooling_fn: The 1-d pooling function to use, e.g.
       `tensorflow.layers.average_pooling1d`.
     pool_size: The pooling window, passed as `pool_size` to
@@ -84,6 +85,7 @@ class PoolingEncoder(Encoder):
   @staticmethod
   def default_params():
     return {
+        "dropout_keep_prob": 0.8,
         "pooling_fn": "tensorflow.layers.average_pooling1d",
         "pool_size": 5,
         "strides": 1,
@@ -100,6 +102,12 @@ class PoolingEncoder(Encoder):
           lengths=sequence_length,
           maxlen=tf.shape(inputs)[1])
       inputs = self._combiner_fn(inputs, positions_embed)
+
+    # Apply dropout
+    inputs = tf.contrib.layers.dropout(
+        inputs=inputs,
+        keep_prob=self.params["dropout_keep_prob"],
+        is_training=self.mode == tf.contrib.learn.ModeKeys.TRAIN)
 
     outputs = self._pooling_fn(
         inputs=inputs,
