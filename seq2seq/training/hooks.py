@@ -28,7 +28,6 @@ import yaml
 
 import tensorflow as tf
 from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer  # pylint: disable=E0611
-from tensorflow.python.training.summary_io import SummaryWriterCache  # pylint: disable=E0611
 from tensorflow.python.client import timeline  # pylint: disable=E0611
 from tensorflow import gfile
 
@@ -132,86 +131,6 @@ class MetadataCaptureHook(TrainingHook):
       self._done = True
 
     self._active = (step_done >= self.params["step"])
-
-
-class TokensPerSecondCounter(TrainingHook):
-  """A hooks that counts tokens/sec, where the number of tokens is
-    defines as `len(source) + len(target)`.
-  """
-
-  def __init__(self, params, model_dir, is_chief=True, summary_writer=None):
-    super(TokensPerSecondCounter, self).__init__(params, model_dir, is_chief)
-
-    self._summary_tag = "tokens/sec"
-    self._timer = SecondOrStepTimer(
-        every_steps=self.params["every_n_steps"],
-        every_secs=self.params["every_n_secs"])
-
-    self._summary_writer = summary_writer
-    if summary_writer is None and self.model_dir:
-      self._summary_writer = SummaryWriterCache.get(self.model_dir)
-
-    self._tokens_last_step = 0
-
-  @staticmethod
-  def default_params():
-    return {"every_n_steps": 100, "every_n_secs": None}
-
-  def begin(self):
-    if not self.is_chief:
-      return
-
-    #pylint: disable=W0201
-    features = graph_utils.get_dict_from_collection("features")
-    labels = graph_utils.get_dict_from_collection("labels")
-
-    self._num_tokens_tensor = tf.constant(0)
-    if "source_len" in features:
-      self._num_tokens_tensor += tf.reduce_sum(features["source_len"])
-    if "target_len" in labels:
-      self._num_tokens_tensor += tf.reduce_sum(labels["target_len"])
-
-    self._tokens_last_step = 0
-    self._global_step_tensor = tf.train.get_global_step()
-
-    # Create a variable that stores how many tokens have been processed
-    # Should be global for distributed training
-    with tf.variable_scope("tokens_counter"):
-      self._tokens_processed_var = tf.get_variable(
-          name="count",
-          shape=[],
-          dtype=tf.int32,
-          initializer=tf.constant_initializer(
-              0, dtype=tf.int32))
-      self._tokens_processed_add = tf.assign_add(self._tokens_processed_var,
-                                                 self._num_tokens_tensor)
-
-  def before_run(self, run_context):
-    if not self.is_chief:
-      return
-
-    return tf.train.SessionRunArgs(
-        [self._global_step_tensor, self._tokens_processed_add])
-
-  def after_run(self, _run_context, run_values):
-    if not self.is_chief:
-      return
-
-    global_step, num_tokens = run_values.results
-    tokens_processed = num_tokens - self._tokens_last_step
-
-    if self._timer.should_trigger_for_step(global_step):
-      elapsed_time, _ = self._timer.update_last_triggered_step(global_step)
-      if elapsed_time is not None:
-        tokens_per_sec = tokens_processed / elapsed_time
-        if self._summary_writer is not None:
-          summary = tf.Summary(value=[
-              tf.Summary.Value(
-                  tag=self._summary_tag, simple_value=tokens_per_sec)
-          ])
-          self._summary_writer.add_summary(summary, global_step)
-        tf.logging.info("%s: %g", self._summary_tag, tokens_per_sec)
-      self._tokens_last_step = num_tokens
 
 
 class TrainSampleHook(TrainingHook):

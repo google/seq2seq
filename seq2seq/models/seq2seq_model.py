@@ -228,6 +228,16 @@ class Seq2SeqModel(ModelBase):
     labels["target_len"] = tf.to_int32(labels["target_len"])
     tf.summary.histogram("target_len", tf.to_float(labels["target_len"]))
 
+    # Keep track of the number of processed tokens
+    num_tokens = tf.reduce_sum(labels["target_len"])
+    num_tokens += tf.reduce_sum(features["source_len"])
+    token_counter_var = tf.Variable(0, "tokens_counter")
+    total_tokens = tf.assign_add(token_counter_var, num_tokens)
+    tf.summary.scalar("num_tokens", total_tokens)
+
+    with tf.control_dependencies([total_tokens]):
+      features["source_tokens"] = tf.identity(features["source_tokens"])
+
     # Add to graph collection for later use
     graph_utils.add_dict_to_collection(features, "features")
     if labels:
