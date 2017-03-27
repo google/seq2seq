@@ -125,18 +125,18 @@ for f in ${OUTPUT_DIR}/*.en; do
 done
 
 # Create character vocabulary (on tokenized data)
-${BASE_DIR}/bin/tools/generate_char_vocab.py \
+${BASE_DIR}/bin/tools/generate_vocab.py --delimiter "" \
   < ${OUTPUT_DIR}/train.tok.clean.en \
   > ${OUTPUT_DIR}/vocab.tok.char.en
-${BASE_DIR}/bin/tools/generate_char_vocab.py \
+${BASE_DIR}/bin/tools/generate_vocab.py --delimiter "" \
   < ${OUTPUT_DIR}/train.tok.clean.de \
   > ${OUTPUT_DIR}/vocab.tok.char.de
 
 # Create character vocabulary (on non-tokenized data)
-${BASE_DIR}/bin/tools/generate_char_vocab.py \
+${BASE_DIR}/bin/tools/generate_vocab.py --delimiter "" \
   < ${OUTPUT_DIR}/train.clean.en \
   > ${OUTPUT_DIR}/vocab.char.en
-${BASE_DIR}/bin/tools/generate_char_vocab.py \
+${BASE_DIR}/bin/tools/generate_vocab.py --delimiter "" \
   < ${OUTPUT_DIR}/train.clean.de \
   > ${OUTPUT_DIR}/vocab.char.de
 
@@ -180,4 +180,3 @@ for merge_ops in 32000; do
 done
 
 echo "All done."
-

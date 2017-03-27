@@ -10,7 +10,7 @@ This tutorial is not meant to be a general introduction to Neural Machine Transl
 
 ## Data Format
 
-A standard format used in both statistical and neural translation is the **parallel text format**. It consists of a pair of plain text with files corresponding to source sentences and target translations, aligned line-by-bline. For example,
+A standard format used in both statistical and neural translation is the **parallel text format**. It consists of a pair of plain text with files corresponding to source sentences and target translations, aligned line-by-line. For example,
 
 sources.en (English):
 
@@ -199,8 +199,8 @@ Throughout the traning process you will see the loss decreasing and samples gene
 tensorboard --logdir $MODEL_DIR
 ```
 
-![Log Perplexity](/images/nmt_tutorial_ppl.png)
-![BLEU Score](/images/nmt_tutorial_bleu.png)
+![Log Perplexity](images/nmt_tutorial_ppl.png)
+![BLEU Score](images/nmt_tutorial_bleu.png)
 
 ## Making predictions
 
@@ -268,4 +268,3 @@ The training script will save multiple model checkpoints throughout training. Th
 ```
 
 The `multi-bleu.perl` script is taken from [Moses](https://github.com/moses-smt/mosesdecoder/blob/master/scripts/generic/multi-bleu.perl) and is one of the most common ways to calculcate BLEU. Note that we calculate BLEU scores on tokenized text. An alternative is to calculate BLEU on untokenized text. To do this, would first need to detokenize your model outputs.
-

@@ -9,10 +9,10 @@ A vocabulary file is a raw text file that contains one word per line, followed b
 
 ## Generating Character Vocabulary
 
-Sometimes you want to run training on characters instead of words or subword units. The [`bin/tools/generate_char_vocab.py`](https://github.com/google/seq2seq/blob/master/bin/tools/generate_char_vocab.py) can generate a vocabulary file that contains the unique set of characters found in the text:
+Sometimes you want to run training on characters instead of words or subword units. Using the same script [`bin/tools/generate_vocab.py`](https://github.com/google/seq2seq/blob/master/bin/tools/generate_vocab.py) with `--delimiter ""` can generate a vocabulary file that contains the unique set of characters found in the text:
 
 ```shell
-./bin/tools/generate_char_vocab.py < data.txt > vocab
+./bin/tools/generate_vocab.py --delimiter "" < data.txt > vocab
 ```
 
 To run training on characters you must pass set `source_delimiter` and `target_delimiter` delimiter of the input pipeline to `""`. See the [Training documentation](training.md) for more details.
