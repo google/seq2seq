@@ -221,7 +221,7 @@
 <pre><code class="shell">./bin/tools/generate_char_vocab.py &lt; data.txt &gt; vocab
 </code></pre>
 
-<p>To run training on characters you must pass the <code>--delimiter=""</code> flag to the training script to avoid splitting words on spaces. See the <a href="../training/">Training documentation</a> for more details.</p>
+<p>To run training on characters you must pass set <code>source_delimiter</code> and <code>target_delimiter</code> delimiter of the input pipeline to <code>""</code>. See the <a href="../training/">Training documentation</a> for more details.</p>
 <h2 id="visualizing-beam-search">Visualizing Beam Search</h2>
 <p>If you use the <code>DumpBeams</code> inference task (see <a href="../inference/">Inference</a> for more details) you can inspect the beam search data by loading the array using numpy, or generate beam search visualizations using the <code>generate_beam_viz.py</code> script. This required the <code>networkx</code> module to be installed.</p>
 <pre><code>python -m bin.tools.generate_beam_viz  \
