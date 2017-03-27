@@ -61,7 +61,6 @@ class ConvEncoder(Encoder):
         "attention_cnn.kernel_size": 3,
         "attention_cnn.layers": 15,
         "embedding_dropout_keep_prob": 0.8,
-        "conv_dropout_keep_prob": 0.8,
         "output_cnn.units": 256,
         "output_cnn.kernel_size": 3,
         "output_cnn.layers": 5,
