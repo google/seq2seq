@@ -217,8 +217,8 @@
 </code></pre>
 
 <h2 id="generating-character-vocabulary">Generating Character Vocabulary</h2>
-<p>Sometimes you want to run training on characters instead of words or subword units. The <a href="https://github.com/google/seq2seq/blob/master/bin/tools/generate_char_vocab.py"><code>bin/tools/generate_char_vocab.py</code></a> can generate a vocabulary file that contains the unique set of characters found in the text:</p>
-<pre><code class="shell">./bin/tools/generate_char_vocab.py &lt; data.txt &gt; vocab
+<p>Sometimes you want to run training on characters instead of words or subword units. Using the same script <a href="https://github.com/google/seq2seq/blob/master/bin/tools/generate_vocab.py"><code>bin/tools/generate_vocab.py</code></a> with <code>--delimiter ""</code> can generate a vocabulary file that contains the unique set of characters found in the text:</p>
+<pre><code class="shell">./bin/tools/generate_vocab.py --delimiter &quot;&quot; &lt; data.txt &gt; vocab
 </code></pre>
 
 <p>To run training on characters you must pass set <code>source_delimiter</code> and <code>target_delimiter</code> delimiter of the input pipeline to <code>""</code>. See the <a href="../training/">Training documentation</a> for more details.</p>
