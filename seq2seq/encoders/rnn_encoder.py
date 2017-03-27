@@ -79,9 +79,17 @@ class UnidirectionalRNNEncoder(Encoder):
 
   @staticmethod
   def default_params():
-    return {"rnn_cell": _default_rnn_cell_params()}
+    return {
+        "rnn_cell": _default_rnn_cell_params(),
+        "init_scale": 0.04,
+    }
 
   def encode(self, inputs, sequence_length, **kwargs):
+    scope = tf.get_variable_scope()
+    scope.set_initializer(tf.random_uniform_initializer(
+        -self.params["init_scale"],
+        self.params["init_scale"]))
+
     cell = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     outputs, state = tf.nn.dynamic_rnn(
         cell=cell,
@@ -113,9 +121,17 @@ class BidirectionalRNNEncoder(Encoder):
 
   @staticmethod
   def default_params():
-    return {"rnn_cell": _default_rnn_cell_params()}
+    return {
+        "rnn_cell": _default_rnn_cell_params(),
+        "init_scale": 0.04,
+    }
 
   def encode(self, inputs, sequence_length, **kwargs):
+    scope = tf.get_variable_scope()
+    scope.set_initializer(tf.random_uniform_initializer(
+        -self.params["init_scale"],
+        self.params["init_scale"]))
+
     cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     cell_bw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     outputs, states = tf.nn.bidirectional_dynamic_rnn(
@@ -153,9 +169,17 @@ class StackBidirectionalRNNEncoder(Encoder):
 
   @staticmethod
   def default_params():
-    return {"rnn_cell": _default_rnn_cell_params()}
+    return {
+        "rnn_cell": _default_rnn_cell_params(),
+        "init_scale": 0.04,
+    }
 
   def encode(self, inputs, sequence_length, **kwargs):
+    scope = tf.get_variable_scope()
+    scope.set_initializer(tf.random_uniform_initializer(
+        -self.params["init_scale"],
+        self.params["init_scale"]))
+
     cell_fw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
     cell_bw = training_utils.get_rnn_cell(**self.params["rnn_cell"])
 

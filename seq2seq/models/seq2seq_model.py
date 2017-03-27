@@ -55,14 +55,31 @@ class Seq2SeqModel(ModelBase):
         "source.reverse": True,
         "target.max_seq_len": 50,
         "embedding.dim": 100,
+        "embedding.init_scale": 0.04,
         "embedding.share": False,
         "inference.beam_search.beam_width": 0,
         "inference.beam_search.length_penalty_weight": 0.0,
         "inference.beam_search.choose_successors_fn": "choose_top_k",
+        "optimizer.clip_embed_gradients": 0.1,
         "vocab_source": "",
         "vocab_target": "",
     })
     return params
+
+  def _clip_gradients(self, grads_and_vars):
+    """In addition to standard gradient clipping, also clips embedding
+    gradients to a specified value."""
+    grads_and_vars = super(Seq2SeqModel, self)._clip_gradients(grads_and_vars)
+
+    clipped_gradients = []
+    variables = []
+    for gradient, variable in grads_and_vars:
+      if "embedding" in variable.name:
+        gradient = tf.clip_by_norm(
+            gradient, self.params["optimizer.clip_embed_gradients"])
+      clipped_gradients.append(gradient)
+      variables.append(variable)
+    return list(zip(clipped_gradients, variables))
 
   def _create_predictions(self, decoder_output, features, labels, losses=None):
     """Creates the dictionary of predictions that is returned by the model.
@@ -111,7 +128,11 @@ class Seq2SeqModel(ModelBase):
     """Returns the embedding used for the source sequence.
     """
     return tf.get_variable(
-        "W", [self.source_vocab_info.total_size, self.params["embedding.dim"]])
+        name="W",
+        shape=[self.source_vocab_info.total_size, self.params["embedding.dim"]],
+        initializer=tf.random_uniform_initializer(
+            -self.params["embedding.init_scale"],
+            self.params["embedding.init_scale"]))
 
   @property
   @templatemethod("target_embedding")
@@ -121,7 +142,11 @@ class Seq2SeqModel(ModelBase):
     if self.params["embedding.share"]:
       return self.source_embedding
     return tf.get_variable(
-        "W", [self.target_vocab_info.total_size, self.params["embedding.dim"]])
+        name="W",
+        shape=[self.target_vocab_info.total_size, self.params["embedding.dim"]],
+        initializer=tf.random_uniform_initializer(
+            -self.params["embedding.init_scale"],
+            self.params["embedding.init_scale"]))
 
   @templatemethod("encode")
   def encode(self, features, labels):

@@ -63,6 +63,13 @@ class ModelBase(Configurable):
     self.name = name
     Configurable.__init__(self, params, mode)
 
+  def _clip_gradients(self, grads_and_vars):
+    """Clips gradients by global norm."""
+    gradients, variables = zip(*grads_and_vars)
+    clipped_gradients, _ = tf.clip_by_global_norm(
+        gradients, self.params["optimizer.clip_gradients"])
+    return list(zip(clipped_gradients, variables))
+
   def _build_train_op(self, loss):
     """Creates the training operation"""
     learning_rate_decay_fn = training_utils.create_learning_rate_decay_fn(
@@ -79,7 +86,7 @@ class ModelBase(Configurable):
         global_step=tf.contrib.framework.get_global_step(),
         learning_rate=self.params["optimizer.learning_rate"],
         learning_rate_decay_fn=learning_rate_decay_fn,
-        clip_gradients=self.params["optimizer.clip_gradients"],
+        clip_gradients=self._clip_gradients,
         optimizer=self.params["optimizer.name"],
         summaries=["learning_rate", "loss", "gradients", "gradient_norm"])
 
