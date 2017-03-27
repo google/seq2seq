@@ -15,7 +15,7 @@ Sometimes you want to run training on characters instead of words or subword uni
 ./bin/tools/generate_char_vocab.py < data.txt > vocab
 ```
 
-To run training on characters you must pass the `--delimiter=""` flag to the training script to avoid splitting words on spaces. See the [Training documentation](training.md) for more details.
+To run training on characters you must pass set `source_delimiter` and `target_delimiter` delimiter of the input pipeline to `""`. See the [Training documentation](training.md) for more details.
 
 
 ## Visualizing Beam Search
