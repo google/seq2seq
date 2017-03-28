@@ -180,7 +180,7 @@ def create_experiment(output_dir):
     hook = _create_from_dict(
         dict_, hooks,
         model_dir=estimator.model_dir,
-        is_chief=config.is_chief)
+        run_config=config)
     train_hooks.append(hook)
 
   # Create metrics

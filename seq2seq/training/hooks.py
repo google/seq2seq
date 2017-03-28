@@ -23,8 +23,10 @@ from __future__ import unicode_literals
 import abc
 import os
 
+import numpy as np
 import six
 import yaml
+
 
 import tensorflow as tf
 from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer  # pylint: disable=E0611
@@ -34,17 +36,19 @@ from tensorflow import gfile
 from seq2seq.configurable import Configurable, abstractstaticmethod
 from seq2seq import graph_utils
 
+FLAGS = tf.flags.FLAGS
+
 
 @six.add_metaclass(abc.ABCMeta)
 class TrainingHook(tf.train.SessionRunHook, Configurable):
   """Abstract base class for training hooks.
   """
 
-  def __init__(self, params, model_dir, is_chief=True):
+  def __init__(self, params, model_dir, run_config):
     tf.train.SessionRunHook.__init__(self)
     Configurable.__init__(self, params, tf.contrib.learn.ModeKeys.TRAIN)
     self._model_dir = model_dir
-    self._is_chief = is_chief
+    self._run_config = run_config
 
   @property
   def model_dir(self):
@@ -57,7 +61,7 @@ class TrainingHook(tf.train.SessionRunHook, Configurable):
     """Returns true if and only if the current process is the chief.
     This is used for distributed training.
     """
-    return self._is_chief
+    return self._run_config.is_chief
 
   @abstractstaticmethod
   def default_params():
@@ -73,8 +77,8 @@ class MetadataCaptureHook(TrainingHook):
     step: The step number to trace. The hook is only enable for this step.
   """
 
-  def __init__(self, params, model_dir, is_chief=True):
-    super(MetadataCaptureHook, self).__init__(params, model_dir, is_chief)
+  def __init__(self, params, model_dir, run_config):
+    super(MetadataCaptureHook, self).__init__(params, model_dir, run_config)
     self._active = False
     self._done = False
     self._global_step = None
@@ -147,8 +151,8 @@ class TrainSampleHook(TrainingHook):
 
   #pylint: disable=missing-docstring
 
-  def __init__(self, params, model_dir, is_chief=True):
-    super(TrainSampleHook, self).__init__(params, model_dir, is_chief)
+  def __init__(self, params, model_dir, run_config):
+    super(TrainSampleHook, self).__init__(params, model_dir, run_config)
     self._sample_dir = os.path.join(self.model_dir, "samples")
     self._timer = SecondOrStepTimer(
         every_secs=self.params["every_n_secs"],
@@ -227,8 +231,8 @@ class PrintModelAnalysisHook(TrainingHook):
   """
 
   #pylint: disable=missing-docstring
-  def __init__(self, params, model_dir, is_chief=True):
-    super(PrintModelAnalysisHook, self).__init__(params, model_dir, is_chief)
+  def __init__(self, params, model_dir, run_config):
+    super(PrintModelAnalysisHook, self).__init__(params, model_dir, run_config)
     self._filename = os.path.join(self.model_dir, "model_analysis.txt")
 
   @staticmethod
@@ -256,8 +260,8 @@ class VariableRestoreHook(TrainingHook):
     checkpoint_path: Path to the checkpoint to restore variables from.
   """
 
-  def __init__(self, params, model_dir, is_chief=True):
-    super(VariableRestoreHook, self).__init__(params, model_dir, is_chief)
+  def __init__(self, params, model_dir, run_config):
+    super(VariableRestoreHook, self).__init__(params, model_dir, run_config)
     self._saver = None
 
   @staticmethod
@@ -286,3 +290,19 @@ class VariableRestoreHook(TrainingHook):
   def after_create_session(self, session, coord):
     self._saver.restore(session, self.params["checkpoint_path"])
     tf.logging.info("Successfully restored all variables")
+
+
+class DelayStartHook(TrainingHook, tf.train.GlobalStepWaiterHook):
+  """Delays the start of the current worker process until global step
+  int(K*log(task_id+1)) is reaached. K is a parameter.
+  """
+  def __init__(self, params, model_dir, run_config):
+    TrainingHook.__init__(self, params, model_dir, run_config)
+    self._task_id = self._run_config.task_id
+    self._delay_k = self.params["delay_k"]
+    self._wait_until_step = int(self._delay_k * np.log(self._task_id + 1))
+    tf.train.GlobalStepWaiterHook.__init__(self, self._wait_until_step)
+
+  @staticmethod
+  def default_params():
+    return {"delay_k": 5000}
