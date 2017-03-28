@@ -75,8 +75,9 @@ class Seq2SeqModel(ModelBase):
     variables = []
     for gradient, variable in grads_and_vars:
       if "embedding" in variable.name:
-        gradient = tf.clip_by_norm(
-            gradient, self.params["optimizer.clip_embed_gradients"])
+        tmp = tf.clip_by_norm(
+            gradient.values, self.params["optimizer.clip_embed_gradients"])
+        gradient = tf.IndexedSlices(tmp, gradient.indices, gradient.dense_shape)
       clipped_gradients.append(gradient)
       variables.append(variable)
     return list(zip(clipped_gradients, variables))
