@@ -104,7 +104,7 @@ class ModelBase(Configurable):
         "optimizer.lr_min_learning_rate": 1e-12,
         "optimizer.lr_staircase": False,
         "optimizer.clip_gradients": 5.0,
-        "training.data_parallelism": 1
+        "training.data_parallelism": 0
     }
 
   def batch_size(self, features, labels):
@@ -113,13 +113,13 @@ class ModelBase(Configurable):
 
   def _build_parallel(self, features, labels, params):
     """Builds one or more model replicas on GPU devices. If
-    `training.data_parallelism` is set to 1 this function does nothing and
+    `training.data_parallelism` is set to 0 this function does nothing and
     just calls the build method.
 
-    If `training.data_parallelism` is > 1 and not enough GPUs are
+    If `training.data_parallelism` is >= 1 and not enough GPUs are
     available this will throw an error.
 
-    If `training.data_parallelism` = N > 1 and enough GPUs are available this
+    If `training.data_parallelism` = N >= 1 and enough GPUs are available this
     will create a model replica on each GPU andsplit the training batch into
     N pieces, merge the predictions and average the losses.
 
@@ -155,10 +155,12 @@ class ModelBase(Configurable):
 
     all_losses = []
     all_predictions = []
+
+    # Create model template function
+    template_build = tf.make_template(
+        "parallel_model", self._build, create_scope_now_=True)
+
     for idx in range(parallelism):
-      # Share variables on all replicas
-      if idx > 0:
-        scope.reuse_variables()
       # Create each model replica
       gpu_device = available_gpus[idx]
       tf.logging.info("Creating replica %d on device %s", idx, gpu_device)
@@ -166,7 +168,7 @@ class ModelBase(Configurable):
         tf.logging.info(idx)
         rep_features = {k: v[idx] for k, v in features_split.items()}
         rep_labels = {k: v[idx] for k, v in labels_split.items()}
-        rep_pred, rep_loss = self._build(rep_features, rep_labels, params)
+        rep_pred, rep_loss = template_build(rep_features, rep_labels, params)
         all_losses.append(rep_loss)
         all_predictions.append(rep_pred)
 

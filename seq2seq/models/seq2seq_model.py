@@ -255,8 +255,8 @@ class Seq2SeqModel(ModelBase):
     tf.summary.histogram("target_len", tf.to_float(labels["target_len"]))
 
     # Keep track of the number of processed tokens
-    num_tokens = tf.reduce_sum(labels["target_len"])
-    num_tokens += tf.reduce_sum(features["source_len"])
+    num_tokens = tf.to_int64(tf.reduce_sum(labels["target_len"]))
+    num_tokens += tf.to_int64(tf.reduce_sum(features["source_len"]))
     token_counter_var = tf.get_variable("tokens_counter", [],
         dtype=tf.int64, initializer=tf.constant_initializer(0))
     total_tokens = tf.assign_add(token_counter_var, num_tokens)
