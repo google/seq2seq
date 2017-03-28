@@ -130,6 +130,31 @@ class EncoderDecoderTests(tf.test.TestCase):
 
     return model, fetches_
 
+  def test_train_multi_device(self):
+    parallelism = 4
+    self.batch_size = self.batch_size * parallelism
+    # Return 4 CPU devices to make sure model splitting
+    training_utils.get_available_gpus = lambda: ["cpu:0"] * parallelism
+    model, fetches_ = self._test_pipeline(
+        tf.contrib.learn.ModeKeys.TRAIN,
+        params={"training.data_parallelism": parallelism})
+
+    predictions_, loss_, _ = fetches_
+
+    target_len = self.sequence_length + 10 + 2
+    max_decode_length = model.params["target.max_seq_len"]
+    expected_decode_len = np.minimum(target_len, max_decode_length)
+
+    np.testing.assert_array_equal(predictions_["logits"].shape, [
+        self.batch_size, expected_decode_len - 1,
+        model.target_vocab_info.total_size
+    ])
+    np.testing.assert_array_equal(predictions_["losses"].shape,
+                                  [self.batch_size, expected_decode_len - 1])
+    np.testing.assert_array_equal(predictions_["predicted_ids"].shape,
+                                  [self.batch_size, expected_decode_len - 1])
+    self.assertFalse(np.isnan(loss_))
+
   def test_train(self):
     model, fetches_ = self._test_pipeline(tf.contrib.learn.ModeKeys.TRAIN)
     predictions_, loss_, _ = fetches_

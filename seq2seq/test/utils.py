@@ -20,8 +20,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import tempfile
-import tensorflow as tf
 
+import tensorflow as tf
 
 def create_temp_parallel_data(sources, targets):
   """

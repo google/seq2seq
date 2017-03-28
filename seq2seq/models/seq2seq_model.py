@@ -301,13 +301,8 @@ class Seq2SeqModel(ModelBase):
       predictions = self._create_predictions(
           decoder_output=decoder_output, features=features, labels=labels)
       loss = None
-      train_op = None
     else:
       losses, loss = self.compute_loss(decoder_output, features, labels)
-
-      train_op = None
-      if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
-        train_op = self._build_train_op(loss)
 
       predictions = self._create_predictions(
           decoder_output=decoder_output,
@@ -319,4 +314,4 @@ class Seq2SeqModel(ModelBase):
     # can easly find them in our hooks/monitors.
     graph_utils.add_dict_to_collection(predictions, "predictions")
 
-    return predictions, loss, train_op
+    return predictions, loss
