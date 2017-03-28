@@ -35,6 +35,8 @@ from seq2seq import models
 EXAMPLE_CONFIG_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../example_configs"))
 
+# Do not test multi-device support here - it takes too long
+delattr(EncoderDecoderTests, "test_train_multi_device")
 
 def _load_model_from_config(config_path, hparam_overrides, vocab_file, mode):
   """Loads model from a configuration file"""
@@ -49,7 +51,6 @@ def _load_model_from_config(config_path, hparam_overrides, vocab_file, mode):
   model_params["vocab_source"] = vocab_file
   model_params["vocab_target"] = vocab_file
   return model_cls(params=model_params, mode=mode)
-
 
 class ExampleConfigTest(object):
   """Interface for configuration-based tests"""

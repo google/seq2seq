@@ -165,7 +165,6 @@ class ModelBase(Configurable):
       gpu_device = available_gpus[idx]
       tf.logging.info("Creating replica %d on device %s", idx, gpu_device)
       with tf.device(gpu_device):
-        tf.logging.info(idx)
         rep_features = {k: v[idx] for k, v in features_split.items()}
         rep_labels = {k: v[idx] for k, v in labels_split.items()}
         rep_pred, rep_loss = template_build(rep_features, rep_labels, params)
