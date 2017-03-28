@@ -247,6 +247,11 @@ class Seq2SeqModel(ModelBase):
           "target.max_seq_len"]]
       labels["target_len"] = tf.minimum(labels["target_len"],
                                         self.params["target.max_seq_len"])
+      # Slice up to longest example in this batch.
+      # This is required for multi-gpu training where each batch is split
+      # across replicas
+      labels["target_tokens"] = labels["target_tokens"][:, :tf.reduce_max(
+          labels["target_len"])]
 
     # Look up the target ids in the vocabulary
     labels["target_ids"] = target_vocab_to_id.lookup(labels["target_tokens"])
