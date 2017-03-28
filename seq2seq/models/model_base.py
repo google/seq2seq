@@ -100,7 +100,7 @@ class ModelBase(Configurable):
         "optimizer.lr_decay_steps": 100,
         "optimizer.lr_decay_rate": 0.99,
         "optimizer.lr_start_decay_at": 0,
-        "optimizer.lr_stop_decay_at": 1000000000,
+        "optimizer.lr_stop_decay_at": tf.int32.max,
         "optimizer.lr_min_learning_rate": 1e-12,
         "optimizer.lr_staircase": False,
         "optimizer.clip_gradients": 5.0,

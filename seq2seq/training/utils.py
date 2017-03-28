@@ -202,9 +202,13 @@ def create_learning_rate_decay_fn(decay_type,
   if decay_type is None or decay_type == "":
     return None
 
+  start_decay_at = tf.to_int32(start_decay_at)
+  stop_decay_at = tf.to_int32(stop_decay_at)
+
   def decay_fn(learning_rate, global_step):
     """The computed learning rate decay function.
     """
+
     decay_type_fn = getattr(tf.train, decay_type)
     decayed_learning_rate = decay_type_fn(
         learning_rate=learning_rate,

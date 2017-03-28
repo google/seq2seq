@@ -178,7 +178,7 @@ class TestLRDecay(tf.test.TestCase):
         decay_steps=10,
         decay_rate=0.9,
         start_decay_at=100,
-        stop_decay_at=1000,
+        stop_decay_at=1000.0,
         min_learning_rate=0.01,
         staircase=False)
 
