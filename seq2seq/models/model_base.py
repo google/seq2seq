@@ -131,13 +131,19 @@ class ModelBase(Configurable):
     """
     parallelism = self.params["training.data_parallelism"]
 
+    # Create model template function
+    template_build = tf.make_template(
+        self.name, self._build, create_scope_now_=True)
+
     # Data parallelism is disabled
     if parallelism <= 0:
-      return self._build(features, labels, params)
+      with tf.variable_scope(self.name):
+        return template_build(features, labels, params)
 
     # Not training
     if self.mode != tf.contrib.learn.ModeKeys.TRAIN:
-      return self._build(features, labels, params)
+      with tf.variable_scope(self.name):
+        return template_build(features, labels, params)
 
     # Data parallelism is enabled
     available_gpus = training_utils.get_available_gpus()
@@ -156,10 +162,6 @@ class ModelBase(Configurable):
 
     all_losses = []
     all_predictions = []
-
-    # Create model template function
-    template_build = tf.make_template(
-        "parallel_model", self._build, create_scope_now_=True)
 
     for idx in range(parallelism):
       # Create each model replica
@@ -190,13 +192,12 @@ class ModelBase(Configurable):
     tf.contrib.learn.Estimator class for a more detailed explanation.
     """
     with tf.variable_scope("model"):
-      with tf.variable_scope(self.name):
-        predictions, loss = self._build_parallel(features, labels, params)
-        if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
-          train_op = self._build_train_op(loss)
-        else:
-          train_op = None
-      return predictions, loss, train_op
+      predictions, loss = self._build_parallel(features, labels, params)
+      if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
+        train_op = self._build_train_op(loss)
+      else:
+        train_op = None
+    return predictions, loss, train_op
 
   def _build(self, features, labels, params):
     """Subclasses should implement this method. See the `model_fn` documentation
