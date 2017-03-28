@@ -72,6 +72,8 @@ class ModelBase(Configurable):
 
   def _build_train_op(self, loss):
     """Creates the training operation"""
+    colocate_gradients_with_ops = self.params["training.data_parallelism"] > 1
+
     learning_rate_decay_fn = training_utils.create_learning_rate_decay_fn(
         decay_type=self.params["optimizer.lr_decay_type"] or None,
         decay_steps=self.params["optimizer.lr_decay_steps"],
@@ -88,7 +90,8 @@ class ModelBase(Configurable):
         learning_rate_decay_fn=learning_rate_decay_fn,
         clip_gradients=self._clip_gradients,
         optimizer=self.params["optimizer.name"],
-        summaries=["learning_rate", "loss", "gradients", "gradient_norm"])
+        summaries=["learning_rate", "loss", "gradients", "gradient_norm"],
+        colocate_gradients_with_ops=colocate_gradients_with_ops)
 
   @staticmethod
   def default_params():
@@ -150,8 +153,6 @@ class ModelBase(Configurable):
     features_split = {k: tf.split(v, parallelism) for k, v in features.items()}
     labels_split = {k: tf.split(v, parallelism) for k, v in labels.items()}
     tf.logging.info(features_split)
-
-    scope = tf.get_variable_scope()
 
     all_losses = []
     all_predictions = []

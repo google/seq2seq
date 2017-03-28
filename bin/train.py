@@ -105,6 +105,8 @@ tf.flags.DEFINE_integer("keep_checkpoint_every_n_hours", 4,
                         """In addition to keeping the most recent checkpoint
                         files, keep one checkpoint file for every N hours of
                         training.""")
+tf.flags.DEFINE_boolean("log_device_placement", False,
+                        """If true, logs device placement.""")
 
 FLAGS = tf.flags.FLAGS
 
@@ -121,7 +123,8 @@ def create_experiment(output_dir):
       save_checkpoints_secs=FLAGS.save_checkpoints_secs,
       save_checkpoints_steps=FLAGS.save_checkpoints_steps,
       keep_checkpoint_max=FLAGS.keep_checkpoint_max,
-      keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours
+      keep_checkpoint_every_n_hours=FLAGS.keep_checkpoint_every_n_hours,
+      log_device_placement=FLAGS.log_device_placement,
   )
 
   train_options = training_utils.TrainOptions(
