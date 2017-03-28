@@ -208,6 +208,7 @@ def create_learning_rate_decay_fn(decay_type,
   def decay_fn(learning_rate, global_step):
     """The computed learning rate decay function.
     """
+    global_step = tf.to_int32(global_step)
 
     decay_type_fn = getattr(tf.train, decay_type)
     decayed_learning_rate = decay_type_fn(
