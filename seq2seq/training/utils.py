@@ -235,7 +235,8 @@ def create_learning_rate_decay_fn(decay_type,
 def create_input_fn(pipeline,
                     batch_size,
                     bucket_boundaries=None,
-                    allow_smaller_final_batch=False):
+                    allow_smaller_final_batch=False,
+                    scope=None):
   """Creates an input function that can be used with tf.learn estimators.
     Note that you must pass "factory funcitons" for both the data provider and
     featurizer to ensure that everything will be created in  the same graph.
@@ -256,37 +257,38 @@ def create_input_fn(pipeline,
     """Creates features and labels.
     """
 
-    data_provider = pipeline.make_data_provider()
-    features_and_labels = pipeline.read_from_data_provider(data_provider)
+    with tf.variable_scope(scope or "input_fn"):
+      data_provider = pipeline.make_data_provider()
+      features_and_labels = pipeline.read_from_data_provider(data_provider)
 
-    if bucket_boundaries:
-      _, batch = tf.contrib.training.bucket_by_sequence_length(
-          input_length=features_and_labels["source_len"],
-          bucket_boundaries=bucket_boundaries,
-          tensors=features_and_labels,
-          batch_size=batch_size,
-          keep_input=features_and_labels["source_len"] >= 1,
-          dynamic_pad=True,
-          capacity=5000 + 16 * batch_size,
-          allow_smaller_final_batch=allow_smaller_final_batch,
-          name="bucket_queue")
-    else:
-      batch = tf.train.batch(
-          tensors=features_and_labels,
-          enqueue_many=False,
-          batch_size=batch_size,
-          dynamic_pad=True,
-          capacity=5000 + 16 * batch_size,
-          allow_smaller_final_batch=allow_smaller_final_batch,
-          name="batch_queue")
+      if bucket_boundaries:
+        _, batch = tf.contrib.training.bucket_by_sequence_length(
+            input_length=features_and_labels["source_len"],
+            bucket_boundaries=bucket_boundaries,
+            tensors=features_and_labels,
+            batch_size=batch_size,
+            keep_input=features_and_labels["source_len"] >= 1,
+            dynamic_pad=True,
+            capacity=5000 + 16 * batch_size,
+            allow_smaller_final_batch=allow_smaller_final_batch,
+            name="bucket_queue")
+      else:
+        batch = tf.train.batch(
+            tensors=features_and_labels,
+            enqueue_many=False,
+            batch_size=batch_size,
+            dynamic_pad=True,
+            capacity=5000 + 16 * batch_size,
+            allow_smaller_final_batch=allow_smaller_final_batch,
+            name="batch_queue")
 
-    # Separate features and labels
-    features_batch = {k: batch[k] for k in pipeline.feature_keys}
-    if set(batch.keys()).intersection(pipeline.label_keys):
-      labels_batch = {k: batch[k] for k in pipeline.label_keys}
-    else:
-      labels_batch = None
+      # Separate features and labels
+      features_batch = {k: batch[k] for k in pipeline.feature_keys}
+      if set(batch.keys()).intersection(pipeline.label_keys):
+        labels_batch = {k: batch[k] for k in pipeline.label_keys}
+      else:
+        labels_batch = None
 
-    return features_batch, labels_batch
+      return features_batch, labels_batch
 
   return input_fn
