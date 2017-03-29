@@ -81,7 +81,8 @@ class ModelBase(Configurable):
     if self.params["optimizer.sync_replicas"] > 0:
       optimizer = tf.train.SyncReplicasOptimizer(
           opt=optimizer,
-          replicas_to_aggregate=self.params["optimizer.sync_replicas"],
+          replicas_to_aggregate=self.params[
+              "optimizer.sync_replicas_to_aggregate"],
           total_num_replicas=self.params["optimizer.sync_replicas"])
       # This is really ugly, but we need to do this to make the optimizer
       # accessible outside of the model.
@@ -126,7 +127,8 @@ class ModelBase(Configurable):
         "optimizer.lr_min_learning_rate": 1e-12,
         "optimizer.lr_staircase": False,
         "optimizer.clip_gradients": 5.0,
-        "optimizer.sync_replicas": 0
+        "optimizer.sync_replicas": 0,
+        "optimizer.sync_replicas_to_aggregate": 0,
     }
 
   def batch_size(self, features, labels):
