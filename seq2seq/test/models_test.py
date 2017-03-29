@@ -69,6 +69,8 @@ class EncoderDecoderTests(tf.test.TestCase):
     self.vocab_file = test_utils.create_temporary_vocab_file(self.vocab_list)
     self.vocab_info = vocab.get_vocab_info(self.vocab_file.name)
 
+    tf.contrib.framework.get_or_create_global_step()
+
   def tearDown(self):
     self.vocab_file.close()
 

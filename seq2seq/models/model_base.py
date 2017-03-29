@@ -23,6 +23,7 @@ import tensorflow as tf
 
 from seq2seq.configurable import Configurable
 from seq2seq.training import utils as training_utils
+from seq2seq import global_vars
 
 
 def _flatten_dict(dict_, parent_key="", sep="."):
@@ -70,6 +71,25 @@ class ModelBase(Configurable):
         gradients, self.params["optimizer.clip_gradients"])
     return list(zip(clipped_gradients, variables))
 
+  def _create_optimizer(self):
+    """Creates the optimizer"""
+    name = self.params["optimizer.name"]
+    optimizer = tf.contrib.layers.OPTIMIZER_CLS_NAMES[name](
+        learning_rate=self.params["optimizer.learning_rate"])
+
+    # Optionally wrap with SyncReplicasOptimizer
+    if self.params["optimizer.sync_replicas"] > 0:
+      optimizer = tf.train.SyncReplicasOptimizer(
+          opt=optimizer,
+          replicas_to_aggregate=self.params[
+              "optimizer.sync_replicas_to_aggregate"],
+          total_num_replicas=self.params["optimizer.sync_replicas"])
+      # This is really ugly, but we need to do this to make the optimizer
+      # accessible outside of the model.
+      global_vars.SYNC_REPLICAS_OPTIMIZER = optimizer
+
+    return optimizer
+
   def _build_train_op(self, loss):
     """Creates the training operation"""
     learning_rate_decay_fn = training_utils.create_learning_rate_decay_fn(
@@ -81,14 +101,17 @@ class ModelBase(Configurable):
         min_learning_rate=self.params["optimizer.lr_min_learning_rate"],
         staircase=self.params["optimizer.lr_staircase"])
 
-    return tf.contrib.layers.optimize_loss(
+    optimizer = self._create_optimizer()
+    train_op = tf.contrib.layers.optimize_loss(
         loss=loss,
         global_step=tf.contrib.framework.get_global_step(),
         learning_rate=self.params["optimizer.learning_rate"],
         learning_rate_decay_fn=learning_rate_decay_fn,
         clip_gradients=self._clip_gradients,
-        optimizer=self.params["optimizer.name"],
+        optimizer=optimizer,
         summaries=["learning_rate", "loss", "gradients", "gradient_norm"])
+
+    return train_op
 
   @staticmethod
   def default_params():
@@ -104,6 +127,8 @@ class ModelBase(Configurable):
         "optimizer.lr_min_learning_rate": 1e-12,
         "optimizer.lr_staircase": False,
         "optimizer.clip_gradients": 5.0,
+        "optimizer.sync_replicas": 0,
+        "optimizer.sync_replicas_to_aggregate": 0,
     }
 
   def batch_size(self, features, labels):
