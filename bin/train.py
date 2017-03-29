@@ -145,7 +145,8 @@ def create_experiment(output_dir):
   train_input_fn = training_utils.create_input_fn(
       pipeline=train_input_pipeline,
       batch_size=FLAGS.batch_size,
-      bucket_boundaries=bucket_boundaries)
+      bucket_boundaries=bucket_boundaries,
+      scope="train_input_fn")
 
   # Development data input pipeline
   dev_input_pipeline = input_pipeline.make_input_pipeline_from_def(
@@ -157,7 +158,8 @@ def create_experiment(output_dir):
   eval_input_fn = training_utils.create_input_fn(
       pipeline=dev_input_pipeline,
       batch_size=FLAGS.batch_size,
-      allow_smaller_final_batch=True)
+      allow_smaller_final_batch=True,
+      scope="dev_input_fn")
 
 
   def model_fn(features, labels, params, mode):
