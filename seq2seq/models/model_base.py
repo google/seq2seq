@@ -126,7 +126,7 @@ class ModelBase(Configurable):
         "optimizer.lr_min_learning_rate": 1e-12,
         "optimizer.lr_staircase": False,
         "optimizer.clip_gradients": 5.0,
-        "optimizer.sync_replicas": 1
+        "optimizer.sync_replicas": 0
     }
 
   def batch_size(self, features, labels):
