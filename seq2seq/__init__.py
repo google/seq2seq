@@ -25,6 +25,7 @@ from seq2seq import contrib
 from seq2seq import data
 from seq2seq import decoders
 from seq2seq import encoders
+from seq2seq import global_vars
 from seq2seq import graph_utils
 from seq2seq import inference
 from seq2seq import losses

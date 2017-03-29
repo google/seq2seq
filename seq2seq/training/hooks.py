@@ -30,11 +30,12 @@ import yaml
 
 import tensorflow as tf
 from tensorflow.python.training.basic_session_run_hooks import SecondOrStepTimer  # pylint: disable=E0611
+from tensorflow.python.training import session_manager # pylint: disable=E0611
 from tensorflow.python.client import timeline  # pylint: disable=E0611
 from tensorflow import gfile
 
 from seq2seq.configurable import Configurable, abstractstaticmethod
-from seq2seq import graph_utils
+from seq2seq import graph_utils, global_vars
 
 FLAGS = tf.flags.FLAGS
 
@@ -306,3 +307,69 @@ class DelayStartHook(TrainingHook, tf.train.GlobalStepWaiterHook):
   @staticmethod
   def default_params():
     return {"delay_k": 5000}
+
+
+class SyncReplicasOptimizerHook(TrainingHook):
+  """A SessionRunHook handles ops related to SyncReplicasOptimizer."""
+
+  def __init__(self, params, model_dir, run_config):
+    super(SyncReplicasOptimizerHook, self).__init__(
+        params, model_dir, run_config)
+    self._sync_optimizer = None
+    self._num_tokens = -1
+
+    self._local_init_op = None
+    self._ready_for_local_init_op = None
+    self._q_runner = None
+    self._init_tokens_op = None
+
+  @staticmethod
+  def default_params():
+    return {}
+
+  def begin(self):
+    if global_vars.SYNC_REPLICAS_OPTIMIZER is not None:
+      self._sync_optimizer = global_vars.SYNC_REPLICAS_OPTIMIZER
+    else:
+      return
+
+    if self._sync_optimizer._gradients_applied is False:  # pylint: disable=protected-access
+      raise ValueError(
+          "SyncReplicasOptimizer.apply_gradient should be called before using "
+          "the hook.")
+    if self.is_chief:
+      self._local_init_op = self._sync_optimizer.chief_init_op
+      self._ready_for_local_init_op = (
+          self._sync_optimizer.ready_for_local_init_op)
+      self._q_runner = self._sync_optimizer.get_chief_queue_runner()
+      self._init_tokens_op = self._sync_optimizer.get_init_tokens_op(
+          self._num_tokens)
+    else:
+      self._local_init_op = self._sync_optimizer.local_step_init_op
+      self._ready_for_local_init_op = (
+          self._sync_optimizer.ready_for_local_init_op)
+      self._q_runner = None
+      self._init_tokens_op = None
+
+  def after_create_session(self, session, coord):
+    """Runs SyncReplicasOptimizer initialization ops."""
+
+    if not self._sync_optimizer:
+      return
+
+    tf.logging.info("Found SyncReplicasOptimizer. Initializing.")
+
+    local_init_success, msg = session_manager._ready(  # pylint: disable=protected-access
+        self._ready_for_local_init_op, session,
+        "Model is not ready for SyncReplicasOptimizer local init.")
+    if not local_init_success:
+      raise RuntimeError(
+          "Init operations did not make model ready for SyncReplicasOptimizer "
+          "local_init. Init op: %s, error: %s" %
+          (self._local_init_op.name, msg))
+    session.run(self._local_init_op)
+    if self._init_tokens_op is not None:
+      session.run(self._init_tokens_op)
+    if self._q_runner is not None:
+      self._q_runner.create_threads(
+          session, coord=coord, daemon=True, start=True)

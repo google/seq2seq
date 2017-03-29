@@ -23,6 +23,7 @@ import tensorflow as tf
 
 from seq2seq.configurable import Configurable
 from seq2seq.training import utils as training_utils
+from seq2seq import global_vars
 
 
 def _flatten_dict(dict_, parent_key="", sep="."):
@@ -82,6 +83,9 @@ class ModelBase(Configurable):
           opt=optimizer,
           replicas_to_aggregate=self.params["optimizer.sync_replicas"],
           total_num_replicas=self.params["optimizer.sync_replicas"])
+      # This is really ugly, but we need to do this to make the optimizer
+      # accessible outside of the model.
+      global_vars.SYNC_REPLICAS_OPTIMIZER = optimizer
 
     return optimizer
 
@@ -106,9 +110,6 @@ class ModelBase(Configurable):
         optimizer=optimizer,
         summaries=["learning_rate", "loss", "gradients", "gradient_norm"])
 
-    if self.params["optimizer.sync_replicas"] > 0:
-      training_utils.add_sync_replica_optimizer_init_ops(optimizer)
-
     return train_op
 
   @staticmethod
@@ -125,7 +126,7 @@ class ModelBase(Configurable):
         "optimizer.lr_min_learning_rate": 1e-12,
         "optimizer.lr_staircase": False,
         "optimizer.clip_gradients": 5.0,
-        "optimizer.sync_replicas": 0
+        "optimizer.sync_replicas": 1
     }
 
   def batch_size(self, features, labels):
