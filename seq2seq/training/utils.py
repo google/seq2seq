@@ -33,6 +33,8 @@ from tensorflow import gfile
 
 from seq2seq.contrib import rnn_cell
 
+FLAGS = tf.flags.FLAGS
+
 
 class TrainOptions(object):
   """A collection of options that are passed to the training script
@@ -97,6 +99,39 @@ class TrainOptions(object):
         model_class=options_dict["model_class"],
         model_params=options_dict["model_params"])
 
+
+def add_sync_replica_optimizer_init_ops(sync_optimizer):
+  """Adds graph initialization ops used by the SyncReplicasOptimizer.
+  """
+  is_chief = True
+  if hasattr(FLAGS, "task_id"):
+    is_chief = (FLAGS.task_id == 0)
+
+  init_token_op = sync_optimizer.get_init_tokens_op()
+  chief_queue_runner = sync_optimizer.get_chief_queue_runner()
+
+  local_init_ops = [
+      tf.local_variables_initializer(),
+      tf.initialize_all_tables()]
+
+  if is_chief:
+    local_init_ops.append(sync_optimizer.chief_init_op)
+    local_init_ops.append(init_token_op)
+  else:
+    local_init_ops.append(sync_optimizer.local_step_init_op)
+
+  ready_for_local_init_op = tf.report_uninitialized_variables(
+      tf.global_variables())
+  ready_op = tf.report_uninitialized_variables()
+
+  tf.add_to_collection(tf.GraphKeys.LOCAL_INIT_OP, tf.group(*local_init_ops))
+  tf.add_to_collection(tf.GraphKeys.INIT_OP, tf.global_variables_initializer())
+  tf.add_to_collection(tf.GraphKeys.READY_OP, ready_op)
+  tf.add_to_collection(tf.GraphKeys.READY_FOR_LOCAL_INIT_OP,
+                       ready_for_local_init_op)
+
+  if is_chief:
+    tf.train.add_queue_runner(chief_queue_runner)
 
 def cell_from_spec(cell_classname, cell_params):
   """Create a RNN Cell instance from a JSON string.

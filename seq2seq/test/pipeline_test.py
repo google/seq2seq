@@ -54,6 +54,7 @@ class PipelineTest(tf.test.TestCase):
     self.output_dir = tempfile.mkdtemp()
     self.bin_folder = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../bin"))
+    tf.contrib.framework.get_or_create_global_step()
 
   def tearDown(self):
     shutil.rmtree(self.output_dir, ignore_errors=True)
