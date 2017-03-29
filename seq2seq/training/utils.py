@@ -33,8 +33,6 @@ from tensorflow import gfile
 
 from seq2seq.contrib import rnn_cell
 
-FLAGS = tf.flags.FLAGS
-
 
 class TrainOptions(object):
   """A collection of options that are passed to the training script
