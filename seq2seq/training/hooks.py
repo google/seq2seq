@@ -295,18 +295,18 @@ class VariableRestoreHook(TrainingHook):
 
 class DelayStartHook(TrainingHook, tf.train.GlobalStepWaiterHook):
   """Delays the start of the current worker process until global step
-  int(K*log(task_id+1)) is reaached. K is a parameter.
+  K * task_id is reached. K is a parameter.
   """
   def __init__(self, params, model_dir, run_config):
     TrainingHook.__init__(self, params, model_dir, run_config)
     self._task_id = self._run_config.task_id
     self._delay_k = self.params["delay_k"]
-    self._wait_until_step = int(self._delay_k * np.log(self._task_id + 1))
+    self._wait_until_step = int(self._delay_k * self._task_id)
     tf.train.GlobalStepWaiterHook.__init__(self, self._wait_until_step)
 
   @staticmethod
   def default_params():
-    return {"delay_k": 5000}
+    return {"delay_k": 500}
 
 
 class SyncReplicasOptimizerHook(TrainingHook):
