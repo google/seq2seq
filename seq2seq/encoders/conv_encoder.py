@@ -65,7 +65,7 @@ class ConvEncoder(Encoder):
         "output_cnn.kernel_size": 3,
         "output_cnn.layers": 5,
         "position_embeddings.enable": True,
-        "position_embeddings.combiner_fn": "tensorflow.add",
+        "position_embeddings.combiner_fn": "tensorflow.multiply",
         "position_embeddings.num_positions": 100,
     }
 
