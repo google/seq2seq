@@ -45,8 +45,9 @@ def position_encoding(sentence_size, embedding_size):
   ls = sentence_size + 1
   le = embedding_size + 1
   for k in range(1, le):
-      for j in range(1, ls):
-          encoding[j-1, k-1] = (1.0 - j/ls) - (k / le) * (1 - 2 * j/ls)
+    for j in range(1, ls):
+      encoding[j-1, k-1] = (1.0 - j/float(ls)) - (
+          k / float(le)) * (1. - 2. * j/float(ls))
   return encoding
 
 
