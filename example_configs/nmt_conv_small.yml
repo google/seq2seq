@@ -14,7 +14,7 @@ model_params:
     output_cnn.kernel_size: 3
     output_cnn.layers: 3
     position_embeddings.enable: true
-    position_embeddings.combiner_fn: "tensorflow.add"
+    position_embeddings.combiner_fn: tensorflow.multiply
     position_embeddings.num_positions: 52
   decoder.class: seq2seq.decoders.AttentionDecoder
   decoder.params:
