@@ -22,9 +22,32 @@ from __future__ import print_function
 
 from pydoc import locate
 
+import numpy as np
 import tensorflow as tf
 
 from seq2seq.encoders.encoder import Encoder, EncoderOutput
+
+
+def position_encoding(sentence_size, embedding_size):
+  """
+  Position Encoding described in section 4.1 of
+  End-To-End Memory Networks (https://arxiv.org/abs/1503.08895).
+
+  Args:
+    sentence_size: length of the sentence
+    embedding_size: dimensionality of the embeddings
+
+  Returns:
+    A numpy array of shape [sentence_size, embedding_size] containing
+    the fixed position encodings for each sentence position.
+  """
+  encoding = np.ones((sentence_size, embedding_size), dtype=np.float32)
+  ls = sentence_size + 1
+  le = embedding_size + 1
+  for k in range(1, le):
+      for j in range(1, ls):
+          encoding[j-1, k-1] = (1.0 - j/ls) - (k / le) * (1 - 2 * j/ls)
+  return encoding
 
 
 def _create_position_embedding(embedding_dim, num_positions, lengths, maxlen):
@@ -43,18 +66,23 @@ def _create_position_embedding(embedding_dim, num_positions, lengths, maxlen):
     A tensor of shape `[batch_size, maxlen, embedding_dim]` that contains
     embeddings for each position. All elements past `lengths` are zero.
   """
+  # Create constant position encodings
+  position_encodings = tf.constant(
+      position_encoding(num_positions, embedding_dim),
+      name="position_encoding")
+
+  # Slice to size of current sequence
+  pe_slice = position_encodings[:maxlen, :]
+  # Replicate encodings for each element in the batch
   batch_size = tf.shape(lengths)[0]
-  embedding = tf.get_variable("position_embedding",
-                              [num_positions, embedding_dim])
-  # Create matrix of positions, mask out positions that are not
-  positions = tf.tile([tf.range(maxlen)], [batch_size, 1])
-  positions_embed = tf.nn.embedding_lookup(embedding, positions)
+  pe_batch = tf.tile([pe_slice], [batch_size, 1, 1])
+
   # Mask out positions that are padded
   positions_mask = tf.sequence_mask(
       lengths=lengths, maxlen=maxlen, dtype=tf.float32)
-  positions_embed = positions_embed * tf.expand_dims(positions_mask, 2)
-  return positions_embed
+  positions_embed = pe_batch * tf.expand_dims(positions_mask, 2)
 
+  return positions_embed
 
 class PoolingEncoder(Encoder):
   """An encoder that pools over embeddings, as described in
@@ -90,7 +118,7 @@ class PoolingEncoder(Encoder):
         "pool_size": 5,
         "strides": 1,
         "position_embeddings.enable": True,
-        "position_embeddings.combiner_fn": "tensorflow.add",
+        "position_embeddings.combiner_fn": "tensorflow.multiply",
         "position_embeddings.num_positions": 100,
     }
 
