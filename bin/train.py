@@ -109,8 +109,8 @@ tf.flags.DEFINE_float("gpu_memory_fraction", 1.0,
                       """Fraction of GPU memory used by the process on
                       each GPU uniformly on the same machine.""")
 tf.flags.DEFINE_boolean("gpu_allow_growth", False,
-                        """Fraction of GPU memory used by the process on
-                        each GPU uniformly on the same machine.""")
+                        """Allow GPU memory allocation to grow
+                        dynamically.""")
 tf.flags.DEFINE_boolean("log_device_placement", False,
                         """Log the op placement to devices""")
 
