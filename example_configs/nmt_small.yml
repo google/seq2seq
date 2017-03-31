@@ -24,6 +24,8 @@ model_params:
       dropout_output_keep_prob: 1.0
       num_layers: 1
   optimizer.name: Adam
+  optimizer.params:
+    epsilon: 0.0000008
   optimizer.learning_rate: 0.0001
   source.max_seq_len: 50
   source.reverse: false
