@@ -75,7 +75,8 @@ class ModelBase(Configurable):
     """Creates the optimizer"""
     name = self.params["optimizer.name"]
     optimizer = tf.contrib.layers.OPTIMIZER_CLS_NAMES[name](
-        learning_rate=self.params["optimizer.learning_rate"])
+        learning_rate=self.params["optimizer.learning_rate"],
+        **self.params["optimizer.params"])
 
     # Optionally wrap with SyncReplicasOptimizer
     if self.params["optimizer.sync_replicas"] > 0:
@@ -119,6 +120,7 @@ class ModelBase(Configurable):
     return {
         "optimizer.name": "Adam",
         "optimizer.learning_rate": 1e-4,
+        "optimizer.params": {}, # Arbitrary parameters for the optimizer
         "optimizer.lr_decay_type": "",
         "optimizer.lr_decay_steps": 100,
         "optimizer.lr_decay_rate": 0.99,
