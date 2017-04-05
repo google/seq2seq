@@ -57,7 +57,7 @@ def add_dict_to_collection(dict_, collection_name):
 
 
 def get_dict_from_collection(collection_name):
-  """Adds a dictionary to a graph collection.
+  """Gets a dictionary from a graph collection.
 
   Args:
     collection_name: A collection name to read a dictionary from
