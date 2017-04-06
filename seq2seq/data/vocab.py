@@ -85,16 +85,16 @@ def create_vocabulary_lookup_table(filename, default_value=None):
   has_counts = len(vocab[0].split("\t")) == 2
   if has_counts:
     vocab, counts = zip(*[_.split("\t") for _ in vocab])
-    counts = [int(_) for _ in counts]
+    counts = [float(_) for _ in counts]
     vocab = list(vocab)
   else:
-    counts = [-1 for _ in vocab]
+    counts = [-1. for _ in vocab]
 
   # Add special vocabulary items
   special_vocab = get_special_vocab(vocab_size)
   vocab += list(special_vocab._fields)
   vocab_size += len(special_vocab)
-  counts += [-1 for _ in list(special_vocab._fields)]
+  counts += [-1. for _ in list(special_vocab._fields)]
 
   if default_value is None:
     default_value = special_vocab.UNK
@@ -102,7 +102,7 @@ def create_vocabulary_lookup_table(filename, default_value=None):
   tf.logging.info("Creating vocabulary lookup table of size %d", vocab_size)
 
   vocab_tensor = tf.constant(vocab)
-  count_tensor = tf.constant(counts, dtype=tf.int64)
+  count_tensor = tf.constant(counts, dtype=tf.float32)
   vocab_idx_tensor = tf.range(vocab_size, dtype=tf.int64)
 
   # Create ID -> word mapping
@@ -118,7 +118,7 @@ def create_vocabulary_lookup_table(filename, default_value=None):
 
   # Create word -> count mapping
   word_to_count_init = tf.contrib.lookup.KeyValueTensorInitializer(
-      vocab_tensor, count_tensor, tf.string, tf.int64)
+      vocab_tensor, count_tensor, tf.string, tf.float32)
   word_to_count_table = tf.contrib.lookup.HashTable(word_to_count_init, -1)
 
   return vocab_to_id_table, id_to_vocab_table, word_to_count_table, vocab_size
