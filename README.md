@@ -20,7 +20,7 @@ If you use this code for academic purposes, please cite it as:
 
 ```
 @ARTICLE{Britz:2017,
-  author          = {{Britz}, D. and {Goldie}, A. and {Luong}, T. and {Le}, Q.},
+  author          = {{Britz}, Denny and {Goldie}, Anna and {Luong}, Thang and {Le}, Quoc},
   title           = "{Massive Exploration of Neural Machine Translation Architectures}",
   journal         = {ArXiv e-prints},
   archivePrefix   = "arXiv",
