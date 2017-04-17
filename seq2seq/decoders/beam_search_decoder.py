@@ -152,7 +152,7 @@ class BeamSearchDecoder(RNNDecoder):
 
     # Perform a step of beam search
     bs_output, beam_state = beam_search.beam_search_step(
-        time_=time_ - 1,
+        time_=time_,
         logits=decoder_output.logits,
         beam_state=beam_state,
         config=self.config)
