@@ -59,6 +59,7 @@ def create_temp_tfrecords(sources, targets):
   writer = tf.python_io.TFRecordWriter(output_file.name)
   for source, target in zip(sources, targets):
     ex = tf.train.Example()
+    #pylint: disable=E1101
     ex.features.feature["source"].bytes_list.value.extend(
         [source.encode("utf-8")])
     ex.features.feature["target"].bytes_list.value.extend(
