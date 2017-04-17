@@ -99,7 +99,7 @@ class MetadataCaptureHook(TrainingHook):
       return tf.train.SessionRunArgs(self._global_step)
     else:
       tf.logging.info("Performing full trace on next step.")
-      run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+      run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE) #pylint: disable=E1101
       return tf.train.SessionRunArgs(self._global_step, options=run_options)
 
   def after_run(self, _run_context, run_values):

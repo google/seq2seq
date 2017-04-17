@@ -153,7 +153,7 @@ class TextMetricSpec(Configurable, MetricSpec):
       sliced_hypotheses = [self._postproc_fn(_) for _ in sliced_hypotheses]
       sliced_references = [self._postproc_fn(_) for _ in sliced_references]
 
-    return self.metric_fn(sliced_hypotheses, sliced_references)
+    return self.metric_fn(sliced_hypotheses, sliced_references) #pylint: disable=E1102
 
   def metric_fn(self, hypotheses, references):
     """Calculates the value of the metric.

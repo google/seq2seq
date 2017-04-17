@@ -152,7 +152,6 @@ def get_rnn_cell(cell_class,
     An instance of `tf.contrib.rnn.RNNCell`.
   """
 
-  #pylint: disable=redefined-variable-type
   cells = []
   for _ in range(num_layers):
     cell = cell_from_spec(cell_class, cell_params)
